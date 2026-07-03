@@ -1,0 +1,17 @@
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Infrastructure\bin\Release\net8.0\MedicalAssistant.Infrastructure.deps.json
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Infrastructure\bin\Release\net8.0\MedicalAssistant.Infrastructure.dll
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Infrastructure\bin\Release\net8.0\MedicalAssistant.Infrastructure.pdb
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Infrastructure\bin\Release\net8.0\MedicalAssistant.Application.dll
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Infrastructure\bin\Release\net8.0\MedicalAssistant.Domain.dll
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Infrastructure\bin\Release\net8.0\MedicalAssistant.Application.pdb
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Infrastructure\bin\Release\net8.0\MedicalAssistant.Domain.pdb
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Infrastructure\obj\Release\net8.0\MedicalAssistant.Infrastructure.csproj.AssemblyReference.cache
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Infrastructure\obj\Release\net8.0\MedicalAssistant.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Infrastructure\obj\Release\net8.0\MedicalAssistant.Infrastructure.AssemblyInfoInputs.cache
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Infrastructure\obj\Release\net8.0\MedicalAssistant.Infrastructure.AssemblyInfo.cs
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Infrastructure\obj\Release\net8.0\MedicalAssistant.Infrastructure.csproj.CoreCompileInputs.cache
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Infrastructure\obj\Release\net8.0\MedicalA.54DC3EA6.Up2Date
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Infrastructure\obj\Release\net8.0\MedicalAssistant.Infrastructure.dll
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Infrastructure\obj\Release\net8.0\refint\MedicalAssistant.Infrastructure.dll
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Infrastructure\obj\Release\net8.0\MedicalAssistant.Infrastructure.pdb
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Infrastructure\obj\Release\net8.0\ref\MedicalAssistant.Infrastructure.dll

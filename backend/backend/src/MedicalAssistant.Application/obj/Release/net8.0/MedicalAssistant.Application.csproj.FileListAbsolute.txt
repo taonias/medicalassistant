@@ -1,0 +1,15 @@
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Application\bin\Release\net8.0\MedicalAssistant.Application.deps.json
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Application\bin\Release\net8.0\MedicalAssistant.Application.dll
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Application\bin\Release\net8.0\MedicalAssistant.Application.pdb
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Application\bin\Release\net8.0\MedicalAssistant.Domain.dll
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Application\bin\Release\net8.0\MedicalAssistant.Domain.pdb
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Application\obj\Release\net8.0\MedicalAssistant.Application.csproj.AssemblyReference.cache
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Application\obj\Release\net8.0\MedicalAssistant.Application.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Application\obj\Release\net8.0\MedicalAssistant.Application.AssemblyInfoInputs.cache
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Application\obj\Release\net8.0\MedicalAssistant.Application.AssemblyInfo.cs
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Application\obj\Release\net8.0\MedicalAssistant.Application.csproj.CoreCompileInputs.cache
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Application\obj\Release\net8.0\MedicalA.5EFDC6F9.Up2Date
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Application\obj\Release\net8.0\MedicalAssistant.Application.dll
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Application\obj\Release\net8.0\refint\MedicalAssistant.Application.dll
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Application\obj\Release\net8.0\MedicalAssistant.Application.pdb
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Application\obj\Release\net8.0\ref\MedicalAssistant.Application.dll

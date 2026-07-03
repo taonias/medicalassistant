@@ -1,0 +1,22 @@
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Domain\bin\Debug\net8.0\MedicalAssistant.Domain.deps.json
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Domain\bin\Debug\net8.0\MedicalAssistant.Domain.dll
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Domain\bin\Debug\net8.0\MedicalAssistant.Domain.pdb
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Domain\obj\Debug\net8.0\MedicalAssistant.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Domain\obj\Debug\net8.0\MedicalAssistant.Domain.AssemblyInfoInputs.cache
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Domain\obj\Debug\net8.0\MedicalAssistant.Domain.AssemblyInfo.cs
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Domain\obj\Debug\net8.0\MedicalAssistant.Domain.csproj.CoreCompileInputs.cache
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Domain\obj\Debug\net8.0\MedicalAssistant.Domain.dll
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Domain\obj\Debug\net8.0\refint\MedicalAssistant.Domain.dll
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Domain\obj\Debug\net8.0\MedicalAssistant.Domain.pdb
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Domain\obj\Debug\net8.0\ref\MedicalAssistant.Domain.dll
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Domain\bin\Debug\net8.0\MedicalAssistant.Domain.deps.json
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Domain\bin\Debug\net8.0\MedicalAssistant.Domain.dll
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Domain\bin\Debug\net8.0\MedicalAssistant.Domain.pdb
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Domain\obj\Debug\net8.0\MedicalAssistant.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Domain\obj\Debug\net8.0\MedicalAssistant.Domain.AssemblyInfoInputs.cache
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Domain\obj\Debug\net8.0\MedicalAssistant.Domain.AssemblyInfo.cs
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Domain\obj\Debug\net8.0\MedicalAssistant.Domain.csproj.CoreCompileInputs.cache
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Domain\obj\Debug\net8.0\MedicalAssistant.Domain.dll
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Domain\obj\Debug\net8.0\refint\MedicalAssistant.Domain.dll
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Domain\obj\Debug\net8.0\MedicalAssistant.Domain.pdb
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Domain\obj\Debug\net8.0\ref\MedicalAssistant.Domain.dll

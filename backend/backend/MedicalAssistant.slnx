@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/MedicalAssistant.Api/MedicalAssistant.Api.csproj" />
+    <Project Path="src/MedicalAssistant.Application/MedicalAssistant.Application.csproj" />
+    <Project Path="src/MedicalAssistant.Domain/MedicalAssistant.Domain.csproj" />
+    <Project Path="src/MedicalAssistant.Identity/MedicalAssistant.Identity.csproj" />
+    <Project Path="src/MedicalAssistant.Infrastructure/MedicalAssistant.Infrastructure.csproj" />
+    <Project Path="src/MedicalAssistant.Persistence/MedicalAssistant.Persistence.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/MedicalAssistant.Application.UnitTests/MedicalAssistant.Application.UnitTests.csproj" />
+    <Project Path="test/MedicalAssistant.Persistence.IntegrationTests/MedicalAssistant.Persistence.IntegrationTests.csproj" />
+  </Folder>
+</Solution>

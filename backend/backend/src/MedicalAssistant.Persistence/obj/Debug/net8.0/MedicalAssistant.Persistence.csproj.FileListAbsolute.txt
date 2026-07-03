@@ -1,0 +1,38 @@
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Persistence\obj\Debug\net8.0\MedicalAssistant.Persistence.csproj.AssemblyReference.cache
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Persistence\obj\Debug\net8.0\MedicalAssistant.Persistence.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Persistence\obj\Debug\net8.0\MedicalAssistant.Persistence.AssemblyInfoInputs.cache
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Persistence\obj\Debug\net8.0\MedicalAssistant.Persistence.AssemblyInfo.cs
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Persistence\obj\Debug\net8.0\MedicalAssistant.Persistence.csproj.CoreCompileInputs.cache
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Persistence\bin\Debug\net8.0\MedicalAssistant.Persistence.deps.json
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Persistence\bin\Debug\net8.0\MedicalAssistant.Persistence.runtimeconfig.json
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Persistence\bin\Debug\net8.0\MedicalAssistant.Persistence.dll
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Persistence\bin\Debug\net8.0\MedicalAssistant.Persistence.pdb
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Persistence\bin\Debug\net8.0\MedicalAssistant.Application.dll
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Persistence\bin\Debug\net8.0\MedicalAssistant.Domain.dll
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Persistence\bin\Debug\net8.0\MedicalAssistant.Application.pdb
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Persistence\bin\Debug\net8.0\MedicalAssistant.Domain.pdb
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Persistence\obj\Debug\net8.0\MedicalA.C57C2A1B.Up2Date
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Persistence\obj\Debug\net8.0\MedicalAssistant.Persistence.dll
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Persistence\obj\Debug\net8.0\refint\MedicalAssistant.Persistence.dll
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Persistence\obj\Debug\net8.0\MedicalAssistant.Persistence.pdb
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Persistence\obj\Debug\net8.0\MedicalAssistant.Persistence.genruntimeconfig.cache
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Persistence\obj\Debug\net8.0\ref\MedicalAssistant.Persistence.dll
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Persistence\bin\Debug\net8.0\MedicalAssistant.Persistence.deps.json
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Persistence\bin\Debug\net8.0\MedicalAssistant.Persistence.runtimeconfig.json
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Persistence\bin\Debug\net8.0\MedicalAssistant.Persistence.dll
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Persistence\bin\Debug\net8.0\MedicalAssistant.Persistence.pdb
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Persistence\bin\Debug\net8.0\MedicalAssistant.Application.dll
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Persistence\bin\Debug\net8.0\MedicalAssistant.Domain.dll
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Persistence\bin\Debug\net8.0\MedicalAssistant.Application.pdb
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Persistence\bin\Debug\net8.0\MedicalAssistant.Domain.pdb
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Persistence\obj\Debug\net8.0\MedicalAssistant.Persistence.csproj.AssemblyReference.cache
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Persistence\obj\Debug\net8.0\MedicalAssistant.Persistence.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Persistence\obj\Debug\net8.0\MedicalAssistant.Persistence.AssemblyInfoInputs.cache
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Persistence\obj\Debug\net8.0\MedicalAssistant.Persistence.AssemblyInfo.cs
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Persistence\obj\Debug\net8.0\MedicalAssistant.Persistence.csproj.CoreCompileInputs.cache
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Persistence\obj\Debug\net8.0\MedicalA.C57C2A1B.Up2Date
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Persistence\obj\Debug\net8.0\MedicalAssistant.Persistence.dll
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Persistence\obj\Debug\net8.0\refint\MedicalAssistant.Persistence.dll
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Persistence\obj\Debug\net8.0\MedicalAssistant.Persistence.pdb
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Persistence\obj\Debug\net8.0\MedicalAssistant.Persistence.genruntimeconfig.cache
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Persistence\obj\Debug\net8.0\ref\MedicalAssistant.Persistence.dll

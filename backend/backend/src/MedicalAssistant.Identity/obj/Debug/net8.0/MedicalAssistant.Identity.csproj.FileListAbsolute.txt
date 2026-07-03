@@ -1,0 +1,38 @@
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Identity\bin\Debug\net8.0\MedicalAssistant.Identity.deps.json
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Identity\bin\Debug\net8.0\MedicalAssistant.Identity.runtimeconfig.json
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Identity\bin\Debug\net8.0\MedicalAssistant.Identity.dll
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Identity\bin\Debug\net8.0\MedicalAssistant.Identity.pdb
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Identity\bin\Debug\net8.0\MedicalAssistant.Application.dll
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Identity\bin\Debug\net8.0\MedicalAssistant.Domain.dll
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Identity\bin\Debug\net8.0\MedicalAssistant.Application.pdb
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Identity\bin\Debug\net8.0\MedicalAssistant.Domain.pdb
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Identity\obj\Debug\net8.0\MedicalAssistant.Identity.csproj.AssemblyReference.cache
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Identity\obj\Debug\net8.0\MedicalAssistant.Identity.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Identity\obj\Debug\net8.0\MedicalAssistant.Identity.AssemblyInfoInputs.cache
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Identity\obj\Debug\net8.0\MedicalAssistant.Identity.AssemblyInfo.cs
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Identity\obj\Debug\net8.0\MedicalAssistant.Identity.csproj.CoreCompileInputs.cache
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Identity\obj\Debug\net8.0\MedicalA.C6E3CCAB.Up2Date
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Identity\obj\Debug\net8.0\MedicalAssistant.Identity.dll
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Identity\obj\Debug\net8.0\refint\MedicalAssistant.Identity.dll
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Identity\obj\Debug\net8.0\MedicalAssistant.Identity.pdb
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Identity\obj\Debug\net8.0\MedicalAssistant.Identity.genruntimeconfig.cache
+C:\Users\DR638BU\OneDrive - EY\Documents\EY Docs\_MPC - MPLX\Wireframes\Demo2\backend\src\MedicalAssistant.Identity\obj\Debug\net8.0\ref\MedicalAssistant.Identity.dll
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Identity\bin\Debug\net8.0\MedicalAssistant.Identity.deps.json
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Identity\bin\Debug\net8.0\MedicalAssistant.Identity.runtimeconfig.json
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Identity\bin\Debug\net8.0\MedicalAssistant.Identity.dll
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Identity\bin\Debug\net8.0\MedicalAssistant.Identity.pdb
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Identity\bin\Debug\net8.0\MedicalAssistant.Application.dll
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Identity\bin\Debug\net8.0\MedicalAssistant.Domain.dll
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Identity\bin\Debug\net8.0\MedicalAssistant.Application.pdb
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Identity\bin\Debug\net8.0\MedicalAssistant.Domain.pdb
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Identity\obj\Debug\net8.0\MedicalAssistant.Identity.csproj.AssemblyReference.cache
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Identity\obj\Debug\net8.0\MedicalAssistant.Identity.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Identity\obj\Debug\net8.0\MedicalAssistant.Identity.AssemblyInfoInputs.cache
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Identity\obj\Debug\net8.0\MedicalAssistant.Identity.AssemblyInfo.cs
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Identity\obj\Debug\net8.0\MedicalAssistant.Identity.csproj.CoreCompileInputs.cache
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Identity\obj\Debug\net8.0\MedicalA.C6E3CCAB.Up2Date
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Identity\obj\Debug\net8.0\MedicalAssistant.Identity.dll
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Identity\obj\Debug\net8.0\refint\MedicalAssistant.Identity.dll
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Identity\obj\Debug\net8.0\MedicalAssistant.Identity.pdb
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Identity\obj\Debug\net8.0\MedicalAssistant.Identity.genruntimeconfig.cache
+C:\Users\DR638BU\OneDrive - EY\Documents\Other\MedicalAssistant\backend\src\MedicalAssistant.Identity\obj\Debug\net8.0\ref\MedicalAssistant.Identity.dll
