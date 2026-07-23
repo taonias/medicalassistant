@@ -43,27 +43,32 @@ export function AppShell() {
       </aside>
 
       <div className="app-shell__main">
-        <header className="app-shell__topbar">
-          <div className="app-shell__topbar-start">
-            <AppBrand variant="horizontal" className="app-shell__mobile-brand" />
+        <div className="app-shell__page-header">
+          <header className="app-shell__topbar">
+            <div className="app-shell__topbar-start">
+              <AppBrand variant="horizontal" className="app-shell__mobile-brand" />
+            </div>
+            <div className="app-shell__user app-shell__user--mobile">
+              <UserMenu />
+              <button
+                type="button"
+                className="icon-button icon-button--danger"
+                onClick={logout}
+                disabled={isRecordingLocked}
+                aria-label="Sign out"
+                title="Sign out"
+              >
+                <SignOutIcon />
+              </button>
+            </div>
+          </header>
+
+          <div className="app-shell__breadcrumb-bar">
+            <AppBreadcrumbs />
           </div>
-          <div className="app-shell__user app-shell__user--mobile">
-            <UserMenu />
-            <button
-              type="button"
-              className="icon-button icon-button--danger"
-              onClick={logout}
-              disabled={isRecordingLocked}
-              aria-label="Sign out"
-              title="Sign out"
-            >
-              <SignOutIcon />
-            </button>
-          </div>
-        </header>
+        </div>
 
         <main className="app-shell__content" id="main-content">
-          <AppBreadcrumbs />
           <Outlet />
         </main>
 

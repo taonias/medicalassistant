@@ -7,9 +7,8 @@ import { ConsultationDetailPage } from '../features/consultations/pages/Consulta
 import { PatientDetailPage } from '../features/patients/pages/PatientDetailPage';
 import { PatientListPage } from '../features/patients/pages/PatientListPage';
 import {
-  PatientHistoryTab,
+  PatientConsultationsTab,
   PatientOverviewTab,
-  PatientStructuredDataTab,
 } from '../features/patients/pages/PatientTabs';
 import { AppShell } from '../layouts/AppShell';
 import { AuthLayout } from '../layouts/AuthLayout';
@@ -39,8 +38,8 @@ export const router = createBrowserRouter([
             element: <PatientDetailPage />,
             children: [
               { index: true, element: <PatientOverviewTab /> },
-              { path: 'history', element: <PatientHistoryTab /> },
-              { path: 'structured-data', element: <PatientStructuredDataTab /> },
+              { path: 'history', element: <PatientConsultationsTab /> },
+              { path: 'structured-data', element: <Navigate to=".." replace /> },
             ],
           },
           { path: 'patients/:patientId/consultations/new', element: <NewConsultationPage /> },

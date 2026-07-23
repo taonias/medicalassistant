@@ -1,7 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
+import { getAudioDurationSeconds } from '../utils/getAudioDuration';
+import {
+  buildRecordingFile,
+  preferredRecordingMimeType,
+  setMicrophoneEnabled,
+} from '../utils/recordingMedia';
 
 interface Props {
-  onRecordingComplete: (file: File, durationSeconds: number) => void;
+  onRecordingComplete: (file: File, durationSeconds?: number) => void;
   disabled?: boolean;
   isProcessing?: boolean;
   variant?: 'default' | 'minimal';
@@ -36,7 +42,16 @@ export function AudioRecorder({
   useEffect(() => {
     return () => {
       if (timerRef.current) window.clearInterval(timerRef.current);
-      mediaRecorderRef.current?.stop();
+      const recorder = mediaRecorderRef.current;
+      if (recorder && recorder.state !== 'inactive') {
+        recorder.ondataavailable = null;
+        recorder.onstop = null;
+        try {
+          recorder.stop();
+        } catch {
+          // ignore
+        }
+      }
       streamRef.current?.getTracks().forEach((track) => track.stop());
     };
   }, []);
@@ -58,23 +73,47 @@ export function AudioRecorder({
   async function startRecording() {
     setError(null);
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          channelCount: 1,
+        },
+      });
       streamRef.current = stream;
-      const recorder = new MediaRecorder(stream);
       chunksRef.current = [];
+
+      const mimeType = preferredRecordingMimeType();
+      const recorder = mimeType
+        ? new MediaRecorder(stream, { mimeType })
+        : new MediaRecorder(stream);
 
       recorder.ondataavailable = (event) => {
         if (event.data.size > 0) chunksRef.current.push(event.data);
       };
 
       recorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: recorder.mimeType || 'audio/webm' });
-        const file = new File([blob], `consultation-${Date.now()}.webm`, {
-          type: blob.type,
-        });
-        onRecordingComplete(file, elapsedRef.current);
-        stream.getTracks().forEach((track) => track.stop());
-        streamRef.current = null;
+        void (async () => {
+          const file = buildRecordingFile(
+            chunksRef.current,
+            recorder.mimeType || preferredRecordingMimeType(),
+          );
+          stream.getTracks().forEach((track) => track.stop());
+          streamRef.current = null;
+
+          if (!file) return;
+
+          const measured = await getAudioDurationSeconds(file);
+          const duration =
+            measured == null
+              ? elapsedRef.current > 0
+                ? elapsedRef.current
+                : undefined
+              : measured <= 1 && elapsedRef.current > 2
+                ? elapsedRef.current
+                : measured;
+          onRecordingComplete(file, duration);
+        })();
       };
 
       mediaRecorderRef.current = recorder;
@@ -91,21 +130,28 @@ export function AudioRecorder({
 
   function pauseRecording() {
     if (mediaRecorderRef.current?.state !== 'recording') return;
-    mediaRecorderRef.current.pause();
+    setMicrophoneEnabled(streamRef.current, false);
     setIsPaused(true);
     clearTimer();
   }
 
   function resumeRecording() {
-    if (mediaRecorderRef.current?.state !== 'paused') return;
-    mediaRecorderRef.current.resume();
+    if (!isPaused || mediaRecorderRef.current?.state !== 'recording') return;
+    setMicrophoneEnabled(streamRef.current, true);
     setIsPaused(false);
     startTimer();
   }
 
   function stopRecording() {
-    if (!mediaRecorderRef.current || mediaRecorderRef.current.state === 'inactive') return;
-    mediaRecorderRef.current.stop();
+    const recorder = mediaRecorderRef.current;
+    if (!recorder || recorder.state === 'inactive') return;
+    setMicrophoneEnabled(streamRef.current, true);
+    try {
+      recorder.requestData();
+    } catch {
+      // best-effort
+    }
+    recorder.stop();
     setIsRecording(false);
     setIsPaused(false);
     clearTimer();

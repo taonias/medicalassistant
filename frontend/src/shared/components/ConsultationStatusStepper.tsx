@@ -6,7 +6,6 @@ interface Props {
 }
 
 const DEFAULT_PROCESSING = [
-  'AudioUploaded',
   'Transcribing',
   'Transcribed',
   'StructuredDataPending',
@@ -16,8 +15,10 @@ export function ConsultationStatusStepper({
   status,
   processingStatuses = DEFAULT_PROCESSING,
 }: Props) {
-  const steps = ['Draft', 'AudioUploaded', 'Transcribing', 'Transcribed', 'StructuredDataPending', 'Completed'];
-  const currentIndex = steps.indexOf(status);
+  const steps = ['Draft', 'Uploaded', 'Transcribing', 'Transcribed', 'StructuredDataPending', 'Completed'];
+  const normalizedStatus =
+    status === 'AudioUploaded' || status === 'DocumentUploaded' ? 'Uploaded' : status;
+  const currentIndex = steps.indexOf(normalizedStatus);
   const isFailed = status === 'Failed';
   const isProcessing = processingStatuses.includes(status);
 
@@ -54,10 +55,12 @@ interface UseConsultationPollingOptions {
   intervalMs?: number;
 }
 
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
 export function useConsultationPolling({
   status,
   onPoll,
-  intervalMs = 4000,
+  intervalMs = ONE_DAY_MS,
 }: UseConsultationPollingOptions) {
   const onPollRef = useRef(onPoll);
   onPollRef.current = onPoll;

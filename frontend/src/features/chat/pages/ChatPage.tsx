@@ -115,16 +115,11 @@ export function ChatPage({ patientId, consultationId }: Props) {
 
   return (
     <div className="chat-page-layout">
-      {isGeneralChat ? (
-        <header className="chat-page-layout__header">
-          <h1>Chat</h1>
-        </header>
-      ) : null}
-
       <div className="chat-page">
         {!isGeneralChat ? (
           <div className="chat-context-banner">
             <div>
+              <span className="chat-context-banner__eyebrow muted">Chatting for</span>
               <strong>
                 {patient
                   ? formatPatientName(patient.firstName, patient.lastName)

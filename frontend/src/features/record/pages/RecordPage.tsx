@@ -1,13 +1,31 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useCreateConsultation } from '../../consultations/hooks/useConsultations';
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import {
+  useCreateConsultation,
+  useUploadConsultationAudio,
+} from '../../consultations/hooks/useConsultations';
+import { usePatient } from '../../patients/hooks/usePatients';
+import { formatPatientName } from '../../../shared/utils/format';
+import { getAudioDurationSeconds } from '../../audio-capture/utils/getAudioDuration';
 import { AudioVisualizer } from '../components/AudioVisualizer';
-import { PatientAttachPanel } from '../components/PatientAttachPanel';
 import { RecordControls } from '../components/RecordControls';
 import { useRecordSessionStore } from '../store/recordSessionStore';
 
 function createIdempotencyKey() {
   return crypto.randomUUID();
+}
+
+/** Prefer decoded file duration; fall back to timer if metadata is missing/bogus. */
+async function resolveRecordingDuration(file: File, timerSeconds: number) {
+  const measured = await getAudioDurationSeconds(file);
+  if (measured == null) {
+    return timerSeconds > 0 ? timerSeconds : undefined;
+  }
+  // Guard against the WebM metadata bug that reports ~1s for long recordings.
+  if (measured <= 1 && timerSeconds > 2) {
+    return timerSeconds;
+  }
+  return measured;
 }
 
 function formatDuration(totalSeconds: number) {
@@ -18,14 +36,22 @@ function formatDuration(totalSeconds: number) {
 
 export function RecordPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const createConsultation = useCreateConsultation();
+  const uploadAudio = useUploadConsultationAudio();
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [savingPatientId, setSavingPatientId] = useState<number | null>(null);
+  const autoSaveStarted = useRef(false);
+
+  const preselectedPatientId = Number(searchParams.get('patientId') ?? '0');
+  const hasPreselectedPatient = preselectedPatientId > 0;
+  const { data: preselectedPatient } = usePatient(
+    hasPreselectedPatient ? preselectedPatientId : 0,
+  );
 
   const phase = useRecordSessionStore((state) => state.phase);
   const elapsed = useRecordSessionStore((state) => state.elapsed);
-  const savedDuration = useRecordSessionStore((state) => state.savedDuration);
   const isPaused = useRecordSessionStore((state) => state.isPaused);
+  const micError = useRecordSessionStore((state) => state.micError);
   const startNewRecording = useRecordSessionStore((state) => state.startNewRecording);
   const resetToIdle = useRecordSessionStore((state) => state.resetToIdle);
   const clearTimer = useRecordSessionStore((state) => state.clearTimer);
@@ -35,41 +61,126 @@ export function RecordPage() {
   const stop = useRecordSessionStore((state) => state.stop);
 
   useEffect(() => {
-    startNewRecording();
+    autoSaveStarted.current = false;
+    void startNewRecording();
     return () => {
       clearTimer();
       resetToIdle();
     };
-  }, [clearTimer, resetToIdle, startNewRecording]);
+  }, [clearTimer, resetToIdle, startNewRecording, preselectedPatientId]);
 
   const isRecording = phase === 'recording';
-  const isSaving = createConsultation.isPending;
+  const isSaving = createConsultation.isPending || uploadAudio.isPending;
 
-  async function handleSave(patientId: number) {
+  async function handleSave(patientId?: number) {
     setSaveError(null);
-    setSavingPatientId(patientId);
+    const { savedDuration, audioFile: recordedFile } = useRecordSessionStore.getState();
+
+    if (!recordedFile) {
+      autoSaveStarted.current = false;
+      setSaveError('No audio was captured. Check your microphone and try again.');
+      return;
+    }
+
     try {
+      const measuredDuration = await resolveRecordingDuration(
+        recordedFile,
+        savedDuration,
+      );
+
       const consultation = await createConsultation.mutateAsync({
-        request: { patientId },
+        request: {
+          ...(patientId != null ? { patientId } : {}),
+          ...(measuredDuration != null ? { durationSeconds: measuredDuration } : {}),
+        },
         idempotencyKey: createIdempotencyKey(),
       });
-      navigate(`/patients/${patientId}/consultations/${consultation.id}`);
+
+      await uploadAudio.mutateAsync({
+        consultationId: consultation.id,
+        audioFile: recordedFile,
+        durationSeconds: measuredDuration,
+      });
+
+      if (patientId != null) {
+        navigate(`/patients/${patientId}/consultations/${consultation.id}`);
+      } else {
+        navigate('/');
+      }
     } catch (error) {
-      setSavingPatientId(null);
+      autoSaveStarted.current = false;
       setSaveError((error as Error).message ?? 'Unable to save recording.');
     }
   }
 
-  if (phase === 'attach') {
+  useEffect(() => {
+    if (phase !== 'attach' || autoSaveStarted.current) return;
+    autoSaveStarted.current = true;
+    void handleSave(hasPreselectedPatient ? preselectedPatientId : undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- save once when entering attach after stop
+  }, [phase, hasPreselectedPatient, preselectedPatientId]);
+
+  const patientLabel = preselectedPatient
+    ? formatPatientName(preselectedPatient.firstName, preselectedPatient.lastName)
+    : hasPreselectedPatient
+      ? `Patient ${preselectedPatientId}`
+      : null;
+
+  if (micError && phase === 'idle') {
     return (
       <div className="record-page record-page--attach">
-        <PatientAttachPanel
-          durationSeconds={savedDuration}
-          isSaving={isSaving}
-          savingPatientId={savingPatientId}
-          saveError={saveError}
-          onPatientSelect={(patientId) => void handleSave(patientId)}
-        />
+        <div className="record-patient-banner panel">
+          <p className="field__error" role="alert">
+            {micError}
+          </p>
+          <button
+            type="button"
+            className="button button--primary"
+            style={{ marginTop: 12 }}
+            onClick={() => {
+              void startNewRecording();
+            }}
+          >
+            Try again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (phase === 'attach') {
+    const savingLabel = hasPreselectedPatient
+      ? `Saving recording for ${patientLabel}…`
+      : 'Saving recording…';
+
+    return (
+      <div className="record-page record-page--attach">
+        <div className="record-patient-banner panel">
+          <p>
+            {isSaving || !saveError
+              ? savingLabel
+              : hasPreselectedPatient
+                ? `Unable to save recording for ${patientLabel}.`
+                : 'Unable to save recording.'}
+          </p>
+          {saveError ? (
+            <div className="stack" style={{ marginTop: 12 }}>
+              <p className="field__error" role="alert">
+                {saveError}
+              </p>
+              <button
+                type="button"
+                className="button button--primary"
+                onClick={() => {
+                  autoSaveStarted.current = false;
+                  void handleSave(hasPreselectedPatient ? preselectedPatientId : undefined);
+                }}
+              >
+                Retry save
+              </button>
+            </div>
+          ) : null}
+        </div>
       </div>
     );
   }
@@ -77,6 +188,12 @@ export function RecordPage() {
   return (
     <>
       <div className="record-page">
+        {patientLabel ? (
+          <div className="record-patient-banner" role="status">
+            Recording for <strong>{patientLabel}</strong>
+          </div>
+        ) : null}
+
         <div className="record-session">
           <div
             className={`record-session__timer${isRecording && !isPaused ? ' record-session__timer--live' : ''}`}

@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '../../../shared/constants/queryKeys';
 import { useRecentPatients } from '../../../shared/hooks/useRecentPatients';
-import type { CreatePatientRequest } from '../../../shared/types/api';
+import type { CreatePatientRequest, UpdatePatientRequest } from '../../../shared/types/api';
 import { useAuthStore } from '../../auth/store/authStore';
-import { patientApi } from '../api/patientApi';
+import { patientApi, type PatientHistoryQueryParams } from '../api/patientApi';
 
 export function usePatients() {
   const token = useAuthStore((state) => state.token);
@@ -29,10 +29,25 @@ export function usePatient(id: number) {
   });
 }
 
-export function usePatientHistory(id: number) {
+export function usePatientHistory(id: number, params?: PatientHistoryQueryParams) {
+  const fromDate = params?.fromDate;
+  const toDate = params?.toDate;
+  const page = params?.page;
+  const pageSize = params?.pageSize;
+  const source = params?.source;
+  const includeStructuredData = params?.includeStructuredData;
+
   return useQuery({
-    queryKey: queryKeys.patientHistory(id),
-    queryFn: () => patientApi.getHistory(id),
+    queryKey: queryKeys.patientHistory(id, fromDate, toDate, page, pageSize, source),
+    queryFn: () =>
+      patientApi.getHistory(id, {
+        fromDate,
+        toDate,
+        page,
+        pageSize,
+        source,
+        includeStructuredData,
+      }),
     enabled: id > 0,
   });
 }
@@ -47,6 +62,21 @@ export function useCreatePatient() {
       addRecentPatient(patient);
       queryClient.setQueryData(queryKeys.patient(patient.id), patient);
       queryClient.invalidateQueries({ queryKey: queryKeys.patients });
+    },
+  });
+}
+
+export function useUpdatePatient() {
+  const queryClient = useQueryClient();
+  const { addRecentPatient } = useRecentPatients();
+
+  return useMutation({
+    mutationFn: (request: UpdatePatientRequest) => patientApi.update(request),
+    onSuccess: (patient) => {
+      addRecentPatient(patient);
+      queryClient.setQueryData(queryKeys.patient(patient.id), patient);
+      queryClient.invalidateQueries({ queryKey: queryKeys.patients });
+      queryClient.invalidateQueries({ queryKey: queryKeys.patientHistoryPrefix(patient.id) });
     },
   });
 }

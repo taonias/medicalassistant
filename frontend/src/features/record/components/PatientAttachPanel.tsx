@@ -12,6 +12,7 @@ interface Props {
   savingPatientId: number | null;
   saveError?: string | null;
   onPatientSelect: (patientId: number) => void;
+  compact?: boolean;
 }
 
 function formatDuration(totalSeconds: number) {
@@ -26,6 +27,7 @@ export function PatientAttachPanel({
   savingPatientId,
   saveError,
   onPatientSelect,
+  compact = false,
 }: Props) {
   const { data: patients, isLoading, error, refetch } = usePatients();
   const [search, setSearch] = useState('');
@@ -36,11 +38,17 @@ export function PatientAttachPanel({
   }, [patients, search]);
 
   return (
-    <section className="patient-attach-panel">
-      <header className="patient-attach-panel__header">
-        <h2>Attach to patient</h2>
-        <p className="muted">Recording length {formatDuration(durationSeconds)}</p>
-      </header>
+    <section className={`patient-attach-panel${compact ? ' patient-attach-panel--compact' : ''}`}>
+      {compact ? (
+        <header className="patient-attach-panel__header">
+          <h3>Attach to patient</h3>
+        </header>
+      ) : (
+        <header className="patient-attach-panel__header">
+          <h2>Attach to patient</h2>
+          <p className="muted">Recording length {formatDuration(durationSeconds)}</p>
+        </header>
+      )}
 
       <PatientSearchField value={search} onChange={setSearch} />
 

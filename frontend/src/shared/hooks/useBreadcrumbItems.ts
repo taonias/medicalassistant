@@ -1,21 +1,22 @@
 import { useMemo } from 'react';
 import { useLocation, useParams, useSearchParams } from 'react-router-dom';
 import { useConsultation } from '../../features/consultations/hooks/useConsultations';
-import { usePatient } from '../../features/patients/hooks/usePatients';
+import { usePatient, usePatientHistory } from '../../features/patients/hooks/usePatients';
+import { addDaysToDateInput, toDateInputValue } from '../../features/patients/utils/historyDateRange';
 import { formatPatientName } from '../utils/format';
 
 export type BreadcrumbItem = { label: string; href?: string };
-
-const PATIENT_TAB_LABELS: Record<string, string> = {
-  history: 'History',
-  'structured-data': 'Structured data',
-};
 
 function patientLabel(
   patient: { firstName: string; lastName: string } | undefined,
   patientId: number,
 ) {
   return patient ? formatPatientName(patient.firstName, patient.lastName) : `Patient ${patientId}`;
+}
+
+function parseSourceFilter(value: string | null): 'all' | 'audio' | 'pdf' {
+  if (value === 'audio' || value === 'pdf') return value;
+  return 'all';
 }
 
 export function useBreadcrumbItems(): BreadcrumbItem[] {
@@ -28,9 +29,30 @@ export function useBreadcrumbItems(): BreadcrumbItem[] {
   const consultation = useConsultation(consultationIdFromRoute);
 
   const patientIdForLookup =
-    patientIdFromRoute > 0 ? patientIdFromRoute : (consultation.data?.patientId ?? 0);
+    patientIdFromRoute > 0
+      ? patientIdFromRoute
+      : pathname === '/record'
+        ? Number(searchParams.get('patientId') ?? '0')
+        : (consultation.data?.patientId ?? 0);
 
   const patient = usePatient(patientIdForLookup);
+
+  const onConsultationsTab =
+    patientIdFromRoute > 0 && pathname === `/patients/${patientIdFromRoute}/history`;
+  const today = toDateInputValue();
+  const historyFromDate = searchParams.get('fromDate') ?? addDaysToDateInput(today, -6);
+  const historyToDate = searchParams.get('toDate') ?? today;
+  const historySource = parseSourceFilter(searchParams.get('source'));
+  const consultationsHistory = usePatientHistory(onConsultationsTab ? patientIdFromRoute : 0, {
+    fromDate: historyFromDate,
+    toDate: historyToDate,
+    page: 1,
+    pageSize: 1,
+    source: historySource,
+  });
+  const consultationCount =
+    consultationsHistory.data?.totalConsultations ??
+    consultationsHistory.data?.consultations?.length;
 
   return useMemo(() => {
     if (pathname === '/login') {
@@ -42,6 +64,17 @@ export function useBreadcrumbItems(): BreadcrumbItem[] {
     }
 
     if (pathname === '/record') {
+      const recordPatientId = Number(searchParams.get('patientId') ?? '0');
+      if (recordPatientId > 0) {
+        return [
+          { label: 'Patients', href: '/patients' },
+          {
+            label: patientLabel(patient.data, recordPatientId),
+            href: `/patients/${recordPatientId}`,
+          },
+          { label: 'Record' },
+        ];
+      }
       return [{ label: 'Dashboard', href: '/' }, { label: 'Record' }];
     }
 
@@ -72,7 +105,7 @@ export function useBreadcrumbItems(): BreadcrumbItem[] {
       }
 
       if (consultationIdFromRoute > 0 && pathname.includes('/consultations/')) {
-        items.push({ label: `Consultation ${consultationIdFromRoute}` });
+        items.push({ label: String(consultationIdFromRoute) });
         return items;
       }
 
@@ -80,7 +113,7 @@ export function useBreadcrumbItems(): BreadcrumbItem[] {
         const linkedConsultationId = searchParams.get('consultation');
         if (linkedConsultationId) {
           items.push({ label: 'Chat', href: `/patients/${patientIdFromRoute}/chat` });
-          items.push({ label: `Consultation ${linkedConsultationId}` });
+          items.push({ label: linkedConsultationId });
         } else {
           items.push({ label: 'Chat' });
         }
@@ -91,8 +124,10 @@ export function useBreadcrumbItems(): BreadcrumbItem[] {
         .slice(`/patients/${patientIdFromRoute}`.length)
         .replace(/^\//, '');
 
-      if (tabSegment === 'history' || tabSegment === 'structured-data') {
-        items.push({ label: PATIENT_TAB_LABELS[tabSegment] });
+      if (tabSegment === 'history') {
+        items.push({
+          label: consultationCount != null ? String(consultationCount) : 'Consultations',
+        });
       } else {
         items.push({ label: 'Overview' });
       }
@@ -114,13 +149,14 @@ export function useBreadcrumbItems(): BreadcrumbItem[] {
         items.push({ label: 'Record', href: '/record' });
       }
 
-      items.push({ label: `Consultation ${consultationIdFromRoute}` });
+      items.push({ label: String(consultationIdFromRoute) });
       return items;
     }
 
     return [{ label: 'Dashboard', href: '/' }];
   }, [
     consultation.data,
+    consultationCount,
     consultationIdFromRoute,
     patient.data,
     patientIdFromRoute,

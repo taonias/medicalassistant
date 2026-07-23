@@ -1,7 +1,6 @@
-import { Link, NavLink, Outlet, useParams } from 'react-router-dom';
+import { NavLink, Outlet, useParams } from 'react-router-dom';
 import { ErrorMessage } from '../../../shared/components/ErrorMessage';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton';
-import { formatDate, formatPatientName } from '../../../shared/utils/format';
 import { usePatient } from '../hooks/usePatients';
 
 export function PatientDetailPage() {
@@ -23,37 +22,15 @@ export function PatientDetailPage() {
 
   return (
     <div className="page">
-      <header className="patient-header">
-        <div>
-          <h1>{formatPatientName(patient.firstName, patient.lastName)}</h1>
-          <p className="muted">
-            Patient ID {patient.id}
-            {patient.externalPatientId ? ` · MRN ${patient.externalPatientId}` : ''}
-            {patient.dateOfBirth ? ` · DOB ${formatDate(patient.dateOfBirth)}` : ''}
-          </p>
-        </div>
-        <div className="patient-header__actions">
-          <Link to={`${basePath}/consultations/new`} className="button button--primary">
-            New consultation
-          </Link>
-          <Link to={`${basePath}/chat`} className="button button--secondary">
-            Chat
-          </Link>
-        </div>
-      </header>
-
       <nav className="tab-nav" aria-label="Patient sections">
         <NavLink to={basePath} end className={({ isActive }) => (isActive ? 'active' : undefined)}>
           Overview
         </NavLink>
-        <NavLink to={`${basePath}/history`} className={({ isActive }) => (isActive ? 'active' : undefined)}>
-          History
-        </NavLink>
         <NavLink
-          to={`${basePath}/structured-data`}
+          to={`${basePath}/history`}
           className={({ isActive }) => (isActive ? 'active' : undefined)}
         >
-          Structured data
+          Consultations
         </NavLink>
       </nav>
 

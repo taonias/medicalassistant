@@ -41,6 +41,7 @@ export interface Patient {
   lastName: string;
   dateOfBirth?: string;
   assignedDoctorId: string;
+  summary?: string;
 }
 
 export interface PatientListItem {
@@ -60,10 +61,23 @@ export interface CreatePatientRequest {
   dateOfBirth?: string;
 }
 
+export interface UpdatePatientRequest {
+  id: number;
+  externalPatientId?: string | null;
+  firstName: string;
+  lastName: string;
+  dateOfBirth?: string | null;
+}
+
 export interface ConsultationHistoryItem {
   id: number;
   consultationDate: string;
   status: string;
+  durationSeconds?: number;
+  hasAudio?: boolean;
+  hasDocument?: boolean;
+  /** "Audio" | "Pdf" | "Unknown" */
+  source?: string;
   transcriptSnippet?: string;
   structuredSummary?: string;
 }
@@ -81,6 +95,10 @@ export interface MedicalStructuredDataDto {
 export interface PatientHistory {
   patient: Patient;
   consultations: ConsultationHistoryItem[];
+  doctorNotes: DoctorNote[];
+  totalConsultations?: number;
+  page?: number;
+  pageSize?: number;
 }
 
 export interface Consultation {
@@ -91,6 +109,9 @@ export interface Consultation {
   status: string;
   audioBlobUri?: string;
   audioContentType?: string;
+  documentBlobUri?: string;
+  documentContentType?: string;
+  documentFileName?: string;
   durationSeconds?: number;
   idempotencyKey?: string;
   failureReason?: string;
@@ -101,6 +122,7 @@ export interface ConsultationSummary {
   consultationDate: string;
   status: string;
   hasAudio: boolean;
+  hasDocument?: boolean;
   durationSeconds?: number;
 }
 
@@ -111,9 +133,34 @@ export interface DraftConsultationGroup {
   consultations: ConsultationSummary[];
 }
 
+export interface DashboardStatusCount {
+  status: string;
+  count: number;
+}
+
+export interface DashboardDailyVolume {
+  date: string;
+  count: number;
+}
+
+export interface DashboardAnalytics {
+  totalPatients: number;
+  patientsWithConsultations: number;
+  patientsWithoutConsultations: number;
+  totalConsultations: number;
+  unassignedRecordingCount: number;
+  processingCount: number;
+  completedCount: number;
+  failedCount: number;
+  averageDurationSeconds?: number;
+  statusBreakdown: DashboardStatusCount[];
+  consultationsLast14Days: DashboardDailyVolume[];
+}
+
 export interface CreateConsultationRequest {
   patientId?: number;
   consultationDate?: string;
+  durationSeconds?: number;
   idempotencyKey?: string;
 }
 
@@ -121,8 +168,7 @@ export interface Transcript {
   id: number;
   consultationId: number;
   status: string;
-  rawText?: string;
-  transcriptBlobUri?: string;
+  transcript?: string;
   externalJobId?: string;
   processedAt?: string;
   failureReason?: string;
@@ -201,7 +247,6 @@ export interface DoctorNote {
   doctorId: string;
   patientId: number;
   consultationId?: number | null;
-  title?: string | null;
   content: string;
   dateCreated?: string | null;
   dateModified?: string | null;

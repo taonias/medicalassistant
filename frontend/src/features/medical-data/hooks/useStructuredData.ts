@@ -3,11 +3,22 @@ import { queryKeys } from '../../../shared/constants/queryKeys';
 import type { MedicalStructuredDataDto } from '../../../shared/types/api';
 import { structuredDataApi } from '../api/structuredDataApi';
 
-export function useStructuredData(consultationId: number) {
+const STRUCTURED_DATA_STATUSES = new Set([
+  'StructuredDataPending',
+  'Completed',
+]);
+
+export function useStructuredData(consultationId: number, status?: string) {
+  const normalized = status?.replace(/\s+/g, '') ?? '';
+  const enabled =
+    consultationId > 0 &&
+    status != null &&
+    STRUCTURED_DATA_STATUSES.has(normalized);
+
   return useQuery<MedicalStructuredDataDto | null>({
     queryKey: queryKeys.structuredData(consultationId),
-    queryFn: () => structuredDataApi.getByConsultation(consultationId),
-    enabled: consultationId > 0,
+    queryFn: async () => (await structuredDataApi.getByConsultation(consultationId)) ?? null,
+    enabled,
     retry: (count, error) => {
       const statusCode = (error as { statusCode?: number }).statusCode;
       if (statusCode === 404) return false;

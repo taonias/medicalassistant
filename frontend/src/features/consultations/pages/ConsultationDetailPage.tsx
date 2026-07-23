@@ -1,30 +1,27 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { ConsultationStatusIcon } from '../../../shared/components/ConsultationStatusIcon';
 import {
-  ConsultationStatusStepper,
   useConsultationPolling,
 } from '../../../shared/components/ConsultationStatusStepper';
 import { ErrorMessage } from '../../../shared/components/ErrorMessage';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton';
 import { queryKeys } from '../../../shared/constants/queryKeys';
 import { parseStructuredSummary } from '../../../shared/utils/structuredData';
-import {
-  consultationStatusLabel,
-  formatDate,
-  formatDuration,
-} from '../../../shared/utils/format';
-import { StructuredDataPanel } from '../../medical-data/components/StructuredDataPanel';
+import { formatDate, formatDuration } from '../../../shared/utils/format';
+import { DownloadIcon, SaveIcon } from '../../../layouts/navigation/NavIcons';
 import { usePatient, usePatientHistory } from '../../patients/hooks/usePatients';
-import { useConsultation } from '../hooks/useConsultations';
+import { useConsultation, useConsultationAudio } from '../hooks/useConsultations';
+import { consultationApi } from '../api/consultationApi';
 import { useTranscript } from '../../transcripts/hooks/useTranscript';
 import { TranscriptViewer } from '../../transcripts/components/TranscriptViewer';
 import { useStructuredData } from '../../medical-data/hooks/useStructuredData';
-import { useApproveStructuredData } from '../../medical-data/hooks/useApproveStructuredData';
 import {
   useCreateDoctorNote,
   useDoctorNotes,
 } from '../../doctor-notes/hooks/useDoctorNotes';
+import { RecordingPreviewPlayer } from '../../record/components/RecordingPreviewPlayer';
 import type { DoctorNote } from '../../../shared/types/api';
 
 export function ConsultationDetailPage() {
@@ -40,18 +37,32 @@ export function ConsultationDetailPage() {
   const hasPatient = resolvedPatientId > 0;
 
   const patient = usePatient(hasPatient ? resolvedPatientId : 0);
-  const transcript = useTranscript(
-    consultationIdNum,
-    consultation.data?.status !== 'Draft',
-  );
+  const consultationStatus = consultation.data?.status;
+  const hasStoredAudio = Boolean(consultation.data?.audioBlobUri);
+  const hasStoredDocument = Boolean(consultation.data?.documentBlobUri);
+  const isPdfConsultation = hasStoredDocument && !hasStoredAudio;
+  // Always try to load transcript when present; 404 is treated as null in the hook.
+  const transcript = useTranscript(consultationIdNum, consultationIdNum > 0);
+  const showTranscript =
+    !isPdfConsultation || Boolean(transcript.data?.transcript);
+  const audioQuery = useConsultationAudio(consultationIdNum, hasStoredAudio);
   const history = usePatientHistory(hasPatient ? resolvedPatientId : 0);
-  const structuredDataQuery = useStructuredData(consultationIdNum);
-  const approveStructuredDataMutation = useApproveStructuredData();
+  const structuredDataQuery = useStructuredData(consultationIdNum, consultationStatus);
 
   const notesQuery = useDoctorNotes(consultationIdNum);
   const createNoteMutation = useCreateDoctorNote();
-  const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+
+  useEffect(() => {
+    return () => {
+      const objectUrl = queryClient.getQueryData<string | null>(
+        queryKeys.consultationAudio(consultationIdNum),
+      );
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, [consultationIdNum, queryClient]);
 
   useConsultationPolling({
     status: consultation.data?.status ?? 'Draft',
@@ -61,7 +72,7 @@ export function ConsultationDetailPage() {
       if (hasPatient) {
         void history.refetch();
         void queryClient.invalidateQueries({
-          queryKey: queryKeys.patientHistory(resolvedPatientId),
+          queryKey: queryKeys.patientHistoryPrefix(resolvedPatientId),
         });
       }
       void queryClient.invalidateQueries({
@@ -86,6 +97,13 @@ export function ConsultationDetailPage() {
   const structuredData = parseStructuredSummary(
     structuredDataQuery.data?.structuredPayload,
   );
+  const summaryText = structuredData.summary?.trim();
+  const durationSeconds = consultation.data.durationSeconds ?? 0;
+  const canShowPlayer = hasStoredAudio || (!isPdfConsultation && durationSeconds > 0);
+  const uploadedOnly =
+    consultation.data.status === 'AudioUploaded' ||
+    consultation.data.status === 'DocumentUploaded';
+  const documentFileName = consultation.data.documentFileName ?? 'consultation.pdf';
 
   async function onCreateNote() {
     const trimmed = content.trim();
@@ -93,89 +111,120 @@ export function ConsultationDetailPage() {
 
     await createNoteMutation.mutateAsync({
       consultationId: consultationIdNum,
-      title: title.trim() ? title.trim() : undefined,
       content: trimmed,
     });
 
-    setTitle('');
     setContent('');
   }
 
   return (
     <div className="page">
-      <header className="page-header">
-        <div>
-          <h1>Consultation</h1>
-          <p className="muted">
-            {formatDate(consultation.data.consultationDate)}{' · '}
-            {formatDuration(consultation.data.durationSeconds)}
-          </p>
-        </div>
-        {hasPatient ? (
-          <div className="page-header__actions">
-            <Link
-              to={`/patients/${resolvedPatientId}/chat?consultation=${consultationId}`}
-              className="button button--secondary"
-            >
-              Ask in chat
-            </Link>
-          </div>
-        ) : null}
-      </header>
-
-      <ConsultationStatusStepper status={consultation.data.status} />
+      <div className="consultation-meta">
+        <p className="muted consultation-meta__info">
+          {formatDate(consultation.data.consultationDate)}
+          {!isPdfConsultation ? (
+            <>
+              {' · '}
+              {formatDuration(consultation.data.durationSeconds)}
+            </>
+          ) : null}
+        </p>
+        <ConsultationStatusIcon
+          status={consultation.data.status}
+          className="consultation-status-icon--header"
+        />
+      </div>
 
       {consultation.data.failureReason ? (
         <ErrorMessage message={consultation.data.failureReason} />
       ) : null}
 
       <div className="consultation-grid">
-        <TranscriptViewer
-          text={transcript.data?.rawText}
-          status={transcript.data?.status ?? consultation.data.status}
-          failureReason={transcript.data?.failureReason}
-        />
+        {canShowPlayer ? (
+          <section className="panel">
+            <div className="panel-heading">
+              <h3>Recording</h3>
+              {hasStoredAudio ? (
+                <button
+                  type="button"
+                  className="icon-button"
+                  aria-label="Download recording"
+                  title="Download recording"
+                  onClick={() => {
+                    void consultationApi
+                      .downloadAudio(consultationIdNum)
+                      .catch((error: Error) => {
+                        window.alert(error.message ?? 'Unable to download recording.');
+                      });
+                  }}
+                >
+                  <DownloadIcon />
+                </button>
+              ) : null}
+            </div>
+            {hasStoredAudio && audioQuery.isLoading ? (
+              <p className="muted">Loading recording…</p>
+            ) : hasStoredAudio && audioQuery.error ? (
+              <ErrorMessage
+                message={(audioQuery.error as Error).message ?? 'Unable to load recording'}
+                onRetry={() => audioQuery.refetch()}
+              />
+            ) : (
+              <RecordingPreviewPlayer
+                durationSeconds={durationSeconds}
+                audioSrc={hasStoredAudio ? audioQuery.data : null}
+              />
+            )}
+          </section>
+        ) : null}
+
+        {hasStoredDocument ? (
+          <section className="panel">
+            <div className="panel-heading">
+              <h3>Document</h3>
+              <button
+                type="button"
+                className="icon-button"
+                aria-label="Download PDF"
+                title="Download PDF"
+                onClick={() => {
+                  void consultationApi
+                    .downloadDocument(consultationIdNum, documentFileName)
+                    .catch((error: Error) => {
+                      window.alert(error.message ?? 'Unable to download document.');
+                    });
+                }}
+              >
+                <DownloadIcon />
+              </button>
+            </div>
+            <p>{documentFileName}</p>
+          </section>
+        ) : null}
+
+        {showTranscript ? (
+          <TranscriptViewer
+            consultationId={consultationIdNum}
+            text={transcript.data?.transcript}
+            status={transcript.data?.status ?? consultation.data.status}
+            failureReason={transcript.data?.failureReason}
+          />
+        ) : null}
 
         <section className="panel">
           <h3>Summary</h3>
           {structuredDataQuery.isLoading ? (
             <p className="muted">Loading summary…</p>
-          ) : structuredData.summary ? (
-            <p>{structuredData.summary}</p>
+          ) : summaryText ? (
+            <p>{summaryText}</p>
           ) : (
             <p className="muted">
-              Summary will appear after structured data extraction ({consultationStatusLabel(consultation.data.status)}).
+              {uploadedOnly
+                ? 'No summary for this consultation.'
+                : 'The summary is still processing.'}
             </p>
           )}
-
-          {structuredDataQuery.data && !structuredDataQuery.data.approved ? (
-            <div style={{ marginTop: 12 }}>
-              <button
-                type="button"
-                className="button button--primary"
-                onClick={() =>
-                  void approveStructuredDataMutation.mutateAsync(consultationIdNum)
-                }
-                disabled={approveStructuredDataMutation.isPending}
-              >
-                {approveStructuredDataMutation.isPending
-                  ? 'Approving...'
-                  : 'Approve Structured Data'}
-              </button>
-
-              {approveStructuredDataMutation.error ? (
-                <ErrorMessage
-                  message={
-                    (approveStructuredDataMutation.error as Error)?.message ??
-                    'Failed to approve structured data'
-                  }
-                />
-              ) : null}
-            </div>
-          ) : null}
         </section>
-
-        <StructuredDataPanel data={structuredData} />
 
         {hasPatient ? (
           <section className="panel">
@@ -191,11 +240,10 @@ export function ConsultationDetailPage() {
               <div className="doctor-notes-list">
                 {notesQuery.data.map((n: DoctorNote) => (
                   <div key={n.id} className="doctor-note">
-                    {n.title ? <strong>{n.title}</strong> : null}
-                    <p className="muted" style={{ marginTop: 4 }}>
+                    <p className="muted doctor-note__meta">
                       {n.dateCreated ? new Date(n.dateCreated).toLocaleString() : null}
                     </p>
-                    <p style={{ whiteSpace: 'pre-wrap' }}>{n.content}</p>
+                    <p className="doctor-note__content">{n.content}</p>
                   </div>
                 ))}
               </div>
@@ -203,18 +251,8 @@ export function ConsultationDetailPage() {
               <p className="muted">No notes yet.</p>
             )}
 
-            <div className="doctor-note-form" style={{ marginTop: 16 }}>
+            <div className="doctor-note-form">
               <label className="field">
-                <span className="field__label">Title (optional)</span>
-                <input
-                  className="input"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g. Assessment"
-                />
-              </label>
-
-              <label className="field" style={{ marginTop: 8 }}>
                 <span className="field__label">Note</span>
                 <textarea
                   className="textarea"
@@ -225,14 +263,16 @@ export function ConsultationDetailPage() {
                 />
               </label>
 
-              <div style={{ marginTop: 12 }}>
+              <div className="doctor-note-form__actions">
                 <button
                   type="button"
-                  className="button button--primary"
+                  className="icon-button icon-button--primary"
                   onClick={() => void onCreateNote()}
-                  disabled={createNoteMutation.isPending}
+                  disabled={createNoteMutation.isPending || !content.trim()}
+                  aria-label={createNoteMutation.isPending ? 'Saving note' : 'Save note'}
+                  title="Save note"
                 >
-                  {createNoteMutation.isPending ? 'Saving...' : 'Save note'}
+                  <SaveIcon />
                 </button>
               </div>
 

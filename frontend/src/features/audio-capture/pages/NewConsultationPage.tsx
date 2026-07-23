@@ -3,9 +3,13 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ErrorMessage } from '../../../shared/components/ErrorMessage';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton';
 import { AudioRecorder } from '../../audio-capture/components/AudioRecorder';
-import { AudioUploader } from '../../audio-capture/components/AudioUploader';
+import { AudioUploader, isPdfFile } from '../../audio-capture/components/AudioUploader';
 import { UploadProgress } from '../../audio-capture/components/UploadProgress';
-import { useCreateConsultation, useUploadConsultationAudio } from '../../consultations/hooks/useConsultations';
+import {
+  useCreateConsultation,
+  useUploadConsultationAudio,
+  useUploadConsultationDocument,
+} from '../../consultations/hooks/useConsultations';
 import { usePatient } from '../../patients/hooks/usePatients';
 
 import { CaptureModeTabs, type CaptureMode } from '../../audio-capture/components/CaptureModeTabs';
@@ -21,23 +25,32 @@ export function NewConsultationPage() {
   const { data: patient, isLoading, error, refetch } = usePatient(id);
   const createConsultation = useCreateConsultation();
   const uploadAudio = useUploadConsultationAudio();
+  const uploadDocument = useUploadConsultationDocument();
   const [mode, setMode] = useState<CaptureMode>('record');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [durationSeconds, setDurationSeconds] = useState<number | undefined>();
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  async function submitAudio(file: File, duration?: number) {
+  async function submitFile(file: File, duration?: number) {
     setUploadProgress(10);
     const consultation = await createConsultation.mutateAsync({
       request: { patientId: id },
       idempotencyKey: createIdempotencyKey(),
     });
     setUploadProgress(45);
-    await uploadAudio.mutateAsync({
-      consultationId: consultation.id,
-      audioFile: file,
-      durationSeconds: duration,
-    });
+
+    if (isPdfFile(file)) {
+      await uploadDocument.mutateAsync({
+        consultationId: consultation.id,
+        documentFile: file,
+      });
+    } else {
+      await uploadAudio.mutateAsync({
+        consultationId: consultation.id,
+        audioFile: file,
+        durationSeconds: duration,
+      });
+    }
+
     setUploadProgress(100);
     navigate(`/patients/${id}/consultations/${consultation.id}`);
   }
@@ -52,17 +65,11 @@ export function NewConsultationPage() {
     );
   }
 
-  const isSubmitting = createConsultation.isPending || uploadAudio.isPending;
+  const isSubmitting =
+    createConsultation.isPending || uploadAudio.isPending || uploadDocument.isPending;
 
   return (
     <div className="page">
-      <header className="page-header">
-        <div>
-          <h1>New consultation</h1>
-          <p className="muted">Record live audio or upload an existing file</p>
-        </div>
-      </header>
-
       <CaptureModeTabs mode={mode} onChange={setMode} />
 
       <section className="panel" role="tabpanel">
@@ -75,27 +82,28 @@ export function NewConsultationPage() {
             disabled={isSubmitting}
             onRecordingComplete={(file, duration) => {
               setSelectedFile(file);
-              setDurationSeconds(duration);
-              void submitAudio(file, duration);
+              void submitFile(file, duration);
             }}
           />
         ) : (
           <>
             <AudioUploader
               disabled={isSubmitting}
-              onFileSelected={(file) => {
+              onFileSelected={(file, duration) => {
                 setSelectedFile(file);
-                void submitAudio(file, durationSeconds);
+                void submitFile(file, duration);
               }}
             />
             {selectedFile ? <p className="muted">Selected: {selectedFile.name}</p> : null}
           </>
         )}
 
-        {isSubmitting ? <UploadProgress progress={uploadProgress} /> : null}
+        {isSubmitting ? (
+          <UploadProgress progress={uploadProgress} fileName={selectedFile?.name} />
+        ) : null}
 
-        {(createConsultation.error || uploadAudio.error) && (
-          <ErrorMessage message="Unable to create consultation or upload audio. Please retry." />
+        {(createConsultation.error || uploadAudio.error || uploadDocument.error) && (
+          <ErrorMessage message="Unable to create consultation or upload file. Please retry." />
         )}
       </section>
 

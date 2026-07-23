@@ -63,13 +63,6 @@ export function SettingsPage() {
 
   return (
     <div className="page settings-page">
-      <header className="page-header">
-        <div>
-          <h1>Settings</h1>
-          <p className="muted">Manage your account, appearance, and security preferences.</p>
-        </div>
-      </header>
-
       <section className="panel settings-section">
         <h2>Appearance</h2>
         <p className="muted">Choose how Medical Assistant looks on this device.</p>

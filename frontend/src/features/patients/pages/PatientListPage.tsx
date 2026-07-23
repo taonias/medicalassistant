@@ -113,23 +113,19 @@ export function PatientListPage() {
 
   return (
     <div className="page patients-page">
-      <header className="page-header">
-        <div>
-          <h1>Patients</h1>
-        </div>
-        <button
-          type="button"
-          className="icon-button icon-button--primary"
-          onClick={() => setShowCreateForm(true)}
-          aria-label="Add new patient"
-          title="Add new patient"
-        >
-          <PlusIcon />
-        </button>
-      </header>
-
       {!isLoading && !error && patients && patients.length > 0 ? (
-        <PatientSearchField value={search} onChange={setSearch} />
+        <div className="patients-toolbar">
+          <PatientSearchField value={search} onChange={setSearch} />
+          <button
+            type="button"
+            className="icon-button icon-button--primary"
+            onClick={() => setShowCreateForm(true)}
+            aria-label="Add new patient"
+            title="Add new patient"
+          >
+            <PlusIcon />
+          </button>
+        </div>
       ) : null}
 
       {isLoading ? (

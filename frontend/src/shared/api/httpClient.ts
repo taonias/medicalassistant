@@ -78,5 +78,24 @@ export async function httpClient<T>(
     return undefined as T;
   }
 
-  return (await response.json()) as T;
+  const contentType = response.headers.get('Content-Type') ?? '';
+  if (contentType.includes('application/json')) {
+    const text = await response.text();
+    if (!text.trim() || text.trim() === 'null') {
+      return null as T;
+    }
+    return JSON.parse(text) as T;
+  }
+
+  // Empty successful responses (e.g. Ok(null) serialized oddly) are treated as null.
+  const text = await response.text();
+  if (!text.trim() || text.trim() === 'null') {
+    return null as T;
+  }
+
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    return text as T;
+  }
 }
