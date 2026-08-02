@@ -126,3 +126,4 @@ env/
 htmlcov/
 *.egg-info/
 .eggs/
+graphify-out/

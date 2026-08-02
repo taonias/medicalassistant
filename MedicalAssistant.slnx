@@ -1,0 +1,19 @@
+<Solution>
+  <Folder Name="/backend/">
+    <Project Path="backend/src/MedicalAssistant.Api/MedicalAssistant.Api.csproj" />
+    <Project Path="backend/src/MedicalAssistant.Application/MedicalAssistant.Application.csproj" />
+    <Project Path="backend/src/MedicalAssistant.Domain/MedicalAssistant.Domain.csproj" />
+    <Project Path="backend/src/MedicalAssistant.Identity/MedicalAssistant.Identity.csproj" />
+    <Project Path="backend/src/MedicalAssistant.Infrastructure/MedicalAssistant.Infrastructure.csproj" />
+    <Project Path="backend/src/MedicalAssistant.Persistence/MedicalAssistant.Persistence.csproj" />
+    <Project Path="backend/test/MedicalAssistant.Application.UnitTests/MedicalAssistant.Application.UnitTests.csproj" />
+    <Project Path="backend/test/MedicalAssistant.Persistence.IntegrationTests/MedicalAssistant.Persistence.IntegrationTests.csproj" />
+  </Folder>
+  <Folder Name="/clinical-knowledge/">
+    <Project Path="AI/src/MedicalAssistance.Ingestion.Api/MedicalAssistance.Ingestion.Api.csproj" />
+    <Project Path="AI/tests/MedicalAssistance.Ingestion.Api.Tests/MedicalAssistance.Ingestion.Api.Tests.csproj" />
+  </Folder>
+  <Folder Name="/acceptance/">
+    <Project Path="tests/MedicalAssistant.AcceptanceTests/MedicalAssistant.AcceptanceTests.csproj" />
+  </Folder>
+</Solution>
