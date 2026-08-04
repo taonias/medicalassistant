@@ -23,6 +23,13 @@ public sealed class RabbitMqConfirmedPublisher
         CancellationToken cancellationToken)
     {
         var request = RabbitMqPublishRequestFactory.Create(envelope, _options);
+        await PublishAsync(request, cancellationToken);
+    }
+
+    public async Task PublishAsync(
+        RabbitMqPublishRequest request,
+        CancellationToken cancellationToken)
+    {
         await using var channel = await _connection.CreateChannelAsync(
             new CreateChannelOptions(true, true, null, null),
             cancellationToken);

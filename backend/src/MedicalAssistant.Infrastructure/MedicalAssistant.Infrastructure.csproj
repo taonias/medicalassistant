@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MedicalAssistant.Application\MedicalAssistant.Application.csproj" />
+    <ProjectReference Include="..\MedicalAssistant.EventBusRabbitMQ\MedicalAssistant.EventBusRabbitMQ.csproj" />
   </ItemGroup>
 
 </Project>

@@ -4,6 +4,8 @@ using MedicalAssistant.Application.Contracts.Logging;
 using MedicalAssistant.Application.Contracts.Messaging;
 using MedicalAssistant.Application.Contracts.Storage;
 using MedicalAssistant.Application.Models;
+using MedicalAssistant.Application.Services;
+using MedicalAssistant.EventBusRabbitMQ;
 using MedicalAssistant.Infrastructure.AiModule;
 using MedicalAssistant.Infrastructure.BlobStorage;
 using MedicalAssistant.Infrastructure.Documents;
@@ -22,12 +24,20 @@ public static class InfrastructureServiceRegistration
         services.Configure<AiModuleSettings>(configuration.GetSection("AiModule"));
         services.Configure<AiCallbackSettings>(configuration.GetSection("AiCallback"));
         services.Configure<AppSettings>(configuration.GetSection("AppSettings"));
+        services.Configure<ConsultationOutboxRelayOptions>(configuration.GetSection(ConsultationOutboxRelayOptions.SectionName));
         services.Configure<RabbitMqSettings>(configuration.GetSection(RabbitMqSettings.SectionName));
+        services.Configure<RabbitMqConnectionOptions>(configuration.GetSection(RabbitMqConnectionOptions.SectionName));
+        services.Configure<RabbitMqPublishOptions>(configuration.GetSection(RabbitMqPublishOptions.SectionName));
 
         services.AddScoped(typeof(IAppLogger<>), typeof(LoggerAdapter<>));
         services.AddScoped<IBlobStorageService, AzureBlobStorageService>();
         services.AddScoped<IPdfTextExtractor, PdfPigTextExtractor>();
         services.AddHttpClient<IAiModuleClient, AiModuleHttpClient>();
+        services.AddScoped<ConsultationOutboxRelay>();
+        services.AddHostedService<ConsultationOutboxRelayHostedService>();
+        services.AddSingleton<IRabbitMqPersistentConnection, RabbitMqPersistentConnection>();
+        services.AddSingleton<RabbitMqConfirmedPublisher>();
+        services.AddSingleton<IConsultationOutboxPublisher, RabbitMqConsultationOutboxPublisher>();
         services.AddSingleton<IConsultationProcessingPublisher, RabbitMqConsultationProcessingPublisher>();
         services.AddSingleton<ITranscriptReadyPublisher, RabbitMqTranscriptReadyPublisher>();
 

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text;
+using System.Text.Json;
 using MedicalAssistant.EventBus;
 using RabbitMQ.Client;
 
@@ -14,17 +15,7 @@ public static class RabbitMqPublishRequestFactory
         ArgumentNullException.ThrowIfNull(envelope);
         ArgumentNullException.ThrowIfNull(options);
 
-        var properties = new BasicProperties
-        {
-            Persistent = true,
-            ContentType = "application/json",
-            ContentEncoding = "utf-8",
-            MessageId = envelope.EventId.ToString("N"),
-            CorrelationId = envelope.CorrelationId,
-            Type = envelope.EventType,
-            Timestamp = new AmqpTimestamp(DateTimeOffset.UtcNow.ToUnixTimeSeconds()),
-            Headers = BuildTraceHeaders()
-        };
+        var properties = CreateProperties(envelope.EventId, envelope.EventType, envelope.CorrelationId);
         var body = Encoding.UTF8.GetBytes(IntegrationEventSerializer.Serialize(envelope));
 
         return new RabbitMqPublishRequest(
@@ -34,6 +25,59 @@ public static class RabbitMqPublishRequestFactory
             properties,
             body);
     }
+
+    public static RabbitMqPublishRequest CreateFromOutbox(
+        Guid eventId,
+        string eventType,
+        int eventVersion,
+        DateTime occurredAtUtc,
+        string producer,
+        string? correlationId,
+        string? causationId,
+        string payloadJson,
+        RabbitMqPublishOptions options)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(eventType);
+        ArgumentException.ThrowIfNullOrWhiteSpace(producer);
+        ArgumentException.ThrowIfNullOrWhiteSpace(payloadJson);
+        ArgumentNullException.ThrowIfNull(options);
+
+        using var payload = JsonDocument.Parse(payloadJson);
+        var envelopeJson = JsonSerializer.Serialize(
+            new StoredEnvelope(
+                eventId,
+                eventType,
+                eventVersion,
+                occurredAtUtc,
+                producer,
+                correlationId,
+                causationId,
+                payload.RootElement),
+            IntegrationEventSerializer.Options);
+
+        return new RabbitMqPublishRequest(
+            options.ExchangeName,
+            eventType,
+            Mandatory: true,
+            CreateProperties(eventId, eventType, correlationId),
+            Encoding.UTF8.GetBytes(envelopeJson));
+    }
+
+    private static BasicProperties CreateProperties(
+        Guid eventId,
+        string eventType,
+        string? correlationId) =>
+        new()
+        {
+            Persistent = true,
+            ContentType = "application/json",
+            ContentEncoding = "utf-8",
+            MessageId = eventId.ToString("N"),
+            CorrelationId = correlationId,
+            Type = eventType,
+            Timestamp = new AmqpTimestamp(DateTimeOffset.UtcNow.ToUnixTimeSeconds()),
+            Headers = BuildTraceHeaders()
+        };
 
     private static Dictionary<string, object?> BuildTraceHeaders()
     {
@@ -51,4 +95,14 @@ public static class RabbitMqPublishRequestFactory
 
         return headers;
     }
+
+    private sealed record StoredEnvelope(
+        Guid EventId,
+        string EventType,
+        int EventVersion,
+        DateTime OccurredAtUtc,
+        string Producer,
+        string? CorrelationId,
+        string? CausationId,
+        JsonElement Payload);
 }
