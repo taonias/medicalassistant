@@ -39,6 +39,7 @@ public static class PersistenceServiceRegistration
         services.AddScoped<ITranscriptRepository, TranscriptRepository>();
         services.AddScoped<ITranscriptionInboxStore, TranscriptionInboxStore>();
         services.AddScoped<ITranscriptionCompletionUnitOfWork, TranscriptionCompletionUnitOfWork>();
+        services.AddScoped<ITranscriptReadyPreparationStore, TranscriptReadyPreparationStore>();
         services.AddScoped<IMedicalStructuredDataRepository, MedicalStructuredDataRepository>();
         services.AddScoped<IDoctorNoteRepository, DoctorNoteRepository>();
         services.AddScoped<IActionRequestRepository, ActionRequestRepository>();

@@ -3,8 +3,11 @@ using MedicalAssistant.Application.Contracts.Documents;
 using MedicalAssistant.Application.Contracts.Logging;
 using MedicalAssistant.Application.Contracts.Messaging;
 using MedicalAssistant.Application.Contracts.Storage;
+using MedicalAssistant.Application.EventHandlers;
 using MedicalAssistant.Application.Models;
 using MedicalAssistant.Application.Services;
+using MedicalAssistant.EventBus;
+using MedicalAssistant.EventBus.Contracts;
 using MedicalAssistant.EventBusRabbitMQ;
 using MedicalAssistant.Infrastructure.AiModule;
 using MedicalAssistant.Infrastructure.BlobStorage;
@@ -40,6 +43,34 @@ public static class InfrastructureServiceRegistration
         services.AddSingleton<IConsultationOutboxPublisher, RabbitMqConsultationOutboxPublisher>();
         services.AddSingleton<IConsultationProcessingPublisher, RabbitMqConsultationProcessingPublisher>();
         services.AddSingleton<ITranscriptReadyPublisher, RabbitMqTranscriptReadyPublisher>();
+        services.AddScoped<ConsultationTranscriptReadyIntegrationEventHandler>();
+        services.AddSingleton(ConsultationIntegrationEvents.Registry);
+        services.AddSingleton(provider =>
+            IntegrationEventSubscriptionRegistry.Create(
+                provider.GetRequiredService<IntegrationEventContractRegistry>(),
+                subscriptions => subscriptions.Subscribe<
+                    ConsultationTranscriptReadyV1,
+                    ConsultationTranscriptReadyIntegrationEventHandler>()));
+        services.AddSingleton<IntegrationEventDispatcher>();
+        services.AddRabbitMqEventBusConsumer(configuration);
+        services.PostConfigure<RabbitMqTopologyOptions>(options =>
+        {
+            options.ExchangeName = string.IsNullOrWhiteSpace(options.ExchangeName)
+                ? "medicalassistant.events"
+                : options.ExchangeName;
+            options.SubscriberName = string.IsNullOrWhiteSpace(options.SubscriberName)
+                ? ConsultationTranscriptReadyIntegrationEventHandler.ConsumerName
+                : options.SubscriberName;
+            options.QueueName = string.IsNullOrWhiteSpace(options.QueueName)
+                ? "medicalassistant.backend.transcript-ready"
+                : options.QueueName;
+        });
+        services.PostConfigure<RabbitMqConsumerOptions>(options =>
+        {
+            options.QueueName = string.IsNullOrWhiteSpace(options.QueueName)
+                ? "medicalassistant.backend.transcript-ready"
+                : options.QueueName;
+        });
 
         return services;
     }
