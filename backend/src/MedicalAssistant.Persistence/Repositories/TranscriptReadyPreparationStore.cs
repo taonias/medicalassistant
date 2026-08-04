@@ -100,25 +100,37 @@ public sealed class TranscriptReadyPreparationStore : ITranscriptReadyPreparatio
                 Request: null);
         }
 
-        Patient? patient = null;
-        if (consultation.PatientId is not null)
+        if (consultation.PatientId is null)
         {
-            patient = await _context.Patients
-                .SingleOrDefaultAsync(p => p.Id == consultation.PatientId.Value, cancellationToken)
-                ?? throw new NotFoundException(nameof(Patient), consultation.PatientId.Value);
+            await CompleteInboxAndCommitAsync(
+                inbox,
+                now,
+                UnauthorizedFailureCode,
+                cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+            return new TranscriptReadyPreparationResult(
+                TranscriptReadyPreparationStatus.IgnoredUnauthorized,
+                Request: null);
+        }
 
-            if (!patient.BelongsToDoctor(consultation.DoctorId))
-            {
-                await CompleteInboxAndCommitAsync(
-                    inbox,
-                    now,
-                    UnauthorizedFailureCode,
-                    cancellationToken);
-                await transaction.CommitAsync(cancellationToken);
-                return new TranscriptReadyPreparationResult(
-                    TranscriptReadyPreparationStatus.IgnoredUnauthorized,
-                    Request: null);
-            }
+        var patient = await _context.Patients
+            .SingleOrDefaultAsync(p => p.Id == consultation.PatientId.Value, cancellationToken);
+        if (patient is null)
+        {
+            throw new NotFoundException(nameof(Patient), consultation.PatientId.Value);
+        }
+
+        if (!patient.BelongsToDoctor(consultation.DoctorId))
+        {
+            await CompleteInboxAndCommitAsync(
+                inbox,
+                now,
+                UnauthorizedFailureCode,
+                cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+            return new TranscriptReadyPreparationResult(
+                TranscriptReadyPreparationStatus.IgnoredUnauthorized,
+                Request: null);
         }
 
         MarkInboxCompleted(inbox, now, failureCode: null);
@@ -133,9 +145,9 @@ public sealed class TranscriptReadyPreparationStore : ITranscriptReadyPreparatio
             consultation.Id,
             transcript.Id,
             transcript.Revision,
-            consultation.PatientId,
-            patient?.ExternalPatientId,
-            patient is null ? null : $"{patient.FirstName} {patient.LastName}",
+            consultation.PatientId.Value,
+            patient.ExternalPatientId,
+            $"{patient.FirstName} {patient.LastName}",
             consultation.DoctorId,
             consultation.ConsultationDate,
             payload.LanguageCode,

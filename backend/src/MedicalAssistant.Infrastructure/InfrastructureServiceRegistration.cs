@@ -1,4 +1,5 @@
 using MedicalAssistant.Application.Contracts.AiModule;
+using MedicalAssistant.Application.Contracts.ClinicalKnowledge;
 using MedicalAssistant.Application.Contracts.Documents;
 using MedicalAssistant.Application.Contracts.Logging;
 using MedicalAssistant.Application.Contracts.Messaging;
@@ -11,6 +12,7 @@ using MedicalAssistant.EventBus.Contracts;
 using MedicalAssistant.EventBusRabbitMQ;
 using MedicalAssistant.Infrastructure.AiModule;
 using MedicalAssistant.Infrastructure.BlobStorage;
+using MedicalAssistant.Infrastructure.ClinicalKnowledge;
 using MedicalAssistant.Infrastructure.Documents;
 using MedicalAssistant.Infrastructure.Logging;
 using MedicalAssistant.Infrastructure.Messaging;
@@ -25,6 +27,7 @@ public static class InfrastructureServiceRegistration
     {
         services.Configure<BlobStorageSettings>(configuration.GetSection("BlobStorage"));
         services.Configure<AiModuleSettings>(configuration.GetSection("AiModule"));
+        services.Configure<ClinicalKnowledgeSettings>(configuration.GetSection(ClinicalKnowledgeSettings.SectionName));
         services.Configure<AiCallbackSettings>(configuration.GetSection("AiCallback"));
         services.Configure<AppSettings>(configuration.GetSection("AppSettings"));
         services.Configure<ConsultationOutboxRelayOptions>(configuration.GetSection(ConsultationOutboxRelayOptions.SectionName));
@@ -36,6 +39,7 @@ public static class InfrastructureServiceRegistration
         services.AddScoped<IBlobStorageService, AzureBlobStorageService>();
         services.AddScoped<IPdfTextExtractor, PdfPigTextExtractor>();
         services.AddHttpClient<IAiModuleClient, AiModuleHttpClient>();
+        services.AddHttpClient<IClinicalKnowledgeClient, ClinicalKnowledgeHttpClient>();
         services.AddScoped<ConsultationOutboxRelay>();
         services.AddHostedService<ConsultationOutboxRelayHostedService>();
         services.AddSingleton<IRabbitMqPersistentConnection, RabbitMqPersistentConnection>();

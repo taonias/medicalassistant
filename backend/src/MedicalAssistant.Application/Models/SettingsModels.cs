@@ -25,6 +25,15 @@ public class AiModuleSettings
     public int TranscriptionSubmitTimeoutSeconds { get; set; } = 10;
 }
 
+public class ClinicalKnowledgeSettings
+{
+    public const string SectionName = "ClinicalKnowledge";
+
+    public required string BaseUrl { get; set; }
+    public required string ApiKey { get; set; }
+    public int SubmitTimeoutSeconds { get; set; } = 10;
+}
+
 public class AiCallbackSettings
 {
     public required string ApiKey { get; set; }

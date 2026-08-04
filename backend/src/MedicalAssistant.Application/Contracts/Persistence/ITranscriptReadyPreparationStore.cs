@@ -19,7 +19,7 @@ public sealed record PreparedSessionTranscriptRequest(
     int ConsultationId,
     int TranscriptId,
     int TranscriptRevision,
-    int? PatientId,
+    int PatientId,
     string? PatientExternalId,
     string? PatientDisplayName,
     string DoctorId,
