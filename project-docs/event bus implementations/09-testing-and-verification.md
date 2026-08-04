@@ -116,3 +116,5 @@ Implemented enforcement:
 - Security review verifies identities, ACLs, secret handling, telemetry allowlist, retention, and replay authorization.
 - Operations review confirms dashboards, alerts, DLQ/replay procedure, backup/restore, and ownership.
 - Repository search proves the no-Functions completion criteria.
+
+The executable clean-environment handoff checklist lives in `14-clean-environment-release-gate.md`. It records the exact local commands, stop-release policy, required release evidence, security/operations review, dashboard/alert coverage, backup/restore rehearsal, and no-Functions scan expected before the first deployable release.
