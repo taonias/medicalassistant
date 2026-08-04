@@ -56,14 +56,15 @@ public sealed class TranscriptionCompletionUnitOfWork : ITranscriptionCompletion
                 EventId = request.Envelope.EventId,
                 EventType = request.Envelope.EventType,
                 EventVersion = request.Envelope.EventVersion,
-                ReceivedAtUtc = now
+                ReceivedAtUtc = now,
+                AttemptCount = 1,
+                LastAttemptAtUtc = now
             };
             await _context.ConsultationInboxMessages.AddAsync(inbox, cancellationToken);
         }
 
         inbox.Status = ConsultationEventMessageStatus.Completed;
-        inbox.AttemptCount++;
-        inbox.LastAttemptAtUtc = now;
+        inbox.LastAttemptAtUtc ??= now;
         inbox.CompletedAtUtc = now;
         inbox.LeaseOwner = null;
         inbox.LeaseExpiresAtUtc = null;

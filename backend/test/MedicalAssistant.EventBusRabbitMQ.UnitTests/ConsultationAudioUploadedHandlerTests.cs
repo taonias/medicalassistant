@@ -3,6 +3,7 @@ using MedicalAssistant.EventBus;
 using MedicalAssistant.EventBus.Contracts;
 using MedicalAssistant.EventBusRabbitMQ;
 using MedicalAssistant.Transcription.Worker.Handlers;
+using MedicalAssistant.Transcription.Worker.Options;
 using MedicalAssistant.Transcription.Worker.Speech;
 using MedicalAssistant.Transcription.Worker.Storage;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -19,11 +20,14 @@ public class ConsultationAudioUploadedHandlerTests
         var retriever = new RecordingAudioRetriever(audio);
         var speech = new RecordingSpeechService(new SpeechTranscriptionResult("transcribed text", "en-US"));
         var unitOfWork = new RecordingCompletionUnitOfWork();
+        var inboxStore = new RecordingInboxStore(TranscriptionInboxClaimStatus.Claimed);
         var handler = new ConsultationAudioUploadedIntegrationEventHandler(
+            inboxStore,
             retriever,
             speech,
             unitOfWork,
             Options.Create(new RabbitMqTopologyOptions { SubscriberName = "transcription-worker" }),
+            Options.Create(new TranscriptionWorkerOptions { ProcessingLeaseDuration = TimeSpan.FromMinutes(10) }),
             NullLogger<ConsultationAudioUploadedIntegrationEventHandler>.Instance);
         var envelope = new IntegrationEventEnvelope<ConsultationAudioUploadedV1>(
             Guid.Parse("33333333-3333-3333-3333-333333333333"),
@@ -43,12 +47,36 @@ public class ConsultationAudioUploadedHandlerTests
         await handler.HandleAsync(envelope, CancellationToken.None);
 
         Assert.Equal("private://consultations/42/audio.wav", retriever.StorageObjectReference);
+        Assert.Equal(envelope.EventId, inboxStore.Envelope!.EventId);
         Assert.Same(audio, speech.Audio);
         Assert.NotNull(unitOfWork.Request);
         Assert.Equal("transcription-worker", unitOfWork.Request.ConsumerName);
         Assert.Equal(envelope, unitOfWork.Request.Envelope);
         Assert.Equal("transcribed text", unitOfWork.Request.TranscriptText);
         Assert.Equal("en-US", unitOfWork.Request.LanguageCode);
+    }
+
+    [Fact]
+    public async Task HandleAsync_skips_blob_and_speech_when_inbox_event_is_already_completed()
+    {
+        var retriever = new RecordingAudioRetriever(
+            new ConsultationAudioBlob(new MemoryStream([1]), "audio/wav", 1));
+        var speech = new RecordingSpeechService(new SpeechTranscriptionResult("should not run", "en-US"));
+        var unitOfWork = new RecordingCompletionUnitOfWork();
+        var handler = new ConsultationAudioUploadedIntegrationEventHandler(
+            new RecordingInboxStore(TranscriptionInboxClaimStatus.DuplicateCompleted),
+            retriever,
+            speech,
+            unitOfWork,
+            Options.Create(new RabbitMqTopologyOptions { SubscriberName = "transcription-worker" }),
+            Options.Create(new TranscriptionWorkerOptions { ProcessingLeaseDuration = TimeSpan.FromMinutes(10) }),
+            NullLogger<ConsultationAudioUploadedIntegrationEventHandler>.Instance);
+
+        await handler.HandleAsync(CreateEnvelope(), CancellationToken.None);
+
+        Assert.Null(retriever.StorageObjectReference);
+        Assert.Null(speech.Audio);
+        Assert.Null(unitOfWork.Request);
     }
 
     private sealed class RecordingAudioRetriever : IConsultationAudioBlobRetriever
@@ -68,6 +96,29 @@ public class ConsultationAudioUploadedHandlerTests
         {
             StorageObjectReference = storageObjectReference;
             return Task.FromResult(_audio);
+        }
+    }
+
+    private sealed class RecordingInboxStore : ITranscriptionInboxStore
+    {
+        private readonly TranscriptionInboxClaimStatus _status;
+
+        public RecordingInboxStore(TranscriptionInboxClaimStatus status)
+        {
+            _status = status;
+        }
+
+        public IntegrationEventEnvelope<ConsultationAudioUploadedV1>? Envelope { get; private set; }
+
+        public Task<TranscriptionInboxClaimResult> ClaimAsync(
+            string consumerName,
+            IntegrationEventEnvelope<ConsultationAudioUploadedV1> envelope,
+            string leaseOwner,
+            TimeSpan leaseDuration,
+            CancellationToken cancellationToken = default)
+        {
+            Envelope = envelope;
+            return Task.FromResult(new TranscriptionInboxClaimResult(_status));
         }
     }
 
@@ -105,5 +156,23 @@ public class ConsultationAudioUploadedHandlerTests
                 request.Envelope.Payload.ConsultationId,
                 TranscriptId: 99));
         }
+    }
+
+    private static IntegrationEventEnvelope<ConsultationAudioUploadedV1> CreateEnvelope()
+    {
+        return new IntegrationEventEnvelope<ConsultationAudioUploadedV1>(
+            Guid.Parse("33333333-3333-3333-3333-333333333333"),
+            ConsultationIntegrationEvents.AudioUploadedV1,
+            1,
+            DateTime.UtcNow,
+            "medicalassistant.backend",
+            "correlation-1",
+            null,
+            new ConsultationAudioUploadedV1(
+                42,
+                "file-42",
+                "audio/wav",
+                "private://consultations/42/audio.wav",
+                3));
     }
 }
