@@ -85,12 +85,12 @@ public static class RabbitMqPublishRequestFactory
         var activity = Activity.Current;
         if (activity?.Id is not null)
         {
-            headers["traceparent"] = activity.Id;
+            headers[RabbitMqTelemetryHeaders.TraceParent] = activity.Id;
         }
 
         if (!string.IsNullOrWhiteSpace(activity?.TraceStateString))
         {
-            headers["tracestate"] = activity.TraceStateString;
+            headers[RabbitMqTelemetryHeaders.TraceState] = activity.TraceStateString;
         }
 
         return headers;

@@ -10,8 +10,6 @@ namespace MedicalAssistant.EventBusRabbitMQ;
 
 public sealed class RabbitMqHostedConsumer : BackgroundService
 {
-    private const string RetryAttemptHeader = "x-medicalassistant-retry-attempt";
-
     private readonly IRabbitMqPersistentConnection _connection;
     private readonly IRabbitMqDeliveryHandler _deliveryHandler;
     private readonly RabbitMqConsumerOptions _options;
@@ -168,10 +166,9 @@ public sealed class RabbitMqHostedConsumer : BackgroundService
         int retryAttempt)
     {
         var source = args.BasicProperties;
-        var headers = source.Headers is null
-            ? new Dictionary<string, object?>(StringComparer.Ordinal)
-            : new Dictionary<string, object?>(source.Headers, StringComparer.Ordinal);
-        headers[RetryAttemptHeader] = retryAttempt;
+        var headers = RabbitMqForwardedHeaderSanitizer.SanitizeForRetryOrDeadLetter(
+            source.Headers,
+            retryAttempt);
 
         return new BasicProperties
         {
@@ -188,7 +185,9 @@ public sealed class RabbitMqHostedConsumer : BackgroundService
 
     private static int GetRetryAttempt(IDictionary<string, object?>? headers)
     {
-        if (headers is null || !headers.TryGetValue(RetryAttemptHeader, out var value) || value is null)
+        if (headers is null ||
+            !headers.TryGetValue(RabbitMqTelemetryHeaders.RetryAttempt, out var value) ||
+            value is null)
         {
             return 0;
         }
