@@ -117,6 +117,17 @@ public class ConsultationRepository : GenericRepository<Consultation>, IConsulta
             .AnyAsync(c => c.IdempotencyKey == idempotencyKey && c.DoctorId == doctorId);
     }
 
+    public async Task<Consultation> UpdateWithOutboxAsync(
+        Consultation consultation,
+        ConsultationOutboxMessage outboxMessage,
+        CancellationToken cancellationToken = default)
+    {
+        _context.Entry(consultation).State = EntityState.Modified;
+        await _context.ConsultationOutboxMessages.AddAsync(outboxMessage, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
+        return consultation;
+    }
+
     public override async Task<Consultation> GetByIdAsync(int id)
     {
         return await _context.Consultations.FirstOrDefaultAsync(c => c.Id == id)

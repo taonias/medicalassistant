@@ -1,0 +1,84 @@
+using AutoMapper;
+using MedicalAssistant.Application.Contracts.Identity;
+using MedicalAssistant.Application.Contracts.Persistence;
+using MedicalAssistant.Application.Contracts.Storage;
+using MedicalAssistant.Application.Features.Consultation.Command.UploadConsultationAudio;
+using MedicalAssistant.Application.MappingProfiles;
+using MedicalAssistant.Application.Models;
+using MedicalAssistant.Domain;
+using MedicalAssistant.Domain.Enums;
+using MediatR;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
+using Moq;
+
+namespace MedicalAssistant.Application.UnitTests.Features;
+
+public class UploadConsultationOutboxTests
+{
+    [Fact]
+    public async Task Audio_upload_commits_consultation_and_outbox_without_request_thread_publish()
+    {
+        var consultation = new Consultation
+        {
+            Id = 42,
+            DoctorId = "doctor-1",
+            ConsultationDate = DateTime.UtcNow,
+            Status = ConsultationStatus.Draft
+        };
+        var repository = new Mock<IConsultationRepository>();
+        repository
+            .Setup(r => r.GetConsultationForDoctorAsync(42, "doctor-1"))
+            .ReturnsAsync(consultation);
+        var blobStorage = new Mock<IBlobStorageService>();
+        blobStorage
+            .Setup(s => s.UploadAsync(
+                "consultation-audio",
+                It.IsAny<string>(),
+                It.IsAny<Stream>(),
+                "audio/wav",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync("private://consultations/42/audio");
+        var userService = new Mock<IUserService>();
+        userService.Setup(s => s.GetCurrentUserIdAsync()).ReturnsAsync("doctor-1");
+        var mediator = new Mock<IMediator>();
+        var mapper = new MapperConfiguration(cfg => cfg.AddProfile<ConsultationProfile>()).CreateMapper();
+        var handler = new UploadConsultationAudioCommandHandler(
+            repository.Object,
+            blobStorage.Object,
+            userService.Object,
+            mapper,
+            Options.Create(new BlobStorageSettings()));
+
+        await handler.Handle(
+            new UploadConsultationAudioCommand
+            {
+                ConsultationId = 42,
+                AudioFile = FormFile("recording.wav", "audio/wav"),
+                DurationSeconds = 30
+            },
+            CancellationToken.None);
+
+        repository.Verify(r => r.UpdateWithOutboxAsync(
+            consultation,
+            It.Is<ConsultationOutboxMessage>(message =>
+                message.EventType == "consultation.audio-uploaded.v1" &&
+                message.EventVersion == 1 &&
+                message.AggregateId == "42" &&
+                message.Payload.Contains("\"consultationId\":42")),
+            It.IsAny<CancellationToken>()), Times.Once);
+        repository.Verify(r => r.UpdateAsync(It.IsAny<Consultation>()), Times.Never);
+        mediator.Verify(m => m.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    private static IFormFile FormFile(string fileName, string contentType)
+    {
+        var bytes = new byte[] { 1, 2, 3 };
+        var stream = new MemoryStream(bytes);
+        return new FormFile(stream, 0, bytes.Length, "file", fileName)
+        {
+            Headers = new HeaderDictionary(),
+            ContentType = contentType
+        };
+    }
+}

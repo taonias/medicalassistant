@@ -17,6 +17,10 @@ public interface IConsultationRepository : IGenericRepository<Consultation>
     Task<IReadOnlyList<DraftConsultationListItem>> GetDraftConsultationsForDoctorAsync(string doctorId);
     Task<Consultation?> GetByIdempotencyKeyAsync(string idempotencyKey, string doctorId);
     Task<bool> IdempotencyKeyExistsAsync(string idempotencyKey, string doctorId);
+    Task<Consultation> UpdateWithOutboxAsync(
+        Consultation consultation,
+        ConsultationOutboxMessage outboxMessage,
+        CancellationToken cancellationToken = default);
     Task DeleteForDoctorAsync(Consultation consultation);
     Task<IReadOnlyList<Consultation>> GetUnattachedDraftConsultationsForDoctorAsync(string doctorId);
     Task<IReadOnlyList<Consultation>> GetConsultationsForDoctorAsync(string doctorId);

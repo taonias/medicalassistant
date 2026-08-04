@@ -5,8 +5,7 @@ using MedicalAssistant.Application.Contracts.Storage;
 using MedicalAssistant.Application.Exceptions;
 using MedicalAssistant.Application.Features.Consultation.Queries.GetConsultationDetails;
 using MedicalAssistant.Application.Models;
-using MedicalAssistant.Application.Models.Messaging;
-using MedicalAssistant.Application.Notifications;
+using MedicalAssistant.Application.Services;
 using MedicalAssistant.Domain.Enums;
 using MediatR;
 using Microsoft.Extensions.Options;
@@ -19,7 +18,6 @@ public class UploadConsultationAudioCommandHandler : IRequestHandler<UploadConsu
     private readonly IBlobStorageService _blobStorageService;
     private readonly IUserService _userService;
     private readonly IMapper _mapper;
-    private readonly IMediator _mediator;
     private readonly BlobStorageSettings _blobSettings;
 
     public UploadConsultationAudioCommandHandler(
@@ -27,14 +25,12 @@ public class UploadConsultationAudioCommandHandler : IRequestHandler<UploadConsu
         IBlobStorageService blobStorageService,
         IUserService userService,
         IMapper mapper,
-        IMediator mediator,
         IOptions<BlobStorageSettings> blobSettings)
     {
         _consultationRepository = consultationRepository;
         _blobStorageService = blobStorageService;
         _userService = userService;
         _mapper = mapper;
-        _mediator = mediator;
         _blobSettings = blobSettings.Value;
     }
 
@@ -67,23 +63,14 @@ public class UploadConsultationAudioCommandHandler : IRequestHandler<UploadConsu
             cancellationToken);
 
         consultation.MarkAudioUploaded(blobUri, contentType, request.DurationSeconds);
-        await _consultationRepository.UpdateAsync(consultation);
-
         var correlationId = Guid.NewGuid().ToString("N");
-        await _mediator.Publish(
-            new ConsultationReadyForProcessingNotification
-            {
-                EventType = ConsultationProcessingEventTypes.FileUploaded,
-                ConsultationId = consultation.Id,
-                PatientId = consultation.PatientId,
-                DoctorId = consultation.DoctorId,
-                Status = consultation.Status.ToString(),
-                FileType = ConsultationFileTypes.Audio,
-                BlobUri = consultation.AudioBlobUri,
-                ContentType = consultation.AudioContentType,
-                DurationSeconds = consultation.DurationSeconds,
-                CorrelationId = correlationId,
-            },
+        var outboxMessage = ConsultationOutboxFactory.AudioUploaded(
+            consultation,
+            blobName,
+            correlationId);
+        await _consultationRepository.UpdateWithOutboxAsync(
+            consultation,
+            outboxMessage,
             cancellationToken);
 
         return _mapper.Map<ConsultationDto>(consultation);
