@@ -1,6 +1,4 @@
-using MedicalAssistant.Identity.DatabaseContext;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -25,8 +23,5 @@ public static class IdentityDbInitializer
                     logger.LogInformation("Created role {Role}", role);
             }
         }
-
-        var identityContext = scope.ServiceProvider.GetRequiredService<MedicalAssistantIdentityDbContext>();
-        await identityContext.Database.MigrateAsync();
     }
 }

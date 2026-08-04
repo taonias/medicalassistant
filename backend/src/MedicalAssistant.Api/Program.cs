@@ -81,7 +81,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-await PersistenceDbInitializer.MigrateAsync(app.Services);
 await IdentityDbInitializer.SeedRolesAsync(app.Services);
 
 app.Run();

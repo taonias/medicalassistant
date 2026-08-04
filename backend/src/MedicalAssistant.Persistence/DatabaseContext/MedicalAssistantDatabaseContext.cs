@@ -24,6 +24,9 @@ public class MedicalAssistantDatabaseContext : DbContext
     public virtual DbSet<ActionRequest> ActionRequests { get; set; }
     public virtual DbSet<AuditLog> AuditLogs { get; set; }
     public virtual DbSet<ErrorLog> ErrorLogs { get; set; }
+    public virtual DbSet<ConsultationOutboxMessage> ConsultationOutboxMessages { get; set; }
+    public virtual DbSet<ConsultationInboxMessage> ConsultationInboxMessages { get; set; }
+    public virtual DbSet<ConsultationDeletionCleanup> ConsultationDeletionCleanups { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

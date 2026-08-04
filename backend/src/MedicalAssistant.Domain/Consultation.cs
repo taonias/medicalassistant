@@ -17,12 +17,20 @@ public class Consultation : BaseEntity
     public int? DurationSeconds { get; set; }
     public string? IdempotencyKey { get; set; }
     public string? FailureReason { get; set; }
+    public ConsultationFileKind SourceFileKind { get; set; } = ConsultationFileKind.Unknown;
+    public string? SourceObjectReference { get; set; }
+    public string? SourceObjectETag { get; set; }
+    public DateTime? DeletedAtUtc { get; set; }
+    public string? DeletedBy { get; set; }
+    public string? DeletionReasonCode { get; set; }
 
     public void MarkAudioUploaded(string blobUri, string contentType, int? durationSeconds)
     {
         AudioBlobUri = blobUri;
         AudioContentType = contentType;
         DurationSeconds = durationSeconds;
+        SourceFileKind = ConsultationFileKind.Audio;
+        SourceObjectReference = blobUri;
         Status = ConsultationStatus.AudioUploaded;
     }
 
@@ -31,6 +39,8 @@ public class Consultation : BaseEntity
         DocumentBlobUri = blobUri;
         DocumentContentType = contentType;
         DocumentFileName = fileName;
+        SourceFileKind = ConsultationFileKind.Document;
+        SourceObjectReference = blobUri;
         Status = ConsultationStatus.DocumentUploaded;
     }
 

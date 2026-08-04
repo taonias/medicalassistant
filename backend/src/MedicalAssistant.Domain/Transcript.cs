@@ -12,6 +12,8 @@ public class Transcript : BaseEntity
     public string? ExternalJobId { get; set; }
     public DateTime? ProcessedAt { get; set; }
     public string? FailureReason { get; set; }
+    public int Revision { get; set; } = 1;
+    public Guid ConcurrencyToken { get; set; } = Guid.NewGuid();
 
     public void MarkProcessing(string externalJobId)
     {
@@ -24,6 +26,8 @@ public class Transcript : BaseEntity
         Status = TranscriptStatus.Completed;
         TranscriptText = transcript;
         ProcessedAt = DateTime.UtcNow;
+        Revision = Math.Max(Revision, 1);
+        ConcurrencyToken = Guid.NewGuid();
     }
 
     public void MarkFailed(string reason)
@@ -41,5 +45,7 @@ public class Transcript : BaseEntity
         Status = TranscriptStatus.Completed;
         FailureReason = null;
         ProcessedAt ??= DateTime.UtcNow;
+        Revision++;
+        ConcurrencyToken = Guid.NewGuid();
     }
 }

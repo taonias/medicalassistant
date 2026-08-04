@@ -5,6 +5,7 @@
     <Project Path="src/MedicalAssistant.Domain/MedicalAssistant.Domain.csproj" />
     <Project Path="src/MedicalAssistant.Identity/MedicalAssistant.Identity.csproj" />
     <Project Path="src/MedicalAssistant.Infrastructure/MedicalAssistant.Infrastructure.csproj" />
+    <Project Path="src/MedicalAssistant.Migrations/MedicalAssistant.Migrations.csproj" />
     <Project Path="src/MedicalAssistant.Persistence/MedicalAssistant.Persistence.csproj" />
   </Folder>
   <Folder Name="/test/">

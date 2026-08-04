@@ -33,9 +33,17 @@ public class ConsultationConfiguration : IEntityTypeConfiguration<Consultation>
         builder.Property(c => c.DocumentFileName).HasMaxLength(512);
         builder.Property(c => c.IdempotencyKey).HasMaxLength(128);
         builder.Property(c => c.FailureReason).HasMaxLength(2000);
+        builder.Property(c => c.SourceObjectReference).HasMaxLength(2048);
+        builder.Property(c => c.SourceObjectETag).HasMaxLength(256);
+        builder.Property(c => c.DeletedBy).HasMaxLength(450);
+        builder.Property(c => c.DeletionReasonCode).HasMaxLength(100);
         builder.HasIndex(c => new { c.DoctorId, c.IdempotencyKey })
             .IsUnique()
             .HasFilter("\"IdempotencyKey\" IS NOT NULL");
+        builder.HasIndex(c => c.SourceObjectReference)
+            .HasFilter("\"SourceObjectReference\" IS NOT NULL");
+        builder.HasIndex(c => c.DeletedAtUtc)
+            .HasFilter("\"DeletedAtUtc\" IS NOT NULL");
         builder.HasOne<Patient>().WithMany().HasForeignKey(c => c.PatientId).OnDelete(DeleteBehavior.Restrict);
     }
 }
@@ -50,8 +58,61 @@ public class TranscriptConfiguration : IEntityTypeConfiguration<Transcript>
             .HasColumnType("text");
         builder.Property(t => t.ExternalJobId).HasMaxLength(128);
         builder.Property(t => t.FailureReason).HasMaxLength(2000);
+        builder.Property(t => t.Revision).HasDefaultValue(1);
+        builder.Property(t => t.ConcurrencyToken)
+            .HasDefaultValueSql("gen_random_uuid()")
+            .IsConcurrencyToken();
         builder.HasIndex(t => t.ConsultationId).IsUnique();
         builder.HasIndex(t => t.ExternalJobId);
+    }
+}
+
+public class ConsultationOutboxMessageConfiguration : IEntityTypeConfiguration<ConsultationOutboxMessage>
+{
+    public void Configure(EntityTypeBuilder<ConsultationOutboxMessage> builder)
+    {
+        builder.ToTable("ConsultationOutboxMessages");
+        builder.Property(m => m.EventType).HasMaxLength(200).IsRequired();
+        builder.Property(m => m.Producer).HasMaxLength(100).IsRequired();
+        builder.Property(m => m.CorrelationId).HasMaxLength(100);
+        builder.Property(m => m.CausationId).HasMaxLength(100);
+        builder.Property(m => m.AggregateType).HasMaxLength(100);
+        builder.Property(m => m.AggregateId).HasMaxLength(100);
+        builder.Property(m => m.Payload).HasColumnType("jsonb").IsRequired();
+        builder.Property(m => m.LeaseOwner).HasMaxLength(200);
+        builder.Property(m => m.LastFailureCategory).HasMaxLength(100);
+        builder.Property(m => m.LastFailureCode).HasMaxLength(200);
+        builder.HasIndex(m => m.EventId).IsUnique();
+        builder.HasIndex(m => new { m.Status, m.NextAttemptAtUtc, m.LeaseExpiresAtUtc });
+        builder.HasIndex(m => new { m.EventType, m.EventVersion });
+    }
+}
+
+public class ConsultationInboxMessageConfiguration : IEntityTypeConfiguration<ConsultationInboxMessage>
+{
+    public void Configure(EntityTypeBuilder<ConsultationInboxMessage> builder)
+    {
+        builder.ToTable("ConsultationInboxMessages");
+        builder.Property(m => m.ConsumerName).HasMaxLength(200).IsRequired();
+        builder.Property(m => m.EventType).HasMaxLength(200).IsRequired();
+        builder.Property(m => m.LeaseOwner).HasMaxLength(200);
+        builder.Property(m => m.LastFailureCategory).HasMaxLength(100);
+        builder.Property(m => m.LastFailureCode).HasMaxLength(200);
+        builder.HasIndex(m => new { m.ConsumerName, m.EventId }).IsUnique();
+        builder.HasIndex(m => new { m.ConsumerName, m.Status, m.LeaseExpiresAtUtc });
+    }
+}
+
+public class ConsultationDeletionCleanupConfiguration : IEntityTypeConfiguration<ConsultationDeletionCleanup>
+{
+    public void Configure(EntityTypeBuilder<ConsultationDeletionCleanup> builder)
+    {
+        builder.ToTable("ConsultationDeletionCleanups");
+        builder.Property(c => c.LastFailureCategory).HasMaxLength(100);
+        builder.Property(c => c.LastFailureCode).HasMaxLength(200);
+        builder.HasIndex(c => c.ConsultationId).IsUnique();
+        builder.HasIndex(c => c.DeletionEventId).IsUnique();
+        builder.HasOne<Consultation>().WithMany().HasForeignKey(c => c.ConsultationId).OnDelete(DeleteBehavior.Restrict);
     }
 }
 
