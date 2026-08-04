@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using System.Net;
 using System.Text.Json;
 using MedicalAssistant.Application.Contracts.ClinicalKnowledge;
 using MedicalAssistant.Application.Models;
@@ -58,6 +59,33 @@ public sealed class ClinicalKnowledgeHttpClient : IClinicalKnowledgeClient
 
         return accepted
             ?? throw new InvalidOperationException("Clinical Knowledge returned an empty ingestion response.");
+    }
+
+    public async Task<ClinicalKnowledgeUnIngestResult> UnIngestDocumentAsync(
+        string documentId,
+        string removedBy,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(documentId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(removedBy);
+
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeout.CancelAfter(TimeSpan.FromSeconds(_settings.SubmitTimeoutSeconds));
+
+        var requestUri =
+            $"documents/{Uri.EscapeDataString(documentId)}?removedBy={Uri.EscapeDataString(removedBy)}";
+        var response = await _httpClient.DeleteAsync(requestUri, timeout.Token);
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            return new ClinicalKnowledgeUnIngestResult(
+                documentId,
+                ClinicalKnowledgeUnIngestStatus.AlreadyMissing);
+        }
+
+        response.EnsureSuccessStatusCode();
+        return new ClinicalKnowledgeUnIngestResult(
+            documentId,
+            ClinicalKnowledgeUnIngestStatus.Removed);
     }
 
     private sealed record SessionTranscriptIngestionRequest(

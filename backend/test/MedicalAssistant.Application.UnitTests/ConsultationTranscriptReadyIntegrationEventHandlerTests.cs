@@ -123,6 +123,14 @@ public class ConsultationTranscriptReadyIntegrationEventHandlerTests
                 Guid.Parse("aaaaaaaa-1111-1111-1111-aaaaaaaaaaaa"),
                 Duplicate: false));
         }
+
+        public Task<ClinicalKnowledgeUnIngestResult> UnIngestDocumentAsync(
+            string documentId,
+            string removedBy,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult(new ClinicalKnowledgeUnIngestResult(
+                documentId,
+                ClinicalKnowledgeUnIngestStatus.Removed));
     }
 
     private static IntegrationEventEnvelope<ConsultationTranscriptReadyV1> CreateEnvelope()

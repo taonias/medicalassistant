@@ -37,6 +37,7 @@ public static class InfrastructureServiceRegistration
 
         services.AddScoped(typeof(IAppLogger<>), typeof(LoggerAdapter<>));
         services.AddScoped<IBlobStorageService, AzureBlobStorageService>();
+        services.AddScoped<IConsultationBlobCleanupService, ConsultationBlobCleanupService>();
         services.AddScoped<IPdfTextExtractor, PdfPigTextExtractor>();
         services.AddHttpClient<IAiModuleClient, AiModuleHttpClient>();
         services.AddHttpClient<IClinicalKnowledgeClient, ClinicalKnowledgeHttpClient>();
@@ -48,13 +49,17 @@ public static class InfrastructureServiceRegistration
         services.AddSingleton<IConsultationProcessingPublisher, RabbitMqConsultationProcessingPublisher>();
         services.AddSingleton<ITranscriptReadyPublisher, RabbitMqTranscriptReadyPublisher>();
         services.AddScoped<ConsultationTranscriptReadyIntegrationEventHandler>();
+        services.AddScoped<ConsultationDeletedIntegrationEventHandler>();
         services.AddSingleton(ConsultationIntegrationEvents.Registry);
         services.AddSingleton(provider =>
             IntegrationEventSubscriptionRegistry.Create(
                 provider.GetRequiredService<IntegrationEventContractRegistry>(),
                 subscriptions => subscriptions.Subscribe<
                     ConsultationTranscriptReadyV1,
-                    ConsultationTranscriptReadyIntegrationEventHandler>()));
+                    ConsultationTranscriptReadyIntegrationEventHandler>()
+                    .Subscribe<
+                    ConsultationDeletedV1,
+                    ConsultationDeletedIntegrationEventHandler>()));
         services.AddSingleton<IntegrationEventDispatcher>();
         services.AddRabbitMqEventBusConsumer(configuration);
         services.PostConfigure<RabbitMqTopologyOptions>(options =>
