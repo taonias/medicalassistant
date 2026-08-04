@@ -69,6 +69,8 @@ After the new integration and end-to-end tests pass, delete:
 
 Preserve reusable speech/blob logic by moving it into the new worker before deleting the old project.
 
+Implemented removal is recorded in `13-legacy-removal-verification.md`. The active Azure Function project and backend direct RabbitMQ publishers have been deleted; reusable Speech and Blob behavior is now behind the standalone worker seams.
+
 ## No migration work required
 
 Because there is no deployed history:
