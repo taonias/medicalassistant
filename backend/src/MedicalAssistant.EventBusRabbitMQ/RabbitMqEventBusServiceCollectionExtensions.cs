@@ -13,8 +13,11 @@ public static class RabbitMqEventBusServiceCollectionExtensions
             configuration.GetSection(RabbitMqConnectionOptions.SectionName));
         services.Configure<RabbitMqConsumerOptions>(
             configuration.GetSection(RabbitMqConsumerOptions.SectionName));
+        services.Configure<RabbitMqTopologyOptions>(
+            configuration.GetSection(RabbitMqTopologyOptions.SectionName));
         services.AddSingleton<IRabbitMqPersistentConnection, RabbitMqPersistentConnection>();
         services.AddSingleton<IRabbitMqDeliveryHandler, RabbitMqIntegrationEventDeliveryHandler>();
+        services.AddSingleton<RabbitMqSubscriberTopologyDeclarer>();
         services.AddHostedService<RabbitMqHostedConsumer>();
         return services;
     }

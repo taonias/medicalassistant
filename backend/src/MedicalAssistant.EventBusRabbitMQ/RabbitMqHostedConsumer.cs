@@ -2,6 +2,7 @@ using System.Text;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using MedicalAssistant.EventBus;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -12,6 +13,9 @@ public sealed class RabbitMqHostedConsumer : BackgroundService
     private readonly IRabbitMqPersistentConnection _connection;
     private readonly IRabbitMqDeliveryHandler _deliveryHandler;
     private readonly RabbitMqConsumerOptions _options;
+    private readonly RabbitMqTopologyOptions _topologyOptions;
+    private readonly IntegrationEventSubscriptionRegistry _subscriptions;
+    private readonly RabbitMqSubscriberTopologyDeclarer _topologyDeclarer;
     private readonly ILogger<RabbitMqHostedConsumer> _logger;
     private IChannel? _channel;
 
@@ -19,11 +23,22 @@ public sealed class RabbitMqHostedConsumer : BackgroundService
         IRabbitMqPersistentConnection connection,
         IRabbitMqDeliveryHandler deliveryHandler,
         IOptions<RabbitMqConsumerOptions> options,
+        IOptions<RabbitMqTopologyOptions> topologyOptions,
+        IntegrationEventSubscriptionRegistry subscriptions,
+        RabbitMqSubscriberTopologyDeclarer topologyDeclarer,
         ILogger<RabbitMqHostedConsumer> logger)
     {
         _connection = connection;
         _deliveryHandler = deliveryHandler;
         _options = options.Value;
+        _topologyOptions = topologyOptions.Value;
+        if (string.IsNullOrWhiteSpace(_topologyOptions.QueueName))
+        {
+            _topologyOptions.QueueName = _options.QueueName;
+        }
+
+        _subscriptions = subscriptions;
+        _topologyDeclarer = topologyDeclarer;
         _logger = logger;
     }
 
@@ -32,6 +47,9 @@ public sealed class RabbitMqHostedConsumer : BackgroundService
         ArgumentException.ThrowIfNullOrWhiteSpace(_options.QueueName);
 
         _channel = await _connection.CreateChannelAsync(stoppingToken);
+        var plan = RabbitMqSubscriberTopologyPlan.Create(_topologyOptions, _subscriptions);
+        await _topologyDeclarer.DeclareAsync(_channel, plan, stoppingToken);
+
         await _channel.BasicQosAsync(
             prefetchSize: 0,
             prefetchCount: _options.PrefetchCount,

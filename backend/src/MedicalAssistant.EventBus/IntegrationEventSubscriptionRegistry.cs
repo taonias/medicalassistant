@@ -10,6 +10,9 @@ public sealed class IntegrationEventSubscriptionRegistry
         _subscriptions = subscriptions;
     }
 
+    public IReadOnlyCollection<IntegrationEventSubscriptionDescriptor> Subscriptions =>
+        _subscriptions.Values.ToArray();
+
     public static IntegrationEventSubscriptionRegistry Create(
         IntegrationEventContractRegistry contracts,
         Action<IntegrationEventSubscriptionRegistryBuilder> configure)
