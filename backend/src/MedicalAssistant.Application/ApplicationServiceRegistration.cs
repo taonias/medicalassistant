@@ -2,7 +2,9 @@ using FluentValidation;
 using MedicalAssistant.Application.Behaviors;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using System.Reflection;
+using MedicalAssistant.Application.Models;
 
 namespace MedicalAssistant.Application;
 
@@ -16,6 +18,8 @@ public static class ApplicationServiceRegistration
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         services.AddScoped<Services.PatientHistoryAssembler>();
         services.AddSingleton<Services.IConsultationOutboxRelayObserver, Services.ConsultationOutboxRelayMetrics>();
+        services.AddSingleton<Services.IntegrationEventReplayPolicy>();
+        services.AddSingleton<IValidateOptions<EventRetentionOptions>, EventRetentionOptionsValidator>();
 
         return services;
     }

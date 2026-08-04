@@ -30,6 +30,7 @@ public static class InfrastructureServiceRegistration
         services.Configure<ClinicalKnowledgeSettings>(configuration.GetSection(ClinicalKnowledgeSettings.SectionName));
         services.Configure<AiCallbackSettings>(configuration.GetSection("AiCallback"));
         services.Configure<AppSettings>(configuration.GetSection("AppSettings"));
+        services.Configure<EventRetentionOptions>(configuration.GetSection(EventRetentionOptions.SectionName));
         services.Configure<ConsultationOutboxRelayOptions>(configuration.GetSection(ConsultationOutboxRelayOptions.SectionName));
         services.Configure<RabbitMqSettings>(configuration.GetSection(RabbitMqSettings.SectionName));
         services.Configure<RabbitMqConnectionOptions>(configuration.GetSection(RabbitMqConnectionOptions.SectionName));

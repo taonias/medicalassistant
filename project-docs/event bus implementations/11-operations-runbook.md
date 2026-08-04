@@ -53,6 +53,15 @@ Every panel links through safe identifiers to protected diagnostic views; it nev
 6. Observe main queue → inbox/business state → outgoing events. Confirm duplicates/stale events no-op as expected.
 7. Record resolution and close only after state reconciliation.
 
+Implemented replay policy controls require:
+
+- the immutable original integration event ID;
+- a non-empty operator identity;
+- a non-empty operational reason code;
+- no replacement payload JSON or manually edited message body.
+
+The policy emits an audit action/details string that contains the operator, original event ID, and reason code, but never copies payload content. `EventRetention` configuration keeps outbox, inbox, DLQ, and tombstone periods explicit; tombstones must outlive all event-record retention windows so late delivery cannot restore deleted content after cleanup.
+
 ## Poison or unsupported contract
 
 1. Keep the message in DLQ; stop repeated manual replay.
