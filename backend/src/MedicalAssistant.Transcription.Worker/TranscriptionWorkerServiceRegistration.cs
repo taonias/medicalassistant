@@ -4,6 +4,7 @@ using MedicalAssistant.EventBusRabbitMQ;
 using MedicalAssistant.Transcription.Worker.Handlers;
 using MedicalAssistant.Transcription.Worker.Health;
 using MedicalAssistant.Transcription.Worker.Options;
+using MedicalAssistant.Transcription.Worker.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -22,6 +23,8 @@ public static class TranscriptionWorkerServiceRegistration
         services.Configure<AzureSpeechTranscriptionOptions>(
             configuration.GetSection(AzureSpeechTranscriptionOptions.SectionName));
 
+        services.AddScoped<IPrivateBlobObjectClient, AzurePrivateBlobObjectClient>();
+        services.AddScoped<IConsultationAudioBlobRetriever, ConsultationAudioBlobRetriever>();
         services.AddScoped<ConsultationAudioUploadedIntegrationEventHandler>();
         services.AddSingleton(ConsultationIntegrationEvents.Registry);
         services.AddSingleton(provider =>
