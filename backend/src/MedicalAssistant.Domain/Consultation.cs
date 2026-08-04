@@ -69,4 +69,14 @@ public class Consultation : BaseEntity
         Status = ConsultationStatus.Failed;
         FailureReason = reason;
     }
+
+    public void MarkDeleted(string deletedBy, string? reasonCode)
+    {
+        Status = ConsultationStatus.Deleted;
+        DeletedAtUtc = DateTime.UtcNow;
+        DeletedBy = deletedBy;
+        DeletionReasonCode = string.IsNullOrWhiteSpace(reasonCode)
+            ? "doctor-delete"
+            : reasonCode.Trim();
+    }
 }

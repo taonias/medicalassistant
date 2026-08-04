@@ -21,6 +21,11 @@ public interface IConsultationRepository : IGenericRepository<Consultation>
         Consultation consultation,
         ConsultationOutboxMessage outboxMessage,
         CancellationToken cancellationToken = default);
+    Task<Consultation> RecordDeletionAsync(
+        Consultation consultation,
+        ConsultationDeletionCleanup cleanup,
+        ConsultationOutboxMessage outboxMessage,
+        CancellationToken cancellationToken = default);
     Task DeleteForDoctorAsync(Consultation consultation);
     Task<IReadOnlyList<Consultation>> GetUnattachedDraftConsultationsForDoctorAsync(string doctorId);
     Task<IReadOnlyList<Consultation>> GetConsultationsForDoctorAsync(string doctorId);

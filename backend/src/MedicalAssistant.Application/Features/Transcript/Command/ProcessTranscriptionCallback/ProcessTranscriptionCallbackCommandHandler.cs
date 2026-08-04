@@ -1,5 +1,4 @@
 using MedicalAssistant.Application.Contracts.Persistence;
-using MedicalAssistant.Application.Notifications;
 using MedicalAssistant.Domain;
 using MedicalAssistant.Domain.Enums;
 using MediatR;
@@ -10,16 +9,13 @@ public class ProcessTranscriptionCallbackCommandHandler : IRequestHandler<Proces
 {
     private readonly ITranscriptRepository _transcriptRepository;
     private readonly IConsultationRepository _consultationRepository;
-    private readonly IMediator _mediator;
 
     public ProcessTranscriptionCallbackCommandHandler(
         ITranscriptRepository transcriptRepository,
-        IConsultationRepository consultationRepository,
-        IMediator mediator)
+        IConsultationRepository consultationRepository)
     {
         _transcriptRepository = transcriptRepository;
         _consultationRepository = consultationRepository;
-        _mediator = mediator;
     }
 
     public async Task<Unit> Handle(ProcessTranscriptionCallbackCommand request, CancellationToken cancellationToken)
@@ -46,18 +42,12 @@ public class ProcessTranscriptionCallbackCommandHandler : IRequestHandler<Proces
         if (string.Equals(request.Status, "completed", StringComparison.OrdinalIgnoreCase))
         {
             transcript.MarkCompleted(request.Transcript ?? string.Empty);
-            await _transcriptRepository.UpdateAsync(transcript);
-
             consultation.MarkTranscribed();
-            await _consultationRepository.UpdateAsync(consultation);
-
-            await _mediator.Publish(new TranscriptionCompletedNotification
-            {
-                ConsultationId = consultation.Id,
-                TranscriptId = transcript.Id,
-                TranscriptText = transcript.TranscriptText ?? string.Empty,
-                CorrelationId = request.CorrelationId
-            }, cancellationToken);
+            await _transcriptRepository.CompleteWithOutboxAsync(
+                transcript,
+                consultation,
+                request.CorrelationId,
+                cancellationToken);
         }
         else if (string.Equals(request.Status, "failed", StringComparison.OrdinalIgnoreCase))
         {

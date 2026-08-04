@@ -51,6 +51,49 @@ public static class ConsultationOutboxFactory
             consultation.Id);
     }
 
+    public static ConsultationOutboxMessage TranscriptReady(
+        Consultation consultation,
+        Transcript transcript,
+        string correlationId)
+    {
+        var payload = new ConsultationTranscriptReadyV1(
+            consultation.Id,
+            consultation.SourceObjectReference ?? consultation.AudioBlobUri ?? string.Empty,
+            transcript.Id,
+            transcript.Revision,
+            null);
+
+        return FromEnvelope(
+            IntegrationEventEnvelope.Create(
+                payload,
+                ConsultationIntegrationEvents.Registry.Resolve<ConsultationTranscriptReadyV1>(),
+                "medicalassistant.backend",
+                correlationId,
+                null),
+            consultation.Id);
+    }
+
+    public static ConsultationOutboxMessage Deleted(
+        Consultation consultation,
+        string correlationId)
+    {
+        var deletedAtUtc = consultation.DeletedAtUtc ?? DateTime.UtcNow;
+        var payload = new ConsultationDeletedV1(
+            consultation.Id,
+            deletedAtUtc,
+            consultation.DeletionReasonCode);
+
+        return FromEnvelope(
+            IntegrationEventEnvelope.Create(
+                payload,
+                ConsultationIntegrationEvents.Registry.Resolve<ConsultationDeletedV1>(),
+                "medicalassistant.backend",
+                correlationId,
+                null,
+                deletedAtUtc),
+            consultation.Id);
+    }
+
     private static ConsultationOutboxMessage FromEnvelope<TPayload>(
         IntegrationEventEnvelope<TPayload> envelope,
         int consultationId)

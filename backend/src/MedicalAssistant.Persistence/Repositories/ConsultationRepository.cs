@@ -128,6 +128,19 @@ public class ConsultationRepository : GenericRepository<Consultation>, IConsulta
         return consultation;
     }
 
+    public async Task<Consultation> RecordDeletionAsync(
+        Consultation consultation,
+        ConsultationDeletionCleanup cleanup,
+        ConsultationOutboxMessage outboxMessage,
+        CancellationToken cancellationToken = default)
+    {
+        _context.Entry(consultation).State = EntityState.Modified;
+        await _context.ConsultationDeletionCleanups.AddAsync(cleanup, cancellationToken);
+        await _context.ConsultationOutboxMessages.AddAsync(outboxMessage, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
+        return consultation;
+    }
+
     public override async Task<Consultation> GetByIdAsync(int id)
     {
         return await _context.Consultations.FirstOrDefaultAsync(c => c.Id == id)

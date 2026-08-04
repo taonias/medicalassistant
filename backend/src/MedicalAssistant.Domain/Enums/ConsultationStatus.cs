@@ -9,5 +9,6 @@ public enum ConsultationStatus
     StructuredDataPending = 4,
     Completed = 5,
     Failed = 6,
-    DocumentUploaded = 7
+    DocumentUploaded = 7,
+    Deleted = 8
 }
