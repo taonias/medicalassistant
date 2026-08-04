@@ -1,0 +1,1 @@
+{"eventId":"55555555-5555-5555-5555-555555555555","eventType":"consultation.deleted.v1","eventVersion":1,"occurredAtUtc":"2026-08-04T10:00:00Z","producer":"medicalassistant.backend","correlationId":"corr-example","causationId":"cause-example","payload":{"consultationId":105,"deletedAtUtc":"2026-08-04T10:00:00Z","reasonCode":"clinician-request"}}
