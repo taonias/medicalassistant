@@ -100,6 +100,13 @@ CI checks should fail when active source/config contains:
 
 Allowlists must be narrow enough that documentation/history samples do not accidentally hide active-code violations.
 
+Implemented enforcement:
+
+- `ArchitecturePrivacyEnforcementTests` scans active source/config, not project documentation, for Functions artifacts, legacy direct queues, default-exchange integration publishing, reflection-based event routing, automatic host migrations, queue-draining APIs, and unsafe telemetry/logging terms.
+- The obsolete `transcriber` Azure Function project and legacy direct RabbitMQ publisher contracts/classes have been removed from active code.
+- The guardrail deliberately allows RabbitMQ retry/DLQ forwarding inside `RabbitMqHostedConsumer`, because that default-exchange publish is internal queue forwarding, not producer integration-event publication.
+- Application hosts are checked for migration calls; schema changes remain owned by the dedicated migrations unit.
+
 ## Release gates
 
 - All unit, contract, database, RabbitMQ, adapter, and end-to-end suites pass.

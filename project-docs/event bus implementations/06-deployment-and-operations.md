@@ -122,3 +122,9 @@ The target is not complete while any of the following remains required in a depl
 - legacy direct queues used only by the Function
 
 Removal happens only after the migration and reconciliation checks prove that no consultation work is stranded.
+
+Implemented no-Functions enforcement:
+
+- The obsolete `transcriber` Azure Function project has been removed from active source.
+- Active source/config scans fail if Functions packages, trigger attributes, host/local Functions settings, or legacy direct queues return.
+- Backend API and Transcription Worker hosts are checked to ensure they do not apply database migrations automatically; deployment remains container-first with the dedicated migrations job.

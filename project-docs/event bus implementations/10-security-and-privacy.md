@@ -73,6 +73,12 @@ The target removes current Function diagnostics that record blob/file names and 
 
 RabbitMQ retry and dead-letter forwarding preserves only the W3C trace headers plus the internal retry-attempt header. Synthetic canary tests cover original filenames, blob/object paths, transcript previews, provider error bodies, and authorization secrets so these values do not become durable broker headers.
 
+Implemented privacy guardrail:
+
+- Active event-processing logs and telemetry are scanned for forbidden payload/PHI terms such as transcript text, storage object references, blob URIs, filenames, provider bodies, signed URLs, payload bodies, and storage account keys.
+- Retry/DLQ header forwarding is already covered by synthetic canary tests that prove trace context and retry attempt survive while PHI/secret canaries are dropped.
+- Architecture enforcement excludes documentation and generated/build output so rejected patterns can remain documented without making active-code scans meaningless.
+
 ## Failure and DLQ privacy
 
 Dead-letter queues and outbox retries may retain event payloads longer than the happy path, so they require explicit maximum retention, capacity alarms, encrypted durable storage, restricted operator access, and deletion procedures. Incident tickets receive safe metadata and a protected internal lookup link/ID—not copied payloads.

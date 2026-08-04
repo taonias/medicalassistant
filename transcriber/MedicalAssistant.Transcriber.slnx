@@ -1,4 +1,0 @@
-<Solution>
-  <Project Path="MedicalAssistant.Transcriber.csproj" />
-  <Project Path="../backend/src/MedicalAssistant.Domain/MedicalAssistant.Domain.csproj" />
-</Solution>

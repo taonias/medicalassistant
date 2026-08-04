@@ -32,7 +32,6 @@ public static class InfrastructureServiceRegistration
         services.Configure<AppSettings>(configuration.GetSection("AppSettings"));
         services.Configure<EventRetentionOptions>(configuration.GetSection(EventRetentionOptions.SectionName));
         services.Configure<ConsultationOutboxRelayOptions>(configuration.GetSection(ConsultationOutboxRelayOptions.SectionName));
-        services.Configure<RabbitMqSettings>(configuration.GetSection(RabbitMqSettings.SectionName));
         services.Configure<RabbitMqConnectionOptions>(configuration.GetSection(RabbitMqConnectionOptions.SectionName));
         services.Configure<RabbitMqPublishOptions>(configuration.GetSection(RabbitMqPublishOptions.SectionName));
 
@@ -49,8 +48,6 @@ public static class InfrastructureServiceRegistration
         services.AddSingleton<IConsultationOutboxPublisher, RabbitMqConsultationOutboxPublisher>();
         services.AddSingleton<IIntegrationEventReplayPublisher, RabbitMqIntegrationEventReplayPublisher>();
         services.AddSingleton<IIntegrationEventReplaySafetyCheck, SupportedContractReplaySafetyCheck>();
-        services.AddSingleton<IConsultationProcessingPublisher, RabbitMqConsultationProcessingPublisher>();
-        services.AddSingleton<ITranscriptReadyPublisher, RabbitMqTranscriptReadyPublisher>();
         services.AddScoped<ConsultationTranscriptReadyIntegrationEventHandler>();
         services.AddScoped<ConsultationDeletedIntegrationEventHandler>();
         services.AddSingleton(ConsultationIntegrationEvents.Registry);
