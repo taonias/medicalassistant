@@ -95,6 +95,21 @@ These metrics deliberately exclude Consultation ID, file names, blob/object refe
 
 Scale workers primarily from oldest eligible queue age, not raw message count alone. Set a bounded per-instance prefetch/concurrency value, measure audio memory footprint and speech-provider limits, and increase one constraint at a time. A worker that begins shutdown stops pulling new messages, drains active handlers for a bounded period, and leaves uncommitted work unacknowledged for another instance.
 
+Implemented scaling controls:
+
+- `TranscriptionWorker:MaxConcurrentTranscriptions` is the per-instance transcription concurrency budget and drives the worker RabbitMQ `PrefetchCount`. Increase it only while respecting Azure Speech quota, memory per audio job, database connection capacity, and broker flow control. The worker rejects values below `1` or above `32`.
+- `TranscriptionWorker:ShutdownDrainTimeout` bounds graceful shutdown. `TranscriptionWorker:ProcessingLeaseDuration` must be longer than the shutdown drain so a terminating worker cannot keep work leased longer than it can safely finish.
+- `ConsultationOutboxRelay:BatchSize` bounds each publication claim and is capped at `1000`. `LeaseDuration`, `PollInterval`, and `FailureBackoff` must be positive.
+- Root Compose exposes these controls through `BACKEND_OUTBOX_RELAY_*` and `TRANSCRIPTION_WORKER_*` variables, keeping local and deployment behavior aligned.
+
+Operational tuning order:
+
+1. Watch oldest unpublished outbox age, oldest worker queue age, dead-letter growth, Azure Speech throttling, RabbitMQ memory/disk alarms, and database connection pressure.
+2. If outbox age rises but RabbitMQ and database pressure are healthy, increase `BACKEND_OUTBOX_RELAY_BATCH_SIZE` gradually or run additional backend API instances.
+3. If worker queue age rises and Speech quota/memory/database capacity are healthy, scale out worker replicas before increasing `TRANSCRIPTION_WORKER_MAX_CONCURRENT_TRANSCRIPTIONS`.
+4. If broker flow control, database pool pressure, or Speech throttling appears, reduce worker concurrency or replica count first; do not compensate by increasing prefetch.
+5. Keep database migrations expand-only before rollout and contract cleanup after all older versions are drained.
+
 ## No-Functions completion criteria
 
 The target is not complete while any of the following remains required in a deployed environment:

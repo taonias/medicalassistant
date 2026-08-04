@@ -8,6 +8,7 @@ using MedicalAssistant.Transcription.Worker.Speech;
 using MedicalAssistant.Transcription.Worker.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace MedicalAssistant.Transcription.Worker;
 
@@ -23,6 +24,7 @@ public static class TranscriptionWorkerServiceRegistration
             configuration.GetSection(TranscriptionBlobRetrievalOptions.SectionName));
         services.Configure<AzureSpeechTranscriptionOptions>(
             configuration.GetSection(AzureSpeechTranscriptionOptions.SectionName));
+        services.AddSingleton<IValidateOptions<TranscriptionWorkerOptions>, TranscriptionWorkerOptionsValidator>();
 
         services.AddScoped<IPrivateBlobObjectClient, AzurePrivateBlobObjectClient>();
         services.AddScoped<IConsultationAudioBlobRetriever, ConsultationAudioBlobRetriever>();

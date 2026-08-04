@@ -168,6 +168,10 @@ services:
       RabbitMq__Host: rabbitmq
       RabbitMq__Username: backend-outbox-relay
       RabbitMq__Password: ${RABBITMQ_BACKEND_PASSWORD:-backend-rabbitmq-local}
+      ConsultationOutboxRelay__BatchSize: ${BACKEND_OUTBOX_RELAY_BATCH_SIZE:-25}
+      ConsultationOutboxRelay__LeaseDuration: ${BACKEND_OUTBOX_RELAY_LEASE_DURATION:-00:02:00}
+      ConsultationOutboxRelay__PollInterval: ${BACKEND_OUTBOX_RELAY_POLL_INTERVAL:-00:00:05}
+      ConsultationOutboxRelay__FailureBackoff: ${BACKEND_OUTBOX_RELAY_FAILURE_BACKOFF:-00:00:30}
     ports:
       - "7037:8080"
     depends_on:
@@ -198,6 +202,9 @@ services:
       RabbitMQ__Consumer__QueueName: medicalassistant.transcription-worker
       RabbitMQ__Topology__SubscriberName: transcription-worker
       RabbitMQ__Topology__QueueName: medicalassistant.transcription-worker
+      TranscriptionWorker__MaxConcurrentTranscriptions: ${TRANSCRIPTION_WORKER_MAX_CONCURRENT_TRANSCRIPTIONS:-1}
+      TranscriptionWorker__ShutdownDrainTimeout: ${TRANSCRIPTION_WORKER_SHUTDOWN_DRAIN_TIMEOUT:-00:00:30}
+      TranscriptionWorker__ProcessingLeaseDuration: ${TRANSCRIPTION_WORKER_PROCESSING_LEASE_DURATION:-00:10:00}
         TranscriptionWorker__BlobRetrieval__ConnectionString: ${AZURITE_CONNECTION_STRING:-UseDevelopmentStorage=true;DevelopmentStorageProxyUri=http://azurite}
       TranscriptionWorker__BlobRetrieval__ConsultationAudioContainer: audio
       TranscriptionWorker__AzureSpeech__Key: ${AZURE_SPEECH_KEY:-}

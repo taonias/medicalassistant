@@ -20,6 +20,7 @@ public static class ApplicationServiceRegistration
         services.AddSingleton<Services.IConsultationOutboxRelayObserver, Services.ConsultationOutboxRelayMetrics>();
         services.AddSingleton<Services.IntegrationEventReplayPolicy>();
         services.AddSingleton<IValidateOptions<EventRetentionOptions>, EventRetentionOptionsValidator>();
+        services.AddSingleton<IValidateOptions<ConsultationOutboxRelayOptions>, ConsultationOutboxRelayOptionsValidator>();
 
         return services;
     }

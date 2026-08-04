@@ -15,6 +15,7 @@ public static class RabbitMqEventBusServiceCollectionExtensions
         services.AddSingleton<IValidateOptions<RabbitMqConnectionOptions>, RabbitMqConnectionOptionsValidator>();
         services.Configure<RabbitMqConsumerOptions>(
             configuration.GetSection(RabbitMqConsumerOptions.SectionName));
+        services.AddSingleton<IValidateOptions<RabbitMqConsumerOptions>, RabbitMqConsumerOptionsValidator>();
         services.Configure<RabbitMqTopologyOptions>(
             configuration.GetSection(RabbitMqTopologyOptions.SectionName));
         services.Configure<RabbitMqPublishOptions>(
