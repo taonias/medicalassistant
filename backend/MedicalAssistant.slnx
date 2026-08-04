@@ -9,6 +9,7 @@
     <Project Path="src/MedicalAssistant.Infrastructure/MedicalAssistant.Infrastructure.csproj" />
     <Project Path="src/MedicalAssistant.Migrations/MedicalAssistant.Migrations.csproj" />
     <Project Path="src/MedicalAssistant.Persistence/MedicalAssistant.Persistence.csproj" />
+    <Project Path="src/MedicalAssistant.Transcription.Worker/MedicalAssistant.Transcription.Worker.csproj" />
   </Folder>
   <Folder Name="/test/">
     <Project Path="test/MedicalAssistant.Application.UnitTests/MedicalAssistant.Application.UnitTests.csproj" />
