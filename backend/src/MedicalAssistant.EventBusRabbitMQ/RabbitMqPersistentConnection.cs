@@ -27,6 +27,14 @@ public sealed class RabbitMqPersistentConnection : IRabbitMqPersistentConnection
         return await connection.CreateChannelAsync(cancellationToken: cancellationToken);
     }
 
+    public async Task<IChannel> CreateChannelAsync(
+        CreateChannelOptions options,
+        CancellationToken cancellationToken)
+    {
+        var connection = await GetConnectionAsync(cancellationToken);
+        return await connection.CreateChannelAsync(options, cancellationToken);
+    }
+
     private async Task<IConnection> GetConnectionAsync(CancellationToken cancellationToken)
     {
         if (_connection is { IsOpen: true })

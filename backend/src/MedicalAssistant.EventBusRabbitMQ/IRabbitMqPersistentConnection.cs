@@ -7,4 +7,8 @@ public interface IRabbitMqPersistentConnection : IAsyncDisposable
     bool IsConnected { get; }
 
     Task<IChannel> CreateChannelAsync(CancellationToken cancellationToken);
+
+    Task<IChannel> CreateChannelAsync(
+        CreateChannelOptions options,
+        CancellationToken cancellationToken);
 }
