@@ -3,6 +3,7 @@ using MedicalAssistant.Application;
 using MedicalAssistant.Identity;
 using MedicalAssistant.Infrastructure;
 using MedicalAssistant.Persistence;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Models;
 using Serilog;
 
@@ -79,6 +80,14 @@ app.UseHttpsRedirection();
 app.UseCors("all");
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapHealthChecks("/health/live", new HealthCheckOptions
+{
+    Predicate = _ => false
+});
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    Predicate = registration => registration.Tags.Contains("ready")
+});
 app.MapControllers();
 
 await IdentityDbInitializer.SeedRolesAsync(app.Services);

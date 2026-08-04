@@ -8,8 +8,7 @@ namespace MedicalAssistant.Transcription.Worker.Health;
 
 public sealed class TranscriptionWorkerReadinessHealthCheck : IHealthCheck
 {
-    private readonly RabbitMqTopologyOptions _topology;
-    private readonly RabbitMqConsumerOptions _consumer;
+    private readonly RabbitMqSubscriberReadinessHealthCheck _subscriberReadiness;
     private readonly IntegrationEventSubscriptionRegistry _subscriptions;
 
     public TranscriptionWorkerReadinessHealthCheck(
@@ -17,29 +16,23 @@ public sealed class TranscriptionWorkerReadinessHealthCheck : IHealthCheck
         IOptions<RabbitMqConsumerOptions> consumer,
         IntegrationEventSubscriptionRegistry subscriptions)
     {
-        _topology = topology.Value;
-        _consumer = consumer.Value;
+        _subscriberReadiness = new RabbitMqSubscriberReadinessHealthCheck(topology, consumer, subscriptions);
         _subscriptions = subscriptions;
     }
 
-    public Task<HealthCheckResult> CheckHealthAsync(
+    public async Task<HealthCheckResult> CheckHealthAsync(
         HealthCheckContext context,
         CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(_topology.SubscriberName))
-            return Task.FromResult(HealthCheckResult.Unhealthy("RabbitMQ subscriber name is not configured."));
-
-        if (string.IsNullOrWhiteSpace(_topology.QueueName))
-            return Task.FromResult(HealthCheckResult.Unhealthy("RabbitMQ topology queue name is not configured."));
-
-        if (string.IsNullOrWhiteSpace(_consumer.QueueName))
-            return Task.FromResult(HealthCheckResult.Unhealthy("RabbitMQ consumer queue name is not configured."));
+        var subscriberReadiness = await _subscriberReadiness.CheckHealthAsync(context, cancellationToken);
+        if (subscriberReadiness.Status != HealthStatus.Healthy)
+            return subscriberReadiness;
 
         var hasAudioSubscription = _subscriptions.Subscriptions.Any(subscription =>
             subscription.Contract.EventType == ConsultationIntegrationEvents.AudioUploadedV1);
         if (!hasAudioSubscription)
-            return Task.FromResult(HealthCheckResult.Unhealthy("Audio Uploaded subscription is not registered."));
+            return HealthCheckResult.Unhealthy("Audio Uploaded subscription is not registered.");
 
-        return Task.FromResult(HealthCheckResult.Healthy("Transcription worker configuration is ready."));
+        return HealthCheckResult.Healthy("Transcription worker configuration is ready.");
     }
 }

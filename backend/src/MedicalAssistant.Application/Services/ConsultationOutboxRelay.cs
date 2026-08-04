@@ -10,15 +10,18 @@ public sealed class ConsultationOutboxRelay
     private readonly IConsultationOutboxStore _store;
     private readonly IConsultationOutboxPublisher _publisher;
     private readonly ConsultationOutboxRelayOptions _options;
+    private readonly IConsultationOutboxRelayObserver? _observer;
 
     public ConsultationOutboxRelay(
         IConsultationOutboxStore store,
         IConsultationOutboxPublisher publisher,
-        IOptions<ConsultationOutboxRelayOptions>? options = null)
+        IOptions<ConsultationOutboxRelayOptions>? options = null,
+        IConsultationOutboxRelayObserver? observer = null)
     {
         _store = store;
         _publisher = publisher;
         _options = options?.Value ?? new ConsultationOutboxRelayOptions();
+        _observer = observer;
     }
 
     public async Task<int> ProcessDueBatchAsync(CancellationToken cancellationToken)
@@ -30,6 +33,7 @@ public sealed class ConsultationOutboxRelay
             _options.LeaseDuration,
             now,
             cancellationToken);
+        _observer?.BatchClaimed(messages.Count);
 
         foreach (var message in messages)
         {
@@ -37,6 +41,7 @@ public sealed class ConsultationOutboxRelay
             {
                 await _publisher.PublishAsync(message, cancellationToken);
                 await _store.MarkPublishedAsync(message.Id, DateTime.UtcNow, cancellationToken);
+                _observer?.MessagePublished(message.EventType);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
@@ -46,6 +51,7 @@ public sealed class ConsultationOutboxRelay
                     ex.GetType().Name,
                     DateTime.UtcNow.Add(_options.FailureBackoff),
                     cancellationToken);
+                _observer?.MessagePublishFailed(message.EventType, "PublishFailed");
             }
         }
 

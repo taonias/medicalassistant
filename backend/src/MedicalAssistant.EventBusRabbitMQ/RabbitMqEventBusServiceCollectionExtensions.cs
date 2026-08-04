@@ -21,9 +21,14 @@ public static class RabbitMqEventBusServiceCollectionExtensions
             configuration.GetSection(RabbitMqPublishOptions.SectionName));
         services.AddSingleton<IRabbitMqPersistentConnection, RabbitMqPersistentConnection>();
         services.AddSingleton<IRabbitMqDeliveryHandler, RabbitMqIntegrationEventDeliveryHandler>();
+        services.AddSingleton<IRabbitMqDeliveryObserver, RabbitMqDeliveryMetrics>();
         services.AddSingleton<RabbitMqConfirmedPublisher>();
         services.AddSingleton<RabbitMqSubscriberTopologyDeclarer>();
         services.AddHostedService<RabbitMqHostedConsumer>();
+        services.AddHealthChecks()
+            .AddCheck<RabbitMqSubscriberReadinessHealthCheck>(
+                "rabbitmq_subscriber_readiness",
+                tags: ["ready"]);
         return services;
     }
 }

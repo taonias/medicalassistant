@@ -16,6 +16,7 @@ public sealed class RabbitMqHostedConsumer : BackgroundService
     private readonly RabbitMqTopologyOptions _topologyOptions;
     private readonly IntegrationEventSubscriptionRegistry _subscriptions;
     private readonly RabbitMqSubscriberTopologyDeclarer _topologyDeclarer;
+    private readonly IRabbitMqDeliveryObserver _observer;
     private readonly ILogger<RabbitMqHostedConsumer> _logger;
     private IChannel? _channel;
     private RabbitMqSubscriberTopologyPlan? _topologyPlan;
@@ -27,6 +28,7 @@ public sealed class RabbitMqHostedConsumer : BackgroundService
         IOptions<RabbitMqTopologyOptions> topologyOptions,
         IntegrationEventSubscriptionRegistry subscriptions,
         RabbitMqSubscriberTopologyDeclarer topologyDeclarer,
+        IRabbitMqDeliveryObserver observer,
         ILogger<RabbitMqHostedConsumer> logger)
     {
         _connection = connection;
@@ -40,6 +42,7 @@ public sealed class RabbitMqHostedConsumer : BackgroundService
 
         _subscriptions = subscriptions;
         _topologyDeclarer = topologyDeclarer;
+        _observer = observer;
         _logger = logger;
     }
 
@@ -83,6 +86,7 @@ public sealed class RabbitMqHostedConsumer : BackgroundService
         var outcome = await _deliveryHandler.HandleAsync(
             new RabbitMqDelivery(eventType, eventVersion, envelopeJson),
             CancellationToken.None);
+        _observer.DeliveryHandled(eventType, outcome);
 
         switch (outcome)
         {
@@ -134,6 +138,7 @@ public sealed class RabbitMqHostedConsumer : BackgroundService
             args.DeliveryTag,
             retryQueue.Name,
             nextAttempt);
+        _observer.RoutedToRetry(args.RoutingKey, nextAttempt);
     }
 
     private async Task RouteToDeadLetterAsync(
@@ -159,6 +164,7 @@ public sealed class RabbitMqHostedConsumer : BackgroundService
             args.RoutingKey,
             args.DeliveryTag,
             _topologyPlan.DeadLetterQueue.Name);
+        _observer.RoutedToDeadLetter(args.RoutingKey);
     }
 
     private static BasicProperties CreateForwardedProperties(

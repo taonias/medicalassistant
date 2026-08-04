@@ -66,6 +66,24 @@ Required alerts include:
 
 Liveness never depends on a remote service. Readiness reports whether an instance should receive work, while dependency degradation is separately observable so orchestrators do not create restart storms during an external outage.
 
+Implemented service probes:
+
+- `GET /health/live` on the backend API returns process liveness only.
+- `GET /health/ready` on the backend API runs checks tagged `ready`, including RabbitMQ subscriber topology configuration.
+- The standalone Transcription Worker registers a readiness check that verifies RabbitMQ subscriber identity, queue configuration, and the Audio Uploaded subscription without opening a dependency probe on every check.
+
+Initial safe metric instruments:
+
+| Meter | Instrument | Safe dimensions |
+| --- | --- | --- |
+| `MedicalAssistant.EventBusRabbitMQ` | `medicalassistant.eventbus.deliveries.handled` | `event.type`, `outcome` |
+| `MedicalAssistant.EventBusRabbitMQ` | `medicalassistant.eventbus.deliveries.routed` | `event.type`, `queue.role`, `retry.attempt` |
+| `MedicalAssistant.ConsultationOutbox` | `medicalassistant.outbox.messages.claimed` | none |
+| `MedicalAssistant.ConsultationOutbox` | `medicalassistant.outbox.messages.published` | `event.type` |
+| `MedicalAssistant.ConsultationOutbox` | `medicalassistant.outbox.messages.failed` | `event.type`, `failure.category` |
+
+These metrics deliberately exclude Consultation ID, file names, blob/object references, transcript text/previews, raw exception messages, provider response bodies, and secrets.
+
 ## Scaling rules
 
 Scale workers primarily from oldest eligible queue age, not raw message count alone. Set a bounded per-instance prefetch/concurrency value, measure audio memory footprint and speech-provider limits, and increase one constraint at a time. A worker that begins shutdown stops pulling new messages, drains active handlers for a bounded period, and leaves uncommitted work unacknowledged for another instance.
