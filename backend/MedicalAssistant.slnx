@@ -4,6 +4,7 @@
     <Project Path="src/MedicalAssistant.Application/MedicalAssistant.Application.csproj" />
     <Project Path="src/MedicalAssistant.Domain/MedicalAssistant.Domain.csproj" />
     <Project Path="src/MedicalAssistant.EventBus/MedicalAssistant.EventBus.csproj" />
+    <Project Path="src/MedicalAssistant.EventBusRabbitMQ/MedicalAssistant.EventBusRabbitMQ.csproj" />
     <Project Path="src/MedicalAssistant.Identity/MedicalAssistant.Identity.csproj" />
     <Project Path="src/MedicalAssistant.Infrastructure/MedicalAssistant.Infrastructure.csproj" />
     <Project Path="src/MedicalAssistant.Migrations/MedicalAssistant.Migrations.csproj" />
@@ -12,6 +13,7 @@
   <Folder Name="/test/">
     <Project Path="test/MedicalAssistant.Application.UnitTests/MedicalAssistant.Application.UnitTests.csproj" />
     <Project Path="test/MedicalAssistant.EventBus.UnitTests/MedicalAssistant.EventBus.UnitTests.csproj" />
+    <Project Path="test/MedicalAssistant.EventBusRabbitMQ.UnitTests/MedicalAssistant.EventBusRabbitMQ.UnitTests.csproj" />
     <Project Path="test/MedicalAssistant.Persistence.IntegrationTests/MedicalAssistant.Persistence.IntegrationTests.csproj" />
   </Folder>
 </Solution>
