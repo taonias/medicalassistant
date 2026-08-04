@@ -39,11 +39,15 @@ public sealed record TranscriptionFailureResult(
 public enum TranscriptionCompletionStatus
 {
     Completed = 0,
-    DuplicateCompleted = 1
+    DuplicateCompleted = 1,
+    IgnoredDeleted = 2,
+    IgnoredSuperseded = 3
 }
 
 public enum TranscriptionFailureStatus
 {
     Failed = 0,
-    DuplicateCompleted = 1
+    DuplicateCompleted = 1,
+    IgnoredDeleted = 2,
+    IgnoredSuperseded = 3
 }

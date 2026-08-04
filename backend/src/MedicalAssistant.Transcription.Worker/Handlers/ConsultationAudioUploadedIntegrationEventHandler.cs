@@ -65,6 +65,16 @@ public sealed class ConsultationAudioUploadedIntegrationEventHandler
             return;
         }
 
+        if (claim.Status is TranscriptionInboxClaimStatus.SkippedDeleted or TranscriptionInboxClaimStatus.SkippedSuperseded)
+        {
+            _logger.LogInformation(
+                "Skipping transcription event {EventId} for consultation {ConsultationId} because state gate returned {ClaimStatus}.",
+                envelope.EventId,
+                envelope.Payload.ConsultationId,
+                claim.Status);
+            return;
+        }
+
         if (claim.Status == TranscriptionInboxClaimStatus.ActiveInProgress)
         {
             throw new TranscriptionInboxClaimException(

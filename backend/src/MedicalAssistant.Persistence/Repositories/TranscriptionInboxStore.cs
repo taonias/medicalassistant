@@ -1,4 +1,5 @@
 using MedicalAssistant.Application.Contracts.Persistence;
+using MedicalAssistant.Application.Exceptions;
 using MedicalAssistant.Domain;
 using MedicalAssistant.Domain.Enums;
 using MedicalAssistant.EventBus;
@@ -40,6 +41,39 @@ public sealed class TranscriptionInboxStore : ITranscriptionInboxStore
         if (inbox?.Status == ConsultationEventMessageStatus.InProgress &&
             inbox.LeaseExpiresAtUtc > now)
             return new TranscriptionInboxClaimResult(TranscriptionInboxClaimStatus.ActiveInProgress);
+
+        var consultation = await _context.Consultations
+            .SingleOrDefaultAsync(c => c.Id == envelope.Payload.ConsultationId, cancellationToken)
+            ?? throw new NotFoundException(nameof(Consultation), envelope.Payload.ConsultationId);
+
+        var stateGate = TranscriptionStateGate.Evaluate(consultation, envelope.Payload);
+        if (stateGate is not null)
+        {
+            inbox ??= new ConsultationInboxMessage
+            {
+                ConsumerName = consumerName,
+                EventId = envelope.EventId,
+                EventType = envelope.EventType,
+                EventVersion = envelope.EventVersion,
+                ReceivedAtUtc = now
+            };
+            if (inbox.Id == 0)
+            {
+                await _context.ConsultationInboxMessages.AddAsync(inbox, cancellationToken);
+            }
+
+            inbox.Status = ConsultationEventMessageStatus.Completed;
+            inbox.AttemptCount++;
+            inbox.LastAttemptAtUtc = now;
+            inbox.CompletedAtUtc = now;
+            inbox.LeaseOwner = null;
+            inbox.LeaseExpiresAtUtc = null;
+            inbox.LastFailureCategory = TranscriptionStateGate.FailureCategory;
+            inbox.LastFailureCode = stateGate.FailureCode;
+
+            await _context.SaveChangesAsync(cancellationToken);
+            return new TranscriptionInboxClaimResult(stateGate.InboxClaimStatus);
+        }
 
         if (inbox is null)
         {

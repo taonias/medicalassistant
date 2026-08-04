@@ -3,6 +3,7 @@ using MedicalAssistant.EventBus.Contracts;
 using MedicalAssistant.EventBusRabbitMQ;
 using MedicalAssistant.Transcription.Worker;
 using MedicalAssistant.Transcription.Worker.Handlers;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -55,5 +56,32 @@ public class TranscriptionWorkerHostTests
         Assert.DoesNotContain(referencedAssemblies, name =>
             name is not null &&
             name.Contains("WebJobs", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void Worker_registration_uses_transcription_concurrency_to_bound_rabbitmq_prefetch_and_shutdown()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["RabbitMQ:Topology:SubscriberName"] = "transcription-worker",
+                ["RabbitMQ:Topology:QueueName"] = "medicalassistant.transcription-worker",
+                ["RabbitMQ:Consumer:QueueName"] = "medicalassistant.transcription-worker",
+                ["RabbitMQ:Consumer:PrefetchCount"] = "99",
+                ["RabbitMQ:Consumer:ShutdownDrainTimeout"] = "00:00:30",
+                ["TranscriptionWorker:MaxConcurrentTranscriptions"] = "3",
+                ["TranscriptionWorker:ShutdownDrainTimeout"] = "00:00:07"
+            })
+            .Build();
+        var services = new ServiceCollection();
+
+        services.AddLogging();
+        services.AddTranscriptionWorkerServices(configuration);
+
+        using var provider = services.BuildServiceProvider();
+        var options = provider.GetRequiredService<IOptions<RabbitMqConsumerOptions>>().Value;
+
+        Assert.Equal((ushort)3, options.PrefetchCount);
+        Assert.Equal(TimeSpan.FromSeconds(7), options.ShutdownDrainTimeout);
     }
 }

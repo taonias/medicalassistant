@@ -23,10 +23,13 @@ public class Transcript : BaseEntity
 
     public void MarkCompleted(string transcript)
     {
+        var hasExistingResult = Status == TranscriptStatus.Completed || !string.IsNullOrWhiteSpace(TranscriptText);
         Status = TranscriptStatus.Completed;
         TranscriptText = transcript;
         ProcessedAt = DateTime.UtcNow;
-        Revision = Math.Max(Revision, 1);
+        Revision = hasExistingResult
+            ? Math.Max(Revision, 1) + 1
+            : Math.Max(Revision, 1);
         ConcurrencyToken = Guid.NewGuid();
     }
 
@@ -34,6 +37,8 @@ public class Transcript : BaseEntity
     {
         Status = TranscriptStatus.Failed;
         FailureReason = reason;
+        ProcessedAt = DateTime.UtcNow;
+        ConcurrencyToken = Guid.NewGuid();
     }
 
     public void UpdateText(string transcript)

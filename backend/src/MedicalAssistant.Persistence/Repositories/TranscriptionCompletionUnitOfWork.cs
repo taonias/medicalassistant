@@ -75,6 +75,19 @@ public sealed class TranscriptionCompletionUnitOfWork : ITranscriptionCompletion
             .SingleOrDefaultAsync(c => c.Id == payload.ConsultationId, cancellationToken)
             ?? throw new NotFoundException(nameof(Consultation), payload.ConsultationId);
 
+        var stateGate = TranscriptionStateGate.Evaluate(consultation, payload);
+        if (stateGate is not null)
+        {
+            MarkInboxCompletedByStateGate(inbox, now, stateGate.FailureCode);
+            await _context.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+
+            return new TranscriptionCompletionResult(
+                stateGate.CompletionStatus,
+                payload.ConsultationId,
+                TranscriptId: null);
+        }
+
         var transcript = await _context.Transcripts
             .SingleOrDefaultAsync(t => t.ConsultationId == payload.ConsultationId, cancellationToken);
 
@@ -163,6 +176,18 @@ public sealed class TranscriptionCompletionUnitOfWork : ITranscriptionCompletion
             .SingleOrDefaultAsync(c => c.Id == payload.ConsultationId, cancellationToken)
             ?? throw new NotFoundException(nameof(Consultation), payload.ConsultationId);
 
+        var stateGate = TranscriptionStateGate.Evaluate(consultation, payload);
+        if (stateGate is not null)
+        {
+            MarkInboxCompletedByStateGate(inbox, now, stateGate.FailureCode);
+            await _context.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+
+            return new TranscriptionFailureResult(
+                stateGate.FailureStatus,
+                payload.ConsultationId);
+        }
+
         var transcript = await _context.Transcripts
             .SingleOrDefaultAsync(t => t.ConsultationId == payload.ConsultationId, cancellationToken);
         if (transcript is null)
@@ -195,5 +220,19 @@ public sealed class TranscriptionCompletionUnitOfWork : ITranscriptionCompletion
         return new TranscriptionFailureResult(
             TranscriptionFailureStatus.Failed,
             payload.ConsultationId);
+    }
+
+    private static void MarkInboxCompletedByStateGate(
+        ConsultationInboxMessage inbox,
+        DateTime completedAtUtc,
+        string failureCode)
+    {
+        inbox.Status = ConsultationEventMessageStatus.Completed;
+        inbox.LastAttemptAtUtc ??= completedAtUtc;
+        inbox.CompletedAtUtc = completedAtUtc;
+        inbox.LeaseOwner = null;
+        inbox.LeaseExpiresAtUtc = null;
+        inbox.LastFailureCategory = TranscriptionStateGate.FailureCategory;
+        inbox.LastFailureCode = failureCode;
     }
 }

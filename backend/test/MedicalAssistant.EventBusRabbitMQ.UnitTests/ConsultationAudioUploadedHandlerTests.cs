@@ -79,6 +79,34 @@ public class ConsultationAudioUploadedHandlerTests
         Assert.Null(unitOfWork.Request);
     }
 
+    [Theory]
+    [InlineData(TranscriptionInboxClaimStatus.SkippedDeleted)]
+    [InlineData(TranscriptionInboxClaimStatus.SkippedSuperseded)]
+    public async Task HandleAsync_skips_blob_and_speech_when_state_gate_skips_event(
+        TranscriptionInboxClaimStatus skippedStatus)
+    {
+        var retriever = new RecordingAudioRetriever(
+            new ConsultationAudioBlob(new MemoryStream([1]), "audio/wav", 1));
+        var speech = new RecordingSpeechService(new SpeechTranscriptionResult("should not run", "en-US"));
+        var unitOfWork = new RecordingCompletionUnitOfWork();
+        var handler = new ConsultationAudioUploadedIntegrationEventHandler(
+            new RecordingInboxStore(skippedStatus),
+            retriever,
+            speech,
+            unitOfWork,
+            Options.Create(new RabbitMqTopologyOptions { SubscriberName = "transcription-worker" }),
+            Options.Create(new TranscriptionWorkerOptions { ProcessingLeaseDuration = TimeSpan.FromMinutes(10) }),
+            NullLogger<ConsultationAudioUploadedIntegrationEventHandler>.Instance);
+
+        await handler.HandleAsync(CreateEnvelope(), CancellationToken.None);
+
+        Assert.Null(retriever.StorageObjectReference);
+        Assert.Null(speech.Audio);
+        Assert.Null(unitOfWork.Request);
+        Assert.Null(unitOfWork.FailureRequest);
+    }
+
+
     [Fact]
     public async Task HandleAsync_commits_transcription_failed_for_permanent_speech_failure()
     {

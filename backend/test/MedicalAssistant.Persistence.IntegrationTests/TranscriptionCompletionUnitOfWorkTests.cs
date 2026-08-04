@@ -87,6 +87,47 @@ public class TranscriptionCompletionUnitOfWorkTests
     }
 
     [Fact]
+    public async Task CompleteAsync_advances_revision_and_concurrency_token_when_replacing_existing_transcript()
+    {
+        await using var context = CreateContext();
+        context.Consultations.Add(new Consultation
+        {
+            Id = 10,
+            DoctorId = "doctor-1",
+            ConsultationDate = DateTime.UtcNow,
+            SourceObjectReference = "private://consultations/10/audio",
+            Status = ConsultationStatus.AudioUploaded
+        });
+        var originalToken = Guid.Parse("99999999-9999-9999-9999-999999999999");
+        context.Transcripts.Add(new Transcript
+        {
+            ConsultationId = 10,
+            Status = TranscriptStatus.Completed,
+            TranscriptText = "old transcript",
+            Revision = 1,
+            ConcurrencyToken = originalToken
+        });
+        await context.SaveChangesAsync();
+        var unitOfWork = new TranscriptionCompletionUnitOfWork(context);
+
+        var result = await unitOfWork.CompleteAsync(
+            new TranscriptionCompletionRequest(
+                "transcription-worker",
+                CreateEnvelope(Guid.Parse("99999999-1111-1111-1111-999999999999")),
+                "new transcript",
+                ExternalJobId: "speech-job-new",
+                LanguageCode: "en-US"),
+            CancellationToken.None);
+
+        Assert.Equal(TranscriptionCompletionStatus.Completed, result.Status);
+        var transcript = Assert.Single(context.Transcripts);
+        Assert.Equal("new transcript", transcript.TranscriptText);
+        Assert.Equal(2, transcript.Revision);
+        Assert.NotEqual(originalToken, transcript.ConcurrencyToken);
+        Assert.Contains("\"transcriptRevision\":2", Assert.Single(context.ConsultationOutboxMessages).Payload);
+    }
+
+    [Fact]
     public async Task FailAsync_commits_failed_transcript_consultation_inbox_and_failure_outbox()
     {
         await using var context = CreateContext();
@@ -122,6 +163,76 @@ public class TranscriptionCompletionUnitOfWorkTests
         Assert.Equal(ConsultationIntegrationEvents.TranscriptionFailedV1, outbox.EventType);
         Assert.Contains("\"failureCode\":\"speech-unsupported-audio\"", outbox.Payload);
         Assert.DoesNotContain("private://", outbox.Payload);
+    }
+
+    [Fact]
+    public async Task CompleteAsync_marks_inbox_completed_but_ignores_deleted_consultation()
+    {
+        await using var context = CreateContext();
+        var consultation = new Consultation
+        {
+            Id = 10,
+            DoctorId = "doctor-1",
+            ConsultationDate = DateTime.UtcNow,
+            SourceObjectReference = "private://consultations/10/audio",
+            Status = ConsultationStatus.AudioUploaded
+        };
+        consultation.MarkDeleted("doctor-1", "doctor-delete");
+        context.Consultations.Add(consultation);
+        await context.SaveChangesAsync();
+        var unitOfWork = new TranscriptionCompletionUnitOfWork(context);
+
+        var result = await unitOfWork.CompleteAsync(
+            new TranscriptionCompletionRequest(
+                "transcription-worker",
+                CreateEnvelope(Guid.Parse("77777777-7777-7777-7777-777777777777")),
+                "late transcript text",
+                ExternalJobId: "speech-job-late",
+                LanguageCode: "en-US"),
+            CancellationToken.None);
+
+        Assert.Equal(TranscriptionCompletionStatus.IgnoredDeleted, result.Status);
+        Assert.Empty(context.Transcripts);
+        Assert.Empty(context.ConsultationOutboxMessages);
+        var inbox = Assert.Single(context.ConsultationInboxMessages);
+        Assert.Equal(ConsultationEventMessageStatus.Completed, inbox.Status);
+        Assert.Equal("StateGate", inbox.LastFailureCategory);
+        Assert.Equal("consultation-deleted", inbox.LastFailureCode);
+        Assert.Equal(ConsultationStatus.Deleted, context.Consultations.Single().Status);
+    }
+
+    [Fact]
+    public async Task CompleteAsync_marks_inbox_completed_but_ignores_superseded_source()
+    {
+        await using var context = CreateContext();
+        context.Consultations.Add(new Consultation
+        {
+            Id = 10,
+            DoctorId = "doctor-1",
+            ConsultationDate = DateTime.UtcNow,
+            SourceObjectReference = "private://consultations/10/new-audio",
+            Status = ConsultationStatus.AudioUploaded
+        });
+        await context.SaveChangesAsync();
+        var unitOfWork = new TranscriptionCompletionUnitOfWork(context);
+
+        var result = await unitOfWork.CompleteAsync(
+            new TranscriptionCompletionRequest(
+                "transcription-worker",
+                CreateEnvelope(Guid.Parse("88888888-8888-8888-8888-888888888888")),
+                "late transcript text",
+                ExternalJobId: "speech-job-late",
+                LanguageCode: "en-US"),
+            CancellationToken.None);
+
+        Assert.Equal(TranscriptionCompletionStatus.IgnoredSuperseded, result.Status);
+        Assert.Empty(context.Transcripts);
+        Assert.Empty(context.ConsultationOutboxMessages);
+        var inbox = Assert.Single(context.ConsultationInboxMessages);
+        Assert.Equal(ConsultationEventMessageStatus.Completed, inbox.Status);
+        Assert.Equal("StateGate", inbox.LastFailureCategory);
+        Assert.Equal("consultation-source-superseded", inbox.LastFailureCode);
+        Assert.Equal(ConsultationStatus.AudioUploaded, context.Consultations.Single().Status);
     }
 
     private static MedicalAssistantDatabaseContext CreateContext()

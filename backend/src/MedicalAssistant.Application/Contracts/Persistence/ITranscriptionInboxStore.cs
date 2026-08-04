@@ -20,5 +20,7 @@ public enum TranscriptionInboxClaimStatus
 {
     Claimed = 0,
     DuplicateCompleted = 1,
-    ActiveInProgress = 2
+    ActiveInProgress = 2,
+    SkippedDeleted = 3,
+    SkippedSuperseded = 4
 }

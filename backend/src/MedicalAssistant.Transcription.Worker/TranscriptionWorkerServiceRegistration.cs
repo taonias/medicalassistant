@@ -37,6 +37,16 @@ public static class TranscriptionWorkerServiceRegistration
                     ConsultationAudioUploadedIntegrationEventHandler>()));
         services.AddSingleton<IntegrationEventDispatcher>();
         services.AddRabbitMqEventBusConsumer(configuration);
+        services.PostConfigure<RabbitMqConsumerOptions>(options =>
+        {
+            var workerOptions = new TranscriptionWorkerOptions();
+            configuration.GetSection(TranscriptionWorkerOptions.SectionName).Bind(workerOptions);
+            options.PrefetchCount = (ushort)Math.Clamp(
+                workerOptions.MaxConcurrentTranscriptions,
+                min: 1,
+                max: ushort.MaxValue);
+            options.ShutdownDrainTimeout = workerOptions.ShutdownDrainTimeout;
+        });
         services.AddHealthChecks()
             .AddCheck<TranscriptionWorkerReadinessHealthCheck>("transcription_worker_readiness");
 
