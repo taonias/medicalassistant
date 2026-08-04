@@ -80,6 +80,8 @@ Root Compose tests must prove:
 11. **Scale-out**: concurrent worker/relay replicas do not duplicate business effects.
 12. **Graceful shutdown**: active work drains or redelivers without partial commit.
 
+The scenario-to-evidence map lives in `12-end-to-end-failure-matrix.md`. `FailureMatrixCoverageTests` keeps that matrix executable by checking that every scenario has named automated backend evidence and that the documentation has no placeholder outcomes. Live Compose execution still records the real process/container/broker result for each scenario before release.
+
 ## PHI leakage verification
 
 Use unique synthetic canary strings in filenames, blob paths, audio transcript, exception/provider-body fixtures, and event fields that are intentionally forbidden. Capture application logs, OpenTelemetry spans, metrics labels, audit metadata, DLQ incident output, and test reports. Fail the test if any canary appears outside approved encrypted clinical storage/test fixtures.
