@@ -94,6 +94,29 @@ public static class ConsultationOutboxFactory
             consultation.Id);
     }
 
+    public static ConsultationOutboxMessage TranscriptionFailed(
+        Consultation consultation,
+        string fileId,
+        string failureCode,
+        string failureCategory,
+        string correlationId)
+    {
+        var payload = new ConsultationTranscriptionFailedV1(
+            consultation.Id,
+            fileId,
+            failureCode,
+            failureCategory);
+
+        return FromEnvelope(
+            IntegrationEventEnvelope.Create(
+                payload,
+                ConsultationIntegrationEvents.Registry.Resolve<ConsultationTranscriptionFailedV1>(),
+                "medicalassistant.transcription-worker",
+                correlationId,
+                null),
+            consultation.Id);
+    }
+
     private static ConsultationOutboxMessage FromEnvelope<TPayload>(
         IntegrationEventEnvelope<TPayload> envelope,
         int consultationId)

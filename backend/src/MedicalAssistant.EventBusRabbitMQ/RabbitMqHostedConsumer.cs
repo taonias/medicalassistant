@@ -10,6 +10,8 @@ namespace MedicalAssistant.EventBusRabbitMQ;
 
 public sealed class RabbitMqHostedConsumer : BackgroundService
 {
+    private const string RetryAttemptHeader = "x-medicalassistant-retry-attempt";
+
     private readonly IRabbitMqPersistentConnection _connection;
     private readonly IRabbitMqDeliveryHandler _deliveryHandler;
     private readonly RabbitMqConsumerOptions _options;
@@ -18,6 +20,7 @@ public sealed class RabbitMqHostedConsumer : BackgroundService
     private readonly RabbitMqSubscriberTopologyDeclarer _topologyDeclarer;
     private readonly ILogger<RabbitMqHostedConsumer> _logger;
     private IChannel? _channel;
+    private RabbitMqSubscriberTopologyPlan? _topologyPlan;
 
     public RabbitMqHostedConsumer(
         IRabbitMqPersistentConnection connection,
@@ -48,6 +51,7 @@ public sealed class RabbitMqHostedConsumer : BackgroundService
 
         _channel = await _connection.CreateChannelAsync(stoppingToken);
         var plan = RabbitMqSubscriberTopologyPlan.Create(_topologyOptions, _subscriptions);
+        _topologyPlan = plan;
         await _topologyDeclarer.DeclareAsync(_channel, plan, stoppingToken);
 
         await _channel.BasicQosAsync(
@@ -88,14 +92,115 @@ public sealed class RabbitMqHostedConsumer : BackgroundService
                 await _channel.BasicAckAsync(args.DeliveryTag, multiple: false);
                 break;
             case RabbitMqDeliveryOutcome.Retry:
-                await _channel.BasicNackAsync(args.DeliveryTag, multiple: false, requeue: true);
+                await RouteToRetryOrDeadLetterAsync(args, CancellationToken.None);
+                await _channel.BasicAckAsync(args.DeliveryTag, multiple: false);
                 break;
             case RabbitMqDeliveryOutcome.DeadLetter:
-                await _channel.BasicNackAsync(args.DeliveryTag, multiple: false, requeue: false);
+                await RouteToDeadLetterAsync(args, CancellationToken.None);
+                await _channel.BasicAckAsync(args.DeliveryTag, multiple: false);
                 break;
             default:
                 throw new InvalidOperationException($"Unknown RabbitMQ delivery outcome '{outcome}'.");
         }
+    }
+
+    private async Task RouteToRetryOrDeadLetterAsync(
+        BasicDeliverEventArgs args,
+        CancellationToken cancellationToken)
+    {
+        if (_channel is null || _topologyPlan is null)
+        {
+            return;
+        }
+
+        var nextAttempt = GetRetryAttempt(args.BasicProperties.Headers) + 1;
+        if (nextAttempt > _topologyPlan.RetryQueues.Count)
+        {
+            await RouteToDeadLetterAsync(args, cancellationToken);
+            return;
+        }
+
+        var retryQueue = _topologyPlan.RetryQueues[nextAttempt - 1];
+        var properties = CreateForwardedProperties(args, nextAttempt);
+        await _channel.BasicPublishAsync(
+            exchange: string.Empty,
+            routingKey: retryQueue.Name,
+            mandatory: true,
+            basicProperties: properties,
+            body: args.Body,
+            cancellationToken: cancellationToken);
+
+        _logger.LogWarning(
+            "Routed integration event {EventType} delivery {DeliveryTag} to delayed retry queue {RetryQueue} at attempt {RetryAttempt}.",
+            args.RoutingKey,
+            args.DeliveryTag,
+            retryQueue.Name,
+            nextAttempt);
+    }
+
+    private async Task RouteToDeadLetterAsync(
+        BasicDeliverEventArgs args,
+        CancellationToken cancellationToken)
+    {
+        if (_channel is null || _topologyPlan is null)
+        {
+            return;
+        }
+
+        var properties = CreateForwardedProperties(args, GetRetryAttempt(args.BasicProperties.Headers));
+        await _channel.BasicPublishAsync(
+            exchange: string.Empty,
+            routingKey: _topologyPlan.DeadLetterQueue.Name,
+            mandatory: true,
+            basicProperties: properties,
+            body: args.Body,
+            cancellationToken: cancellationToken);
+
+        _logger.LogError(
+            "Routed integration event {EventType} delivery {DeliveryTag} to dead-letter queue {DeadLetterQueue}.",
+            args.RoutingKey,
+            args.DeliveryTag,
+            _topologyPlan.DeadLetterQueue.Name);
+    }
+
+    private static BasicProperties CreateForwardedProperties(
+        BasicDeliverEventArgs args,
+        int retryAttempt)
+    {
+        var source = args.BasicProperties;
+        var headers = source.Headers is null
+            ? new Dictionary<string, object?>(StringComparer.Ordinal)
+            : new Dictionary<string, object?>(source.Headers, StringComparer.Ordinal);
+        headers[RetryAttemptHeader] = retryAttempt;
+
+        return new BasicProperties
+        {
+            Persistent = true,
+            ContentType = source.ContentType,
+            ContentEncoding = source.ContentEncoding,
+            MessageId = source.MessageId,
+            CorrelationId = source.CorrelationId,
+            Type = source.Type,
+            Timestamp = source.Timestamp,
+            Headers = headers
+        };
+    }
+
+    private static int GetRetryAttempt(IDictionary<string, object?>? headers)
+    {
+        if (headers is null || !headers.TryGetValue(RetryAttemptHeader, out var value) || value is null)
+        {
+            return 0;
+        }
+
+        return value switch
+        {
+            int attempt => attempt,
+            long attempt => Convert.ToInt32(attempt),
+            byte[] bytes when int.TryParse(Encoding.UTF8.GetString(bytes), out var attempt) => attempt,
+            string text when int.TryParse(text, out var attempt) => attempt,
+            _ => 0
+        };
     }
 
     public override async Task StopAsync(CancellationToken cancellationToken)

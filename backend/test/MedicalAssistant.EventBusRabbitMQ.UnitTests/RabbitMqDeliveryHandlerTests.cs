@@ -87,6 +87,36 @@ public class RabbitMqDeliveryHandlerTests
         Assert.Equal(RabbitMqDeliveryOutcome.Retry, outcome);
     }
 
+    [Fact]
+    public async Task Non_retryable_handler_failure_returns_dead_letter_outcome()
+    {
+        var services = new ServiceCollection()
+            .AddScoped<NonRetryableAudioUploadedHandler>()
+            .BuildServiceProvider();
+        var subscriptions = IntegrationEventSubscriptionRegistry.Create(
+            ConsultationIntegrationEvents.Registry,
+            builder => builder.Subscribe<ConsultationAudioUploadedV1, NonRetryableAudioUploadedHandler>());
+        var dispatcher = new IntegrationEventDispatcher(
+            services.GetRequiredService<IServiceScopeFactory>(),
+            subscriptions);
+        var handler = new RabbitMqIntegrationEventDeliveryHandler(dispatcher);
+        var envelope = IntegrationEventEnvelope.Create(
+            new ConsultationAudioUploadedV1(1, "file-1", "audio/wav", "private://blob/1", 30),
+            ConsultationIntegrationEvents.Registry.Resolve<ConsultationAudioUploadedV1>(),
+            "medicalassistant.backend",
+            null,
+            null);
+
+        var outcome = await handler.HandleAsync(
+            new RabbitMqDelivery(
+                ConsultationIntegrationEvents.AudioUploadedV1,
+                1,
+                IntegrationEventSerializer.Serialize(envelope)),
+            CancellationToken.None);
+
+        Assert.Equal(RabbitMqDeliveryOutcome.DeadLetter, outcome);
+    }
+
     private sealed class HandledMessages
     {
         public List<int> ConsultationIds { get; } = [];
@@ -110,5 +140,13 @@ public class RabbitMqDeliveryHandlerTests
             IntegrationEventEnvelope<ConsultationAudioUploadedV1> envelope,
             CancellationToken cancellationToken) =>
             throw new InvalidOperationException("boom");
+    }
+
+    private sealed class NonRetryableAudioUploadedHandler : IIntegrationEventHandler<ConsultationAudioUploadedV1>
+    {
+        public Task HandleAsync(
+            IntegrationEventEnvelope<ConsultationAudioUploadedV1> envelope,
+            CancellationToken cancellationToken) =>
+            throw new NonRetryableIntegrationEventException("policy-invalid-event");
     }
 }

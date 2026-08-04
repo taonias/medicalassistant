@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Reflection;
 using MedicalAssistant.EventBus;
 
 namespace MedicalAssistant.EventBusRabbitMQ;
@@ -31,6 +32,14 @@ public sealed class RabbitMqIntegrationEventDeliveryHandler : IRabbitMqDeliveryH
             return RabbitMqDeliveryOutcome.DeadLetter;
         }
         catch (JsonException)
+        {
+            return RabbitMqDeliveryOutcome.DeadLetter;
+        }
+        catch (NonRetryableIntegrationEventException)
+        {
+            return RabbitMqDeliveryOutcome.DeadLetter;
+        }
+        catch (TargetInvocationException ex) when (ex.InnerException is NonRetryableIntegrationEventException)
         {
             return RabbitMqDeliveryOutcome.DeadLetter;
         }

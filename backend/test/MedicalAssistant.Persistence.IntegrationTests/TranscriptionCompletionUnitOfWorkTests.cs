@@ -86,6 +86,44 @@ public class TranscriptionCompletionUnitOfWorkTests
         Assert.Equal("first text", Assert.Single(context.Transcripts).TranscriptText);
     }
 
+    [Fact]
+    public async Task FailAsync_commits_failed_transcript_consultation_inbox_and_failure_outbox()
+    {
+        await using var context = CreateContext();
+        context.Consultations.Add(new Consultation
+        {
+            Id = 10,
+            DoctorId = "doctor-1",
+            ConsultationDate = DateTime.UtcNow,
+            SourceObjectReference = "private://consultations/10/audio",
+            Status = ConsultationStatus.AudioUploaded
+        });
+        await context.SaveChangesAsync();
+        var unitOfWork = new TranscriptionCompletionUnitOfWork(context);
+        var envelope = CreateEnvelope(eventId: Guid.Parse("66666666-6666-6666-6666-666666666666"));
+
+        var result = await unitOfWork.FailAsync(
+            new TranscriptionFailureRequest(
+                "transcription-worker",
+                envelope,
+                "speech-unsupported-audio",
+                "Permanent"),
+            CancellationToken.None);
+
+        Assert.Equal(TranscriptionFailureStatus.Failed, result.Status);
+        Assert.Equal(ConsultationStatus.Failed, context.Consultations.Single().Status);
+        Assert.Equal("speech-unsupported-audio", context.Consultations.Single().FailureReason);
+        Assert.Equal(TranscriptStatus.Failed, context.Transcripts.Single().Status);
+        Assert.Equal("speech-unsupported-audio", context.Transcripts.Single().FailureReason);
+        Assert.Equal(ConsultationEventMessageStatus.Completed, context.ConsultationInboxMessages.Single().Status);
+        Assert.Equal("Permanent", context.ConsultationInboxMessages.Single().LastFailureCategory);
+        Assert.Equal("speech-unsupported-audio", context.ConsultationInboxMessages.Single().LastFailureCode);
+        var outbox = Assert.Single(context.ConsultationOutboxMessages);
+        Assert.Equal(ConsultationIntegrationEvents.TranscriptionFailedV1, outbox.EventType);
+        Assert.Contains("\"failureCode\":\"speech-unsupported-audio\"", outbox.Payload);
+        Assert.DoesNotContain("private://", outbox.Payload);
+    }
+
     private static MedicalAssistantDatabaseContext CreateContext()
     {
         var options = new DbContextOptionsBuilder<MedicalAssistantDatabaseContext>()

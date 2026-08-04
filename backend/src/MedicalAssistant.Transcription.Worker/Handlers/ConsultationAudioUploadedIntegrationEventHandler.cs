@@ -71,10 +71,31 @@ public sealed class ConsultationAudioUploadedIntegrationEventHandler
                 "Transcription event is already being processed by another active worker lease.");
         }
 
-        var audio = await _audioBlobRetriever.OpenReadAsync(
-            envelope.Payload.StorageObjectReference,
-            cancellationToken);
-        var speechResult = await _speechTranscriptionService.TranscribeAsync(audio, cancellationToken);
+        SpeechTranscriptionResult speechResult;
+        try
+        {
+            var audio = await _audioBlobRetriever.OpenReadAsync(
+                envelope.Payload.StorageObjectReference,
+                cancellationToken);
+            speechResult = await _speechTranscriptionService.TranscribeAsync(audio, cancellationToken);
+        }
+        catch (SpeechTranscriptionFailureException ex)
+            when (ex.Category == SpeechTranscriptionFailureCategory.Permanent)
+        {
+            await _completionUnitOfWork.FailAsync(
+                new TranscriptionFailureRequest(
+                    consumerName,
+                    envelope,
+                    ex.Code,
+                    "Permanent"),
+                cancellationToken);
+            return;
+        }
+        catch (BlobRetrievalFailureException ex)
+            when (ex.Category == BlobRetrievalFailureCategory.PolicyViolation)
+        {
+            throw new NonRetryableIntegrationEventException(ex.Code);
+        }
 
         await _completionUnitOfWork.CompleteAsync(
             new TranscriptionCompletionRequest(

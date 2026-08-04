@@ -79,6 +79,33 @@ public class ConsultationAudioUploadedHandlerTests
         Assert.Null(unitOfWork.Request);
     }
 
+    [Fact]
+    public async Task HandleAsync_commits_transcription_failed_for_permanent_speech_failure()
+    {
+        var retriever = new RecordingAudioRetriever(
+            new ConsultationAudioBlob(new MemoryStream([1]), "audio/wav", 1));
+        var speech = new FailingSpeechService(new SpeechTranscriptionFailureException(
+            SpeechTranscriptionFailureCategory.Permanent,
+            "speech-unsupported-audio",
+            "Azure Speech rejected the audio format."));
+        var unitOfWork = new RecordingCompletionUnitOfWork();
+        var handler = new ConsultationAudioUploadedIntegrationEventHandler(
+            new RecordingInboxStore(TranscriptionInboxClaimStatus.Claimed),
+            retriever,
+            speech,
+            unitOfWork,
+            Options.Create(new RabbitMqTopologyOptions { SubscriberName = "transcription-worker" }),
+            Options.Create(new TranscriptionWorkerOptions { ProcessingLeaseDuration = TimeSpan.FromMinutes(10) }),
+            NullLogger<ConsultationAudioUploadedIntegrationEventHandler>.Instance);
+
+        await handler.HandleAsync(CreateEnvelope(), CancellationToken.None);
+
+        Assert.Null(unitOfWork.Request);
+        Assert.NotNull(unitOfWork.FailureRequest);
+        Assert.Equal("speech-unsupported-audio", unitOfWork.FailureRequest.FailureCode);
+        Assert.Equal("Permanent", unitOfWork.FailureRequest.FailureCategory);
+    }
+
     private sealed class RecordingAudioRetriever : IConsultationAudioBlobRetriever
     {
         private readonly ConsultationAudioBlob _audio;
@@ -142,9 +169,25 @@ public class ConsultationAudioUploadedHandlerTests
         }
     }
 
+    private sealed class FailingSpeechService : ISpeechTranscriptionService
+    {
+        private readonly SpeechTranscriptionFailureException _exception;
+
+        public FailingSpeechService(SpeechTranscriptionFailureException exception)
+        {
+            _exception = exception;
+        }
+
+        public Task<SpeechTranscriptionResult> TranscribeAsync(
+            ConsultationAudioBlob audio,
+            CancellationToken cancellationToken = default) =>
+            Task.FromException<SpeechTranscriptionResult>(_exception);
+    }
+
     private sealed class RecordingCompletionUnitOfWork : ITranscriptionCompletionUnitOfWork
     {
         public TranscriptionCompletionRequest? Request { get; private set; }
+        public TranscriptionFailureRequest? FailureRequest { get; private set; }
 
         public Task<TranscriptionCompletionResult> CompleteAsync(
             TranscriptionCompletionRequest request,
@@ -155,6 +198,16 @@ public class ConsultationAudioUploadedHandlerTests
                 TranscriptionCompletionStatus.Completed,
                 request.Envelope.Payload.ConsultationId,
                 TranscriptId: 99));
+        }
+
+        public Task<TranscriptionFailureResult> FailAsync(
+            TranscriptionFailureRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            FailureRequest = request;
+            return Task.FromResult(new TranscriptionFailureResult(
+                TranscriptionFailureStatus.Failed,
+                request.Envelope.Payload.ConsultationId));
         }
     }
 

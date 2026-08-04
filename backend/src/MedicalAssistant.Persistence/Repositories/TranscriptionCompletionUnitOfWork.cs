@@ -109,4 +109,91 @@ public sealed class TranscriptionCompletionUnitOfWork : ITranscriptionCompletion
             payload.ConsultationId,
             transcript.Id);
     }
+
+    public async Task<TranscriptionFailureResult> FailAsync(
+        TranscriptionFailureRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(request.ConsumerName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(request.FailureCode);
+        ArgumentException.ThrowIfNullOrWhiteSpace(request.FailureCategory);
+
+        var payload = request.Envelope.Payload;
+        await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+
+        var inbox = await _context.ConsultationInboxMessages
+            .SingleOrDefaultAsync(message =>
+                    message.ConsumerName == request.ConsumerName &&
+                    message.EventId == request.Envelope.EventId,
+                cancellationToken);
+
+        if (inbox?.Status == ConsultationEventMessageStatus.Completed)
+        {
+            await transaction.CommitAsync(cancellationToken);
+            return new TranscriptionFailureResult(
+                TranscriptionFailureStatus.DuplicateCompleted,
+                payload.ConsultationId);
+        }
+
+        var now = DateTime.UtcNow;
+        if (inbox is null)
+        {
+            inbox = new ConsultationInboxMessage
+            {
+                ConsumerName = request.ConsumerName,
+                EventId = request.Envelope.EventId,
+                EventType = request.Envelope.EventType,
+                EventVersion = request.Envelope.EventVersion,
+                ReceivedAtUtc = now,
+                AttemptCount = 1,
+                LastAttemptAtUtc = now
+            };
+            await _context.ConsultationInboxMessages.AddAsync(inbox, cancellationToken);
+        }
+
+        inbox.Status = ConsultationEventMessageStatus.Completed;
+        inbox.LastAttemptAtUtc ??= now;
+        inbox.CompletedAtUtc = now;
+        inbox.LeaseOwner = null;
+        inbox.LeaseExpiresAtUtc = null;
+        inbox.LastFailureCategory = request.FailureCategory;
+        inbox.LastFailureCode = request.FailureCode;
+
+        var consultation = await _context.Consultations
+            .SingleOrDefaultAsync(c => c.Id == payload.ConsultationId, cancellationToken)
+            ?? throw new NotFoundException(nameof(Consultation), payload.ConsultationId);
+
+        var transcript = await _context.Transcripts
+            .SingleOrDefaultAsync(t => t.ConsultationId == payload.ConsultationId, cancellationToken);
+        if (transcript is null)
+        {
+            transcript = new Transcript
+            {
+                ConsultationId = payload.ConsultationId
+            };
+            await _context.Transcripts.AddAsync(transcript, cancellationToken);
+        }
+
+        transcript.MarkFailed(request.FailureCode);
+        consultation.MarkFailed(request.FailureCode);
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        var correlationId = string.IsNullOrWhiteSpace(request.Envelope.CorrelationId)
+            ? Guid.NewGuid().ToString("N")
+            : request.Envelope.CorrelationId;
+        var outboxMessage = ConsultationOutboxFactory.TranscriptionFailed(
+            consultation,
+            payload.FileId,
+            request.FailureCode,
+            request.FailureCategory,
+            correlationId);
+        await _context.ConsultationOutboxMessages.AddAsync(outboxMessage, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+
+        return new TranscriptionFailureResult(
+            TranscriptionFailureStatus.Failed,
+            payload.ConsultationId);
+    }
 }
