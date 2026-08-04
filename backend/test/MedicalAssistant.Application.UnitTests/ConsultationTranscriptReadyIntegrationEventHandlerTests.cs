@@ -30,8 +30,12 @@ public class ConsultationTranscriptReadyIntegrationEventHandlerTests
         Assert.Equal("patient-ext-5", client.Request.PatientId);
         Assert.Equal("10", client.Request.SessionId);
         Assert.Equal(2, client.Request.SequenceNumber);
+        Assert.Equal("doctor-1#patient-ext-5#10#2", client.Request.DocumentId);
         Assert.Equal("el-GR", client.Request.Language);
         Assert.Equal("clinical transcript text", client.Request.Transcript);
+        Assert.NotNull(store.Accepted);
+        Assert.Equal("doctor-1#patient-ext-5#10#2", store.Accepted.DocumentId);
+        Assert.Equal(Guid.Parse("aaaaaaaa-1111-1111-1111-aaaaaaaaaaaa"), store.Accepted.IngestionId);
         Assert.DoesNotContain("clinical transcript text", IntegrationEventSerializer.Serialize(envelope));
     }
 
@@ -48,6 +52,7 @@ public class ConsultationTranscriptReadyIntegrationEventHandlerTests
         await handler.HandleAsync(CreateEnvelope(), CancellationToken.None);
 
         Assert.Null(client.Request);
+        Assert.Null(store.Accepted);
     }
 
     private sealed class RecordingTranscriptReadyPreparationStore : ITranscriptReadyPreparationStore
@@ -62,6 +67,7 @@ public class ConsultationTranscriptReadyIntegrationEventHandlerTests
 
         public string? ConsumerName { get; private set; }
         public IntegrationEventEnvelope<ConsultationTranscriptReadyV1>? Envelope { get; private set; }
+        public TranscriptReadyAcceptedResult? Accepted { get; private set; }
 
         public Task<TranscriptReadyPreparationResult> PrepareAsync(
             string consumerName,
@@ -89,6 +95,18 @@ public class ConsultationTranscriptReadyIntegrationEventHandlerTests
                     envelope.Payload.LanguageCode,
                     "clinical transcript text",
                     envelope.CorrelationId ?? "correlation-1")));
+        }
+
+        public Task CompleteAcceptedAsync(
+            string consumerName,
+            IntegrationEventEnvelope<ConsultationTranscriptReadyV1> envelope,
+            TranscriptReadyAcceptedResult accepted,
+            CancellationToken cancellationToken = default)
+        {
+            ConsumerName = consumerName;
+            Envelope = envelope;
+            Accepted = accepted;
+            return Task.CompletedTask;
         }
     }
 

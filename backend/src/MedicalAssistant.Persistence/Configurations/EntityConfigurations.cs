@@ -98,6 +98,7 @@ public class ConsultationInboxMessageConfiguration : IEntityTypeConfiguration<Co
         builder.Property(m => m.LeaseOwner).HasMaxLength(200);
         builder.Property(m => m.LastFailureCategory).HasMaxLength(100);
         builder.Property(m => m.LastFailureCode).HasMaxLength(200);
+        builder.Property(m => m.ClinicalKnowledgeDocumentId).HasMaxLength(512);
         builder.HasIndex(m => new { m.ConsumerName, m.EventId }).IsUnique();
         builder.HasIndex(m => new { m.ConsumerName, m.Status, m.LeaseExpiresAtUtc });
     }

@@ -9,11 +9,22 @@ public interface ITranscriptReadyPreparationStore
         string consumerName,
         IntegrationEventEnvelope<ConsultationTranscriptReadyV1> envelope,
         CancellationToken cancellationToken = default);
+
+    Task CompleteAcceptedAsync(
+        string consumerName,
+        IntegrationEventEnvelope<ConsultationTranscriptReadyV1> envelope,
+        TranscriptReadyAcceptedResult accepted,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed record TranscriptReadyPreparationResult(
     TranscriptReadyPreparationStatus Status,
     PreparedSessionTranscriptRequest? Request);
+
+public sealed record TranscriptReadyAcceptedResult(
+    Guid IngestionId,
+    string DocumentId,
+    bool Duplicate);
 
 public sealed record PreparedSessionTranscriptRequest(
     int ConsultationId,

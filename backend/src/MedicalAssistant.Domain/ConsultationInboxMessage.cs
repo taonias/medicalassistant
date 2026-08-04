@@ -18,4 +18,7 @@ public class ConsultationInboxMessage
     public DateTime? LeaseExpiresAtUtc { get; set; }
     public string? LastFailureCategory { get; set; }
     public string? LastFailureCode { get; set; }
+    public Guid? ClinicalKnowledgeIngestionId { get; set; }
+    public string? ClinicalKnowledgeDocumentId { get; set; }
+    public bool? ClinicalKnowledgeDuplicate { get; set; }
 }

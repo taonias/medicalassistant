@@ -38,8 +38,17 @@ public sealed class ConsultationTranscriptReadyIntegrationEventHandler
         {
             var prepared = result.Request
                 ?? throw new InvalidOperationException("Prepared transcript result did not include a request.");
+            var request = MapToClinicalKnowledgeRequest(prepared);
             var accepted = await _clinicalKnowledgeClient.SubmitSessionTranscriptAsync(
-                MapToClinicalKnowledgeRequest(prepared),
+                request,
+                cancellationToken);
+            await _preparationStore.CompleteAcceptedAsync(
+                ConsumerName,
+                envelope,
+                new TranscriptReadyAcceptedResult(
+                    accepted.IngestionId,
+                    request.DocumentId,
+                    accepted.Duplicate),
                 cancellationToken);
 
             _logger.LogInformation(

@@ -133,8 +133,7 @@ public sealed class TranscriptReadyPreparationStore : ITranscriptReadyPreparatio
                 Request: null);
         }
 
-        MarkInboxCompleted(inbox, now, failureCode: null);
-        consultation.MarkStructuredDataPending();
+        MarkInboxInProgress(inbox, now);
         await _context.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 
@@ -157,6 +156,59 @@ public sealed class TranscriptReadyPreparationStore : ITranscriptReadyPreparatio
         return new TranscriptReadyPreparationResult(
             TranscriptReadyPreparationStatus.Prepared,
             request);
+    }
+
+    public async Task CompleteAcceptedAsync(
+        string consumerName,
+        IntegrationEventEnvelope<ConsultationTranscriptReadyV1> envelope,
+        TranscriptReadyAcceptedResult accepted,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(consumerName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(accepted.DocumentId);
+
+        var now = DateTime.UtcNow;
+        await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+
+        var inbox = await _context.ConsultationInboxMessages
+            .SingleOrDefaultAsync(message =>
+                    message.ConsumerName == consumerName &&
+                    message.EventId == envelope.EventId,
+                cancellationToken);
+
+        if (inbox?.Status == ConsultationEventMessageStatus.Completed)
+        {
+            await transaction.CommitAsync(cancellationToken);
+            return;
+        }
+
+        if (inbox is null)
+        {
+            inbox = new ConsultationInboxMessage
+            {
+                ConsumerName = consumerName,
+                EventId = envelope.EventId,
+                EventType = envelope.EventType,
+                EventVersion = envelope.EventVersion,
+                ReceivedAtUtc = now,
+                AttemptCount = 1,
+                LastAttemptAtUtc = now
+            };
+            await _context.ConsultationInboxMessages.AddAsync(inbox, cancellationToken);
+        }
+
+        var consultation = await _context.Consultations
+            .SingleOrDefaultAsync(c => c.Id == envelope.Payload.ConsultationId, cancellationToken)
+            ?? throw new NotFoundException(nameof(Consultation), envelope.Payload.ConsultationId);
+
+        consultation.MarkStructuredDataPending();
+        MarkInboxCompleted(inbox, now, failureCode: null);
+        inbox.ClinicalKnowledgeIngestionId = accepted.IngestionId;
+        inbox.ClinicalKnowledgeDocumentId = accepted.DocumentId;
+        inbox.ClinicalKnowledgeDuplicate = accepted.Duplicate;
+
+        await _context.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
     }
 
     private async Task CompleteInboxAndCommitAsync(
@@ -182,5 +234,19 @@ public sealed class TranscriptReadyPreparationStore : ITranscriptReadyPreparatio
         inbox.LeaseExpiresAtUtc = null;
         inbox.LastFailureCategory = failureCode is null ? null : FailureCategory;
         inbox.LastFailureCode = failureCode;
+    }
+
+    private static void MarkInboxInProgress(
+        ConsultationInboxMessage inbox,
+        DateTime attemptedAtUtc)
+    {
+        inbox.Status = ConsultationEventMessageStatus.InProgress;
+        inbox.AttemptCount++;
+        inbox.LastAttemptAtUtc = attemptedAtUtc;
+        inbox.CompletedAtUtc = null;
+        inbox.LeaseOwner = null;
+        inbox.LeaseExpiresAtUtc = null;
+        inbox.LastFailureCategory = null;
+        inbox.LastFailureCode = null;
     }
 }

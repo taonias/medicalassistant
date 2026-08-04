@@ -294,6 +294,16 @@ namespace MedicalAssistant.Persistence.Migrations
                     b.Property<int>("AttemptCount")
                         .HasColumnType("integer");
 
+                    b.Property<bool?>("ClinicalKnowledgeDuplicate")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("ClinicalKnowledgeDocumentId")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<Guid?>("ClinicalKnowledgeIngestionId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime?>("CompletedAtUtc")
                         .HasColumnType("timestamp with time zone");
 

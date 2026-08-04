@@ -14,7 +14,7 @@ namespace MedicalAssistant.Persistence.IntegrationTests;
 public class TranscriptReadyPreparationStoreTests
 {
     [Fact]
-    public async Task PrepareAsync_loads_current_transcript_context_and_marks_inbox_completed()
+    public async Task PrepareAsync_loads_current_transcript_context_and_keeps_inbox_in_progress_until_acceptance()
     {
         await using var context = CreateContext();
         SeedPreparedConsultation(context);
@@ -36,12 +36,43 @@ public class TranscriptReadyPreparationStoreTests
         Assert.Equal("el-GR", result.Request.LanguageCode);
         Assert.Equal("clinical transcript text", result.Request.TranscriptText);
         Assert.Equal("correlation-1", result.Request.CorrelationId);
-        Assert.Equal(ConsultationStatus.StructuredDataPending, context.Consultations.Single().Status);
+        Assert.Equal(ConsultationStatus.Transcribed, context.Consultations.Single().Status);
+
+        var inbox = Assert.Single(context.ConsultationInboxMessages);
+        Assert.Equal(ConsultationEventMessageStatus.InProgress, inbox.Status);
+        Assert.Null(inbox.ClinicalKnowledgeIngestionId);
+        Assert.Null(inbox.ClinicalKnowledgeDocumentId);
+        Assert.Null(inbox.LastFailureCategory);
+        Assert.Null(inbox.LastFailureCode);
+    }
+
+    [Fact]
+    public async Task CompleteAcceptedAsync_marks_inbox_completed_with_ingestion_and_document_identity()
+    {
+        await using var context = CreateContext();
+        SeedPreparedConsultation(context);
+        await context.SaveChangesAsync();
+        var store = new TranscriptReadyPreparationStore(context);
+        var envelope = CreateEnvelope(Guid.Parse("55555555-aaaa-aaaa-aaaa-555555555555"), revision: 2);
+        await store.PrepareAsync("backend-clinical-knowledge", envelope, CancellationToken.None);
+
+        await store.CompleteAcceptedAsync(
+            "backend-clinical-knowledge",
+            envelope,
+            new TranscriptReadyAcceptedResult(
+                Guid.Parse("aaaaaaaa-2222-2222-2222-aaaaaaaaaaaa"),
+                "doctor-1#patient-ext-5#10#2",
+                Duplicate: false),
+            CancellationToken.None);
 
         var inbox = Assert.Single(context.ConsultationInboxMessages);
         Assert.Equal(ConsultationEventMessageStatus.Completed, inbox.Status);
+        Assert.Equal(Guid.Parse("aaaaaaaa-2222-2222-2222-aaaaaaaaaaaa"), inbox.ClinicalKnowledgeIngestionId);
+        Assert.Equal("doctor-1#patient-ext-5#10#2", inbox.ClinicalKnowledgeDocumentId);
+        Assert.False(inbox.ClinicalKnowledgeDuplicate);
         Assert.Null(inbox.LastFailureCategory);
         Assert.Null(inbox.LastFailureCode);
+        Assert.Equal(ConsultationStatus.StructuredDataPending, context.Consultations.Single().Status);
     }
 
     [Fact]

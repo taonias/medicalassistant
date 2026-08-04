@@ -17,6 +17,7 @@ public sealed record ClinicalKnowledgeSessionTranscriptRequest(
     string Transcript)
 {
     public string DocumentType => "SessionTranscript";
+    public string DocumentId => $"{DoctorId}#{PatientId}#{SessionId}#{SequenceNumber}";
 }
 
 public sealed record ClinicalKnowledgeIngestionAccepted(
