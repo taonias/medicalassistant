@@ -63,6 +63,26 @@ public static class RabbitMqPublishRequestFactory
             Encoding.UTF8.GetBytes(envelopeJson));
     }
 
+    public static RabbitMqPublishRequest CreateReplay(
+        Guid eventId,
+        string eventType,
+        string? correlationId,
+        string envelopeJson,
+        RabbitMqPublishOptions options)
+    {
+        ArgumentOutOfRangeException.ThrowIfEqual(eventId, Guid.Empty);
+        ArgumentException.ThrowIfNullOrWhiteSpace(eventType);
+        ArgumentException.ThrowIfNullOrWhiteSpace(envelopeJson);
+        ArgumentNullException.ThrowIfNull(options);
+
+        return new RabbitMqPublishRequest(
+            options.ExchangeName,
+            eventType,
+            Mandatory: true,
+            CreateProperties(eventId, eventType, correlationId),
+            Encoding.UTF8.GetBytes(envelopeJson));
+    }
+
     private static BasicProperties CreateProperties(
         Guid eventId,
         string eventType,

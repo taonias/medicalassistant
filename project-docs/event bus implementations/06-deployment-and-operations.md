@@ -64,6 +64,7 @@ Required alerts include:
 
 - outbox oldest-unpublished age and failed publish attempts;
 - main/retry/dead-letter queue depth and oldest-message age per subscriber;
+- replay denials, replay successes, and repeated DLQ entries after replay;
 - consumer reconnect loops and acknowledgement latency;
 - transcription success/failure/latency and Azure Speech throttling;
 - duplicate and stale-event no-op rates;

@@ -57,4 +57,28 @@ public class RabbitMqPublishRequestFactoryTests
         Assert.DoesNotContain("patientId", json, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("doctorId", json, StringComparison.OrdinalIgnoreCase);
     }
+
+    [Fact]
+    public void Replay_request_preserves_original_envelope_body_and_event_identity()
+    {
+        var eventId = Guid.NewGuid();
+        var envelopeJson = """
+            {"eventId":"00000000-0000-0000-0000-000000000123","eventType":"consultation.audio-uploaded.v1","eventVersion":1,"payload":{"consultationId":"00000000-0000-0000-0000-000000000456","protected":"clinical text"}}
+            """;
+        var options = new RabbitMqPublishOptions { ExchangeName = "medicalassistant.events" };
+
+        var request = RabbitMqPublishRequestFactory.CreateReplay(
+            eventId,
+            "consultation.audio-uploaded.v1",
+            "correlation-1",
+            envelopeJson,
+            options);
+
+        Assert.Equal("medicalassistant.events", request.ExchangeName);
+        Assert.Equal("consultation.audio-uploaded.v1", request.RoutingKey);
+        Assert.True(request.Mandatory);
+        Assert.Equal(eventId.ToString("N"), request.Properties.MessageId);
+        Assert.Equal("correlation-1", request.Properties.CorrelationId);
+        Assert.Equal(envelopeJson, Encoding.UTF8.GetString(request.Body.Span));
+    }
 }

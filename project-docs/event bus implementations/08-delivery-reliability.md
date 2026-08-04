@@ -81,6 +81,13 @@ Replay requires:
 
 Operators never edit clinical payloads in the RabbitMQ management UI. Corrected business data produces a new business operation/event; replay preserves the original fact.
 
+Implemented replay boundary:
+
+- `IntegrationEventReplayService` inspects a DLQ envelope into safe metadata and coordinates policy, safety checks, and publication.
+- `SupportedContractReplaySafetyCheck` blocks replay of event type/version combinations the deployed service no longer supports.
+- `IIntegrationEventReplaySafetyCheck` is the extension point for current Consultation deletion/revision/resource checks before an operator tool republishes the immutable event.
+- `RabbitMqIntegrationEventReplayPublisher` republishes the unchanged envelope body using publisher confirms; the replay path does not expose or edit payload JSON.
+
 ## Failure scenarios
 
 ### RabbitMQ unavailable during upload

@@ -47,6 +47,8 @@ public static class InfrastructureServiceRegistration
         services.AddSingleton<IRabbitMqPersistentConnection, RabbitMqPersistentConnection>();
         services.AddSingleton<RabbitMqConfirmedPublisher>();
         services.AddSingleton<IConsultationOutboxPublisher, RabbitMqConsultationOutboxPublisher>();
+        services.AddSingleton<IIntegrationEventReplayPublisher, RabbitMqIntegrationEventReplayPublisher>();
+        services.AddSingleton<IIntegrationEventReplaySafetyCheck, SupportedContractReplaySafetyCheck>();
         services.AddSingleton<IConsultationProcessingPublisher, RabbitMqConsultationProcessingPublisher>();
         services.AddSingleton<ITranscriptReadyPublisher, RabbitMqTranscriptReadyPublisher>();
         services.AddScoped<ConsultationTranscriptReadyIntegrationEventHandler>();

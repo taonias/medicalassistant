@@ -60,7 +60,15 @@ Implemented replay policy controls require:
 - a non-empty operational reason code;
 - no replacement payload JSON or manually edited message body.
 
-The policy emits an audit action/details string that contains the operator, original event ID, and reason code, but never copies payload content. `EventRetention` configuration keeps outbox, inbox, DLQ, and tombstone periods explicit; tombstones must outlive all event-record retention windows so late delivery cannot restore deleted content after cleanup.
+The implemented replay service now provides the approved application seam for tooling:
+
+1. Parse a dead-lettered integration-event envelope and return only safe metadata: event ID, event type/version, subscriber, attempt count, relevant Consultation ID, correlation/causation IDs, safe failure category, and dead-letter timestamp.
+2. Reject malformed envelopes before publication.
+3. Apply the replay policy above, including the prohibition on replacement payload JSON.
+4. Run replay safety checks before publication. The first implemented safety check rejects unsupported event contract type/version; additional checks can verify current Consultation deletion/revision/resource state before replay.
+5. Republish the original immutable envelope body through RabbitMQ publisher confirms using the original event ID as the message ID and the original event type as the routing key.
+
+The policy emits an audit action/details string that contains the operator, original event ID, and reason code, but never copies payload content. Replay result metadata likewise avoids clinical payload fields such as blob paths, transcript text, provider bodies, filenames, or exception text. `EventRetention` configuration keeps outbox, inbox, DLQ, and tombstone periods explicit; tombstones must outlive all event-record retention windows so late delivery cannot restore deleted content after cleanup.
 
 ## Poison or unsupported contract
 

@@ -19,6 +19,7 @@ public static class ApplicationServiceRegistration
         services.AddScoped<Services.PatientHistoryAssembler>();
         services.AddSingleton<Services.IConsultationOutboxRelayObserver, Services.ConsultationOutboxRelayMetrics>();
         services.AddSingleton<Services.IntegrationEventReplayPolicy>();
+        services.AddScoped<Services.IntegrationEventReplayService>();
         services.AddSingleton<IValidateOptions<EventRetentionOptions>, EventRetentionOptionsValidator>();
         services.AddSingleton<IValidateOptions<ConsultationOutboxRelayOptions>, ConsultationOutboxRelayOptionsValidator>();
 
