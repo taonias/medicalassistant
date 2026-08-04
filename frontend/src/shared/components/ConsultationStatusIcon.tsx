@@ -56,7 +56,7 @@ export function ConsultationStatusIcon({ status, className }: Props) {
           </>
         ) : null}
 
-        {normalized === 'DocumentUploaded' ? (
+        {normalized === 'DocumentUploaded' || normalized === 'DocumentProcessingPending' ? (
           <>
             <path
               d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"
@@ -128,6 +128,7 @@ export function ConsultationStatusIcon({ status, className }: Props) {
           'Draft',
           'AudioUploaded',
           'DocumentUploaded',
+          'DocumentProcessingPending',
           'Transcribing',
           'Transcribed',
           'StructuredDataPending',

@@ -132,6 +132,7 @@ export function statusChartColor(status: string, theme: ChartTheme): string {
       return theme.palette[3];
     case 'AudioUploaded':
     case 'DocumentUploaded':
+    case 'DocumentProcessingPending':
       return theme.palette[4];
     case 'Draft':
       return theme.palette[5];

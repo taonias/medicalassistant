@@ -17,7 +17,11 @@ export function ConsultationStatusStepper({
 }: Props) {
   const steps = ['Draft', 'Uploaded', 'Transcribing', 'Transcribed', 'StructuredDataPending', 'Completed'];
   const normalizedStatus =
-    status === 'AudioUploaded' || status === 'DocumentUploaded' ? 'Uploaded' : status;
+    status === 'AudioUploaded' ||
+    status === 'DocumentUploaded' ||
+    status === 'DocumentProcessingPending'
+      ? 'Uploaded'
+      : status;
   const currentIndex = steps.indexOf(normalizedStatus);
   const isFailed = status === 'Failed';
   const isProcessing = processingStatuses.includes(status);
@@ -66,7 +70,7 @@ export function useConsultationPolling({
   onPollRef.current = onPoll;
 
   useEffect(() => {
-    const processing = DEFAULT_PROCESSING.includes(status);
+    const processing = DEFAULT_PROCESSING.includes(status) || status === 'DocumentProcessingPending';
     if (!processing) return;
 
     const id = window.setInterval(() => onPollRef.current(), intervalMs);

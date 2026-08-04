@@ -102,7 +102,8 @@ export function ConsultationDetailPage() {
   const canShowPlayer = hasStoredAudio || (!isPdfConsultation && durationSeconds > 0);
   const uploadedOnly =
     consultation.data.status === 'AudioUploaded' ||
-    consultation.data.status === 'DocumentUploaded';
+    consultation.data.status === 'DocumentUploaded' ||
+    consultation.data.status === 'DocumentProcessingPending';
   const documentFileName = consultation.data.documentFileName ?? 'consultation.pdf';
 
   async function onCreateNote() {

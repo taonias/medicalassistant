@@ -41,7 +41,7 @@ public class Consultation : BaseEntity
         DocumentFileName = fileName;
         SourceFileKind = ConsultationFileKind.Document;
         SourceObjectReference = blobUri;
-        Status = ConsultationStatus.DocumentUploaded;
+        Status = ConsultationStatus.DocumentProcessingPending;
     }
 
     public void MarkTranscribing()

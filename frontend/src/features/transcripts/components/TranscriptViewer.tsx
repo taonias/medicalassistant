@@ -50,16 +50,20 @@ export function TranscriptViewer({
   if (!text?.trim() && !isEditing) {
     const normalized = normalizeStatus(status);
     const uploadedOnly =
-      normalized === 'AudioUploaded' || normalized === 'DocumentUploaded';
+      normalized === 'AudioUploaded' ||
+      normalized === 'DocumentUploaded' ||
+      normalized === 'DocumentProcessingPending';
+    const documentPending = normalized === 'DocumentProcessingPending';
+    const emptyTranscriptMessage = documentPending
+      ? 'Document processing is pending. No transcript has been created for this PDF yet.'
+      : uploadedOnly
+        ? 'No transcript for this consultation.'
+        : 'This consultation is still processing.';
 
     return (
       <div className="panel transcript-panel">
         <h3>Transcript</h3>
-        <p className="muted">
-          {uploadedOnly
-            ? 'No transcript for this consultation.'
-            : 'This consultation is still processing.'}
-        </p>
+        <p className="muted">{emptyTranscriptMessage}</p>
       </div>
     );
   }

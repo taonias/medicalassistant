@@ -117,6 +117,7 @@ public class UploadConsultationOutboxTests
             },
             CancellationToken.None);
 
+        Assert.Equal(ConsultationStatus.DocumentProcessingPending, consultation.Status);
         repository.Verify(r => r.UpdateWithOutboxAsync(
             consultation,
             It.Is<ConsultationOutboxMessage>(message =>
@@ -125,6 +126,7 @@ public class UploadConsultationOutboxTests
                 message.AggregateId == "43" &&
                 message.Payload.Contains("\"consultationId\":43") &&
                 message.Payload.Contains("\"contentType\":\"application/pdf\"") &&
+                !message.Payload.Contains("transcript", StringComparison.OrdinalIgnoreCase) &&
                 !message.Payload.Contains("doctor-1") &&
                 !message.Payload.Contains("patientId") &&
                 !message.Payload.Contains("patient-smith-referral.pdf")),

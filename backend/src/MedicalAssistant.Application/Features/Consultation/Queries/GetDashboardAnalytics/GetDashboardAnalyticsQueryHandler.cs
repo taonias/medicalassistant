@@ -12,6 +12,7 @@ public class GetDashboardAnalyticsQueryHandler
     private static readonly ConsultationStatus[] ProcessingStatuses =
     [
         ConsultationStatus.AudioUploaded,
+        ConsultationStatus.DocumentProcessingPending,
         ConsultationStatus.Transcribing,
         ConsultationStatus.Transcribed,
         ConsultationStatus.StructuredDataPending,

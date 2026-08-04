@@ -10,5 +10,6 @@ public enum ConsultationStatus
     Completed = 5,
     Failed = 6,
     DocumentUploaded = 7,
-    Deleted = 8
+    Deleted = 8,
+    DocumentProcessingPending = 9
 }

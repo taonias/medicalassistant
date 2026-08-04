@@ -56,5 +56,9 @@ export function formatDuration(seconds?: number) {
 }
 
 export function consultationStatusLabel(status: string) {
+  if (status.replace(/\s+/g, '') === 'DocumentProcessingPending') {
+    return 'Document processing pending';
+  }
+
   return status.replace(/([A-Z])/g, ' $1').trim();
 }

@@ -52,10 +52,39 @@ public class RabbitMqSubscriberTopologyTests
         });
     }
 
+    [Fact]
+    public void Future_document_processor_topology_binds_only_document_uploaded_events()
+    {
+        var subscriptions = IntegrationEventSubscriptionRegistry.Create(
+            ConsultationIntegrationEvents.Registry,
+            builder => builder.Subscribe<ConsultationDocumentUploadedV1, DocumentUploadedHandler>());
+        var options = new RabbitMqTopologyOptions
+        {
+            SubscriberName = "document-processor",
+            QueueName = "medicalassistant.document-processing.q"
+        };
+
+        var plan = RabbitMqSubscriberTopologyPlan.Create(options, subscriptions);
+
+        Assert.Equal("medicalassistant.events", plan.ExchangeName);
+        Assert.Equal("medicalassistant.document-processing.q", plan.MainQueue.Name);
+        Assert.Single(plan.Bindings);
+        Assert.Equal(ConsultationIntegrationEvents.DocumentUploadedV1, plan.Bindings[0].RoutingKey);
+        Assert.Equal("medicalassistant.document-processing.q", plan.Bindings[0].QueueName);
+    }
+
     private sealed class AudioUploadedHandler : IIntegrationEventHandler<ConsultationAudioUploadedV1>
     {
         public Task HandleAsync(
             IntegrationEventEnvelope<ConsultationAudioUploadedV1> envelope,
+            CancellationToken cancellationToken) =>
+            Task.CompletedTask;
+    }
+
+    private sealed class DocumentUploadedHandler : IIntegrationEventHandler<ConsultationDocumentUploadedV1>
+    {
+        public Task HandleAsync(
+            IntegrationEventEnvelope<ConsultationDocumentUploadedV1> envelope,
             CancellationToken cancellationToken) =>
             Task.CompletedTask;
     }

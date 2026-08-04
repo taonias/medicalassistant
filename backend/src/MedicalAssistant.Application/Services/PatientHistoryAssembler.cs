@@ -200,7 +200,7 @@ public class PatientHistoryAssembler
             return "Pdf";
         if (hasAudio)
             return "Audio";
-        if (status == ConsultationStatus.DocumentUploaded)
+        if (status is ConsultationStatus.DocumentUploaded or ConsultationStatus.DocumentProcessingPending)
             return "Pdf";
         if (status == ConsultationStatus.AudioUploaded)
             return "Audio";
