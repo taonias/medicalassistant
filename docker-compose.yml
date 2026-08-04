@@ -1,0 +1,221 @@
+name: medicalassistant
+
+services:
+  postgres-app:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: MedicalAssistantDb
+      POSTGRES_USER: medicalassistant
+      POSTGRES_PASSWORD: ${POSTGRES_APP_PASSWORD:-medicalassistant-local}
+    ports:
+      - "5432:5432"
+    volumes:
+      - medicalassistant_app_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U medicalassistant -d MedicalAssistantDb"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  postgres-clinical:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: ai_med
+      POSTGRES_USER: clinicalknowledge
+      POSTGRES_PASSWORD: ${POSTGRES_CLINICAL_PASSWORD:-clinicalknowledge-local}
+    ports:
+      - "5433:5432"
+    volumes:
+      - medicalassistant_clinical_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U clinicalknowledge -d ai_med"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    hostname: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_BOOTSTRAP_USER:-medicalassistant-broker-bootstrap}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_BOOTSTRAP_PASSWORD:-medicalassistant-local-bootstrap}
+      RABBITMQ_DEFAULT_VHOST: /
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - medicalassistant_rabbitmq_data:/var/lib/rabbitmq
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ./rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics -q ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  rabbitmq-provisioner:
+    image: curlimages/curl:8.10.1
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      RABBITMQ_BOOTSTRAP_USER: ${RABBITMQ_BOOTSTRAP_USER:-medicalassistant-broker-bootstrap}
+      RABBITMQ_BOOTSTRAP_PASSWORD: ${RABBITMQ_BOOTSTRAP_PASSWORD:-medicalassistant-local-bootstrap}
+      RABBITMQ_BACKEND_PASSWORD: ${RABBITMQ_BACKEND_PASSWORD:-backend-rabbitmq-local}
+      RABBITMQ_WORKER_PASSWORD: ${RABBITMQ_WORKER_PASSWORD:-worker-rabbitmq-local}
+    command:
+      - sh
+      - -ec
+      - |
+        api="http://rabbitmq:15672/api"
+        auth="$${RABBITMQ_BOOTSTRAP_USER}:$${RABBITMQ_BOOTSTRAP_PASSWORD}"
+        put_user() {
+          user="$$1"
+          pass="$$2"
+          curl --fail --silent --show-error -u "$$auth" \
+            -H "content-type: application/json" \
+            -X PUT "$$api/users/$$user" \
+            -d "{\"password\":\"$$pass\",\"tags\":\"\"}"
+        }
+        put_permissions() {
+          user="$$1"
+          configure="$$2"
+          write="$$3"
+          read="$$4"
+          curl --fail --silent --show-error -u "$$auth" \
+            -H "content-type: application/json" \
+            -X PUT "$$api/permissions/%2F/$$user" \
+            -d "{\"configure\":\"$$configure\",\"write\":\"$$write\",\"read\":\"$$read\"}"
+        }
+        put_user backend-clinical-knowledge "$${RABBITMQ_BACKEND_PASSWORD}"
+        put_user backend-outbox-relay "$${RABBITMQ_BACKEND_PASSWORD}"
+        put_user transcription-worker "$${RABBITMQ_WORKER_PASSWORD}"
+        put_permissions backend-clinical-knowledge "^medicalassistant\\.backend\\.transcript-ready(\\.retry\\.[0-9]+|\\.dlq)?$$" "^medicalassistant\\.events$$|^medicalassistant\\.backend\\.transcript-ready(\\.retry\\.[0-9]+|\\.dlq)?$$" "^medicalassistant\\.backend\\.transcript-ready(\\.retry\\.[0-9]+|\\.dlq)?$$"
+        put_permissions backend-outbox-relay "^$$" "^medicalassistant\\.events$$" "^$$"
+        put_permissions transcription-worker "^medicalassistant\\.transcription-worker(\\.retry\\.[0-9]+|\\.dlq)?$$" "^medicalassistant\\.events$$|^medicalassistant\\.transcription-worker(\\.retry\\.[0-9]+|\\.dlq)?$$" "^medicalassistant\\.transcription-worker(\\.retry\\.[0-9]+|\\.dlq)?$$"
+
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite:3.33.0
+    command: azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0
+    ports:
+      - "10000:10000"
+      - "10001:10001"
+      - "10002:10002"
+    volumes:
+      - medicalassistant_azurite_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 10000"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  backend-migrations:
+    build:
+      context: .
+      dockerfile: backend/src/MedicalAssistant.Migrations/Dockerfile
+    environment:
+      Database__Provider: PostgreSQL
+      ConnectionStrings__MedicalAssistantDatabasePostgreSQL: Host=postgres-app;Port=5432;Database=MedicalAssistantDb;Username=medicalassistant;Password=${POSTGRES_APP_PASSWORD:-medicalassistant-local}
+    depends_on:
+      postgres-app:
+        condition: service_healthy
+    restart: "no"
+
+  clinical-knowledge:
+    build:
+      context: .
+      dockerfile: AI/src/MedicalAssistance.Ingestion.Api/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Postgres: Host=postgres-clinical;Port=5432;Database=ai_med;Username=clinicalknowledge;Password=${POSTGRES_CLINICAL_PASSWORD:-clinicalknowledge-local};Maximum Pool Size=50
+      Authentication__ApiKeys__0: ${CLINICAL_KNOWLEDGE_API_KEY:-local-development-key}
+      Authentication__AdminApiKeys__0: ${CLINICAL_KNOWLEDGE_ADMIN_API_KEY:-local-development-admin-key}
+    ports:
+      - "8000:8080"
+    depends_on:
+      postgres-clinical:
+        condition: service_healthy
+
+  backend-api:
+    build:
+      context: .
+      dockerfile: backend/src/MedicalAssistant.Api/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      Database__Provider: PostgreSQL
+      ConnectionStrings__MedicalAssistantDatabasePostgreSQL: Host=postgres-app;Port=5432;Database=MedicalAssistantDb;Username=medicalassistant;Password=${POSTGRES_APP_PASSWORD:-medicalassistant-local}
+      JwtSettings__Key: ${JWT_KEY:-MedicalAssistantLocalDevelopmentJwtKey_ChangeMe_32chars}
+      JwtSettings__Issuer: MedicalAssistantApi
+      JwtSettings__Audience: MedicalAssistantClient
+        BlobStorage__ConnectionString: ${AZURITE_CONNECTION_STRING:-UseDevelopmentStorage=true;DevelopmentStorageProxyUri=http://azurite}
+      BlobStorage__ConsultationAudioContainer: audio
+      BlobStorage__ConsultationDocumentsContainer: pdf
+      ClinicalKnowledge__BaseUrl: http://clinical-knowledge:8080
+      ClinicalKnowledge__ApiKey: ${CLINICAL_KNOWLEDGE_API_KEY:-local-development-key}
+      RabbitMQ__HostName: rabbitmq
+      RabbitMQ__UserName: backend-clinical-knowledge
+      RabbitMQ__Password: ${RABBITMQ_BACKEND_PASSWORD:-backend-rabbitmq-local}
+      RabbitMQ__ClientProvidedName: backend-clinical-knowledge
+      RabbitMQ__Consumer__QueueName: medicalassistant.backend.transcript-ready
+      RabbitMQ__Topology__SubscriberName: backend-clinical-knowledge
+      RabbitMQ__Topology__QueueName: medicalassistant.backend.transcript-ready
+      RabbitMq__Host: rabbitmq
+      RabbitMq__Username: backend-outbox-relay
+      RabbitMq__Password: ${RABBITMQ_BACKEND_PASSWORD:-backend-rabbitmq-local}
+    ports:
+      - "7037:8080"
+    depends_on:
+      postgres-app:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      rabbitmq-provisioner:
+        condition: service_completed_successfully
+      azurite:
+        condition: service_healthy
+      clinical-knowledge:
+        condition: service_healthy
+      backend-migrations:
+        condition: service_completed_successfully
+
+  transcription-worker:
+    build:
+      context: .
+      dockerfile: backend/src/MedicalAssistant.Transcription.Worker/Dockerfile
+    environment:
+      Database__Provider: PostgreSQL
+      ConnectionStrings__MedicalAssistantDatabasePostgreSQL: Host=postgres-app;Port=5432;Database=MedicalAssistantDb;Username=medicalassistant;Password=${POSTGRES_APP_PASSWORD:-medicalassistant-local}
+      RabbitMQ__HostName: rabbitmq
+      RabbitMQ__UserName: transcription-worker
+      RabbitMQ__Password: ${RABBITMQ_WORKER_PASSWORD:-worker-rabbitmq-local}
+      RabbitMQ__ClientProvidedName: transcription-worker
+      RabbitMQ__Consumer__QueueName: medicalassistant.transcription-worker
+      RabbitMQ__Topology__SubscriberName: transcription-worker
+      RabbitMQ__Topology__QueueName: medicalassistant.transcription-worker
+        TranscriptionWorker__BlobRetrieval__ConnectionString: ${AZURITE_CONNECTION_STRING:-UseDevelopmentStorage=true;DevelopmentStorageProxyUri=http://azurite}
+      TranscriptionWorker__BlobRetrieval__ConsultationAudioContainer: audio
+      TranscriptionWorker__AzureSpeech__Key: ${AZURE_SPEECH_KEY:-}
+      TranscriptionWorker__AzureSpeech__Region: ${AZURE_SPEECH_REGION:-}
+    depends_on:
+      postgres-app:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      rabbitmq-provisioner:
+        condition: service_completed_successfully
+      azurite:
+        condition: service_healthy
+      backend-migrations:
+        condition: service_completed_successfully
+
+volumes:
+  medicalassistant_app_pgdata:
+  medicalassistant_clinical_pgdata:
+  medicalassistant_rabbitmq_data:
+  medicalassistant_azurite_data:

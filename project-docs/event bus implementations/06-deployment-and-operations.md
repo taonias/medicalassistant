@@ -25,6 +25,13 @@ Create one root Compose model rather than requiring developers to start the curr
 
 Compose dependency declarations improve startup ergonomics but do not replace retry/recovery logic. Containers must tolerate RabbitMQ, PostgreSQL, Blob Storage, or downstream APIs becoming temporarily unavailable.
 
+Implemented root Compose assets:
+
+- `docker-compose.yml` starts PostgreSQL for the application database, PostgreSQL + pgvector for Clinical Knowledge, RabbitMQ, Azurite, backend migrations, backend API, Transcription Worker, and Clinical Knowledge API.
+- `compose.env.example` documents local-only secrets to copy into an ignored `.env`.
+- Dockerfiles package the backend API, backend migrations, standalone Transcription Worker, and Clinical Knowledge API as ordinary containers.
+- RabbitMQ workload users are provisioned by a one-shot local service before the API/worker start, preserving the service-identity model from the security design.
+
 ## Production requirements
 
 - Run RabbitMQ as a durable, monitored service appropriate to the required availability; use quorum queues when the production cluster supports and operationally owns them.
