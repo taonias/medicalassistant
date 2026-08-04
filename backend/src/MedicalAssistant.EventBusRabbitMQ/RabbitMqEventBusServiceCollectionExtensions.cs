@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace MedicalAssistant.EventBusRabbitMQ;
 
@@ -11,6 +12,7 @@ public static class RabbitMqEventBusServiceCollectionExtensions
     {
         services.Configure<RabbitMqConnectionOptions>(
             configuration.GetSection(RabbitMqConnectionOptions.SectionName));
+        services.AddSingleton<IValidateOptions<RabbitMqConnectionOptions>, RabbitMqConnectionOptionsValidator>();
         services.Configure<RabbitMqConsumerOptions>(
             configuration.GetSection(RabbitMqConsumerOptions.SectionName));
         services.Configure<RabbitMqTopologyOptions>(

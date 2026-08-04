@@ -30,6 +30,19 @@ Use separate non-human identities:
 
 RabbitMQ permissions restrict configure/write/read separately by exchange/queue naming patterns and virtual host. PostgreSQL grants should be verified with negative integration tests, not assumed from connection-string separation.
 
+### RabbitMQ service identity map
+
+The checked-in configuration names the workload identity expected by each RabbitMQ connection. Password values in checked-in settings are placeholders and must be replaced by the deployment secret store or local ignored environment files.
+
+| Workload | Example identity | Allowed broker action |
+| --- | --- | --- |
+| Backend Clinical Knowledge consumer | `backend-clinical-knowledge` | Read/configure only the backend-owned Transcript Ready/deletion subscriber queue and retry/DLQ topology; no access to transcription-worker queues. |
+| Backend outbox relay / legacy publisher compatibility | `backend-outbox-relay` | Publish consultation integration events to `medicalassistant.events`; no subscriber-queue read permission. |
+| Transcription Worker | `transcription-worker` | Read/configure only the audio-upload subscriber queue and retry/DLQ topology; publish Transcript Ready through the outbox path. |
+| Broker bootstrap/operator | `medicalassistant-broker-bootstrap` | Local bootstrap/admin only; never used by application workloads. |
+
+The event-bus connection options reject blank credentials and shared default broker users such as `guest` or `admin`. Production AMQP should set `RabbitMQ:UseTls=true` and, when the certificate name differs from the broker host, `RabbitMQ:TlsServerName`.
+
 ## Transport and storage protection
 
 - TLS for production AMQP, PostgreSQL, Blob, Speech, and internal HTTP; validate certificates/hostnames.

@@ -61,17 +61,7 @@ public sealed class RabbitMqPersistentConnection : IRabbitMqPersistentConnection
             {
                 try
                 {
-                    var factory = new ConnectionFactory
-                    {
-                        HostName = _options.Host,
-                        Port = _options.Port,
-                        VirtualHost = _options.VirtualHost,
-                        UserName = _options.Username,
-                        Password = _options.Password,
-                        AutomaticRecoveryEnabled = true,
-                        TopologyRecoveryEnabled = true,
-                        RequestedHeartbeat = TimeSpan.FromSeconds(30)
-                    };
+                    var factory = RabbitMqConnectionFactoryBuilder.Create(_options);
 
                     _connection = await factory.CreateConnectionAsync(
                         _options.ClientProvidedName,
