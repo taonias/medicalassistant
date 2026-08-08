@@ -19,15 +19,21 @@ public static class PersistenceServiceRegistration
 
         services.AddDbContext<MedicalAssistantDatabaseContext>(options =>
         {
+            // Retry-on-failure (the provider retrying execution strategy) is intentionally
+            // NOT enabled on this context. The durable messaging paths use explicit
+            // BeginTransactionAsync blocks (inbox/outbox claim, transcription completion,
+            // transcript-ready preparation), and a retrying execution strategy rejects
+            // user-initiated transactions unless every such block is wrapped in
+            // Database.CreateExecutionStrategy().Execute(...). Transient-fault resilience is
+            // instead provided at the message layer via RabbitMQ retry queues. Re-enabling
+            // DB-level retry requires wrapping those transactions (tracked as a follow-up).
             switch (provider)
             {
                 case RelationalDatabaseProvider.SqlServer:
-                    options.UseSqlServer(connectionString, sqlOptions =>
-                        sqlOptions.EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(30), errorNumbersToAdd: null));
+                    options.UseSqlServer(connectionString);
                     break;
                 default:
-                    options.UseNpgsql(connectionString, npgsqlOptions =>
-                        npgsqlOptions.EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(10), errorCodesToAdd: null));
+                    options.UseNpgsql(connectionString);
                     break;
             }
         });

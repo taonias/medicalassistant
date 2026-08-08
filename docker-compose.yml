@@ -72,34 +72,64 @@ services:
       - |
         api="http://rabbitmq:15672/api"
         auth="$${RABBITMQ_BOOTSTRAP_USER}:$${RABBITMQ_BOOTSTRAP_PASSWORD}"
+        # The broker healthcheck (node ping) can pass before the management HTTP
+        # listener on 15672 accepts connections. Wait for the API to answer so we
+        # do not fail with a connection error (curl exit 7).
+        echo "waiting for rabbitmq management api..."
+        until curl --fail --silent --show-error -u "$$auth" "$$api/overview" >/dev/null 2>&1; do
+          sleep 2
+        done
         put_user() {
-          user="$$1"
-          pass="$$2"
           curl --fail --silent --show-error -u "$$auth" \
             -H "content-type: application/json" \
-            -X PUT "$$api/users/$$user" \
-            -d "{\"password\":\"$$pass\",\"tags\":\"\"}"
+            -X PUT "$$api/users/$$1" \
+            --data-raw "{\"password\":\"$$2\",\"tags\":\"\"}"
         }
+        # Body is passed as a single pre-formed JSON string. It must be single-
+        # quoted at the call site so the POSIX shell keeps the "\\." backslashes
+        # literal; nested double quotes would collapse them to "\." and RabbitMQ
+        # rejects the body as not_json.
         put_permissions() {
-          user="$$1"
-          configure="$$2"
-          write="$$3"
-          read="$$4"
           curl --fail --silent --show-error -u "$$auth" \
             -H "content-type: application/json" \
-            -X PUT "$$api/permissions/%2F/$$user" \
-            -d "{\"configure\":\"$$configure\",\"write\":\"$$write\",\"read\":\"$$read\"}"
+            -X PUT "$$api/permissions/%2F/$$1" \
+            --data-raw "$$2"
         }
         put_user backend-clinical-knowledge "$${RABBITMQ_BACKEND_PASSWORD}"
         put_user backend-outbox-relay "$${RABBITMQ_BACKEND_PASSWORD}"
         put_user transcription-worker "$${RABBITMQ_WORKER_PASSWORD}"
-        put_permissions backend-clinical-knowledge "^medicalassistant\\.backend\\.transcript-ready(\\.retry\\.[0-9]+|\\.dlq)?$$" "^medicalassistant\\.events$$|^medicalassistant\\.backend\\.transcript-ready(\\.retry\\.[0-9]+|\\.dlq)?$$" "^medicalassistant\\.backend\\.transcript-ready(\\.retry\\.[0-9]+|\\.dlq)?$$"
-        put_permissions backend-outbox-relay "^$$" "^medicalassistant\\.events$$" "^$$"
-        put_permissions transcription-worker "^medicalassistant\\.transcription-worker(\\.retry\\.[0-9]+|\\.dlq)?$$" "^medicalassistant\\.events$$|^medicalassistant\\.transcription-worker(\\.retry\\.[0-9]+|\\.dlq)?$$" "^medicalassistant\\.transcription-worker(\\.retry\\.[0-9]+|\\.dlq)?$$"
+        # Consumers declare the shared exchange (configure) and bind their queue to
+        # it (write on queue + read on exchange), so both need the exchange in their
+        # configure and read scopes in addition to their own queue namespace.
+        # They also need write on the default exchange (amq.default): the main queue
+        # is declared with x-dead-letter-exchange="" (RabbitMQ validates write on the
+        # DLX at declare time), and failed messages are re-published to the retry/dlq
+        # queues by name through the default exchange.
+        put_permissions backend-clinical-knowledge '{"configure":"^medicalassistant\\.events$$|^medicalassistant\\.backend\\.transcript-ready(\\.retry\\.[0-9]+|\\.dlq)?$$","write":"^amq\\.default$$|^medicalassistant\\.events$$|^medicalassistant\\.backend\\.transcript-ready(\\.retry\\.[0-9]+|\\.dlq)?$$","read":"^medicalassistant\\.events$$|^medicalassistant\\.backend\\.transcript-ready(\\.retry\\.[0-9]+|\\.dlq)?$$"}'
+        put_permissions backend-outbox-relay '{"configure":"^$$","write":"^medicalassistant\\.events$$","read":"^$$"}'
+        put_permissions transcription-worker '{"configure":"^medicalassistant\\.events$$|^medicalassistant\\.transcription-worker(\\.retry\\.[0-9]+|\\.dlq)?$$","write":"^amq\\.default$$|^medicalassistant\\.events$$|^medicalassistant\\.transcription-worker(\\.retry\\.[0-9]+|\\.dlq)?$$","read":"^medicalassistant\\.events$$|^medicalassistant\\.transcription-worker(\\.retry\\.[0-9]+|\\.dlq)?$$"}'
+        # consultation.transcription-failed.v1 is emitted but has no subscriber, so
+        # the outbox relay's mandatory publish returns unroutable and retries forever.
+        # Give it a durable, bounded audit queue (visible in the management UI) so the
+        # publish routes to a real destination. Idempotent and matches the direct,
+        # durable exchange the consumers declare.
+        curl --fail --silent --show-error -u "$$auth" -H "content-type: application/json" \
+          -X PUT "$$api/exchanges/%2F/medicalassistant.events" \
+          --data-raw '{"type":"direct","durable":true}'
+        curl --fail --silent --show-error -u "$$auth" -H "content-type: application/json" \
+          -X PUT "$$api/queues/%2F/medicalassistant.transcription-failed" \
+          --data-raw '{"durable":true,"arguments":{"x-max-length":10000,"x-overflow":"drop-head"}}'
+        curl --fail --silent --show-error -u "$$auth" -H "content-type: application/json" \
+          -X POST "$$api/bindings/%2F/e/medicalassistant.events/q/medicalassistant.transcription-failed" \
+          --data-raw '{"routing_key":"consultation.transcription-failed.v1"}'
 
   azurite:
-    image: mcr.microsoft.com/azure-storage/azurite:3.33.0
-    command: azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0
+    image: mcr.microsoft.com/azure-storage/azurite:latest
+    # skipApiVersionCheck: the Azure Storage .NET SDK (12.23) sends a newer
+    # x-ms-version than older Azurite builds accept, which surfaced as a shared-key
+    # AuthorizationFailure on container create. loose relaxes header validation for
+    # local dev.
+    command: azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --skipApiVersionCheck --loose
     ports:
       - "10000:10000"
       - "10001:10001"
@@ -135,6 +165,13 @@ services:
       ConnectionStrings__Postgres: Host=postgres-clinical;Port=5432;Database=ai_med;Username=clinicalknowledge;Password=${POSTGRES_CLINICAL_PASSWORD:-clinicalknowledge-local};Maximum Pool Size=50
       Authentication__ApiKeys__0: ${CLINICAL_KNOWLEDGE_API_KEY:-local-development-key}
       Authentication__AdminApiKeys__0: ${CLINICAL_KNOWLEDGE_ADMIN_API_KEY:-local-development-admin-key}
+      # OpenAI for chunking/summaries (chat) and embeddings. Each section activates
+      # only when its ApiKey is present. Embeddings MUST be text-embedding-3-large
+      # (3072 dims) to match the fixed vector(3072) column.
+      OpenAIChat__ApiKey: ${OPENAI_API_KEY:-}
+      OpenAIChat__Model: ${OPENAI_CHAT_MODEL:-gpt-4.1-mini}
+      OpenAIEmbeddings__ApiKey: ${OPENAI_API_KEY:-}
+      OpenAIEmbeddings__Model: ${OPENAI_EMBEDDINGS_MODEL:-text-embedding-3-large}
     ports:
       - "8000:8080"
     depends_on:
@@ -153,7 +190,11 @@ services:
       JwtSettings__Key: ${JWT_KEY:-MedicalAssistantLocalDevelopmentJwtKey_ChangeMe_32chars}
       JwtSettings__Issuer: MedicalAssistantApi
       JwtSettings__Audience: MedicalAssistantClient
-        BlobStorage__ConnectionString: ${AZURITE_CONNECTION_STRING:-UseDevelopmentStorage=true;DevelopmentStorageProxyUri=http://azurite}
+      # Allow the local Vite dev server origin (frontend runs outside Compose).
+      CorsSettings__AllowedOrigins__0: http://localhost:5173
+      CorsSettings__AllowedOrigins__1: http://localhost:4200
+      CorsSettings__AllowedOrigins__2: http://localhost:5500
+      BlobStorage__ConnectionString: ${AZURITE_CONNECTION_STRING:-UseDevelopmentStorage=true;DevelopmentStorageProxyUri=http://azurite}
       BlobStorage__ConsultationAudioContainer: audio
       BlobStorage__ConsultationDocumentsContainer: pdf
       ClinicalKnowledge__BaseUrl: http://clinical-knowledge:8080
@@ -202,10 +243,15 @@ services:
       TranscriptionWorker__MaxConcurrentTranscriptions: ${TRANSCRIPTION_WORKER_MAX_CONCURRENT_TRANSCRIPTIONS:-1}
       TranscriptionWorker__ShutdownDrainTimeout: ${TRANSCRIPTION_WORKER_SHUTDOWN_DRAIN_TIMEOUT:-00:00:30}
       TranscriptionWorker__ProcessingLeaseDuration: ${TRANSCRIPTION_WORKER_PROCESSING_LEASE_DURATION:-00:10:00}
-        TranscriptionWorker__BlobRetrieval__ConnectionString: ${AZURITE_CONNECTION_STRING:-UseDevelopmentStorage=true;DevelopmentStorageProxyUri=http://azurite}
+      TranscriptionWorker__BlobRetrieval__ConnectionString: ${AZURITE_CONNECTION_STRING:-UseDevelopmentStorage=true;DevelopmentStorageProxyUri=http://azurite}
       TranscriptionWorker__BlobRetrieval__ConsultationAudioContainer: audio
+      # Speech-to-text provider: AzureSpeech (default) or OpenAiWhisper.
+      TranscriptionWorker__Provider: ${TRANSCRIPTION_PROVIDER:-AzureSpeech}
       TranscriptionWorker__AzureSpeech__Key: ${AZURE_SPEECH_KEY:-}
       TranscriptionWorker__AzureSpeech__Region: ${AZURE_SPEECH_REGION:-}
+      TranscriptionWorker__OpenAiWhisper__ApiKey: ${OPENAI_WHISPER_API_KEY:-}
+      TranscriptionWorker__OpenAiWhisper__Model: ${OPENAI_WHISPER_MODEL:-gpt-4o-transcribe}
+      TranscriptionWorker__OpenAiWhisper__BaseUrl: ${OPENAI_WHISPER_BASE_URL:-https://api.openai.com/v1}
     depends_on:
       postgres-app:
         condition: service_healthy

@@ -88,6 +88,38 @@ public sealed class ClinicalKnowledgeHttpClient : IClinicalKnowledgeClient
             ClinicalKnowledgeUnIngestStatus.Removed);
     }
 
+    public async Task<ClinicalKnowledgeAnswer> GetGroundedAnswerAsync(
+        ClinicalKnowledgeChatRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeout.CancelAfter(TimeSpan.FromSeconds(_settings.SubmitTimeoutSeconds));
+
+        var response = await _httpClient.PostAsJsonAsync(
+            $"patients/{Uri.EscapeDataString(request.PatientId)}/chat/answer",
+            new ChatAnswerRequest(request.DoctorId, request.Question, request.TopK),
+            JsonOptions,
+            timeout.Token);
+
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadFromJsonAsync<ChatAnswerResponse>(JsonOptions, timeout.Token)
+            ?? throw new InvalidOperationException("Clinical Knowledge returned an empty chat response.");
+
+        var citations = (body.Citations ?? [])
+            .Select(c => new ClinicalKnowledgeCitation(
+                c.Label ?? string.Empty,
+                c.Quote ?? string.Empty,
+                c.DocumentType ?? string.Empty,
+                c.SessionId))
+            .ToArray();
+
+        return new ClinicalKnowledgeAnswer(
+            body.Answer ?? string.Empty,
+            body.Refused,
+            body.RetrievalUsed,
+            citations);
+    }
+
     private sealed record SessionTranscriptIngestionRequest(
         string DocumentType,
         string DoctorId,
@@ -97,4 +129,18 @@ public sealed class ClinicalKnowledgeHttpClient : IClinicalKnowledgeClient
         DateTimeOffset? SessionDate,
         string? Language,
         string Transcript);
+
+    private sealed record ChatAnswerRequest(string DoctorId, string Question, int TopK);
+
+    private sealed record ChatAnswerResponse(
+        string? Answer,
+        bool Refused,
+        bool RetrievalUsed,
+        List<ChatCitationResponse>? Citations);
+
+    private sealed record ChatCitationResponse(
+        string? Label,
+        string? Quote,
+        string? DocumentType,
+        string? SessionId);
 }

@@ -24,11 +24,25 @@ public static class TranscriptionWorkerServiceRegistration
             configuration.GetSection(TranscriptionBlobRetrievalOptions.SectionName));
         services.Configure<AzureSpeechTranscriptionOptions>(
             configuration.GetSection(AzureSpeechTranscriptionOptions.SectionName));
+        services.Configure<OpenAiWhisperTranscriptionOptions>(
+            configuration.GetSection(OpenAiWhisperTranscriptionOptions.SectionName));
         services.AddSingleton<IValidateOptions<TranscriptionWorkerOptions>, TranscriptionWorkerOptionsValidator>();
 
         services.AddScoped<IPrivateBlobObjectClient, AzurePrivateBlobObjectClient>();
         services.AddScoped<IConsultationAudioBlobRetriever, ConsultationAudioBlobRetriever>();
-        services.AddHttpClient<ISpeechTranscriptionService, AzureSpeechTranscriptionService>();
+
+        // Select the speech-to-text provider (default Azure Speech). The handler
+        // depends only on ISpeechTranscriptionService, so the choice is transparent.
+        var provider = configuration.GetValue<string>(
+            $"{TranscriptionWorkerOptions.SectionName}:{nameof(TranscriptionWorkerOptions.Provider)}");
+        if (TranscriptionProvider.IsOpenAiWhisper(provider))
+        {
+            services.AddHttpClient<ISpeechTranscriptionService, OpenAiWhisperTranscriptionService>();
+        }
+        else
+        {
+            services.AddHttpClient<ISpeechTranscriptionService, AzureSpeechTranscriptionService>();
+        }
         services.AddScoped<ConsultationAudioUploadedIntegrationEventHandler>();
         services.AddSingleton(ConsultationIntegrationEvents.Registry);
         services.AddSingleton(provider =>

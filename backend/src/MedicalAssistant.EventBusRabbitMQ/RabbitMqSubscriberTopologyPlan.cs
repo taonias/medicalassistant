@@ -32,11 +32,19 @@ public sealed record RabbitMqSubscriberTopologyPlan(
             .Order(StringComparer.Ordinal)
             .ToArray();
         var deadLetterQueue = new RabbitMqQueuePlan($"{options.QueueName}.dlq");
+        // A retry queue dead-letters back to the main exchange so an expired
+        // message re-reaches the main queue. That requires a fixed dead-letter
+        // routing key, which can only represent a single event type. When a
+        // subscriber binds exactly one event type we pin it (today's behaviour);
+        // with several event types a single key cannot re-route them all, so we
+        // leave it unset rather than throw. Correct multi-event-type retry
+        // re-routing needs per-event-type retry queues (tracked as follow-up).
+        var retryDeadLetterRoutingKey = eventTypes.Length == 1 ? eventTypes[0] : null;
         var retryQueues = options.RetryDelays
             .Select((delay, index) => new RabbitMqQueuePlan(
                 Name: $"{options.QueueName}.retry.{index + 1}",
                 DeadLetterExchange: options.ExchangeName,
-                DeadLetterRoutingKey: eventTypes.SingleOrDefault(),
+                DeadLetterRoutingKey: retryDeadLetterRoutingKey,
                 MessageTtl: delay))
             .ToArray();
         var bindings = eventTypes

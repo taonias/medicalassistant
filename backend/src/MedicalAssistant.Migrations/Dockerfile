@@ -9,7 +9,7 @@ RUN dotnet publish backend/src/MedicalAssistant.Migrations/MedicalAssistant.Migr
     --output /app/publish \
     /p:UseAppHost=false
 
-FROM mcr.microsoft.com/dotnet/runtime:8.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "MedicalAssistant.Migrations.dll"]

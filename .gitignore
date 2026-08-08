@@ -128,3 +128,4 @@ htmlcov/
 .eggs/
 graphify-out/
 .scratch/
+frontend/.env

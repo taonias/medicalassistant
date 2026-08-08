@@ -10,7 +10,29 @@ public interface IClinicalKnowledgeClient
         string documentId,
         string removedBy,
         CancellationToken cancellationToken = default);
+
+    Task<ClinicalKnowledgeAnswer> GetGroundedAnswerAsync(
+        ClinicalKnowledgeChatRequest request,
+        CancellationToken cancellationToken = default);
 }
+
+public sealed record ClinicalKnowledgeChatRequest(
+    string PatientId,
+    string DoctorId,
+    string Question,
+    int TopK = 5);
+
+public sealed record ClinicalKnowledgeAnswer(
+    string Text,
+    bool Refused,
+    bool RetrievalUsed,
+    IReadOnlyList<ClinicalKnowledgeCitation> Citations);
+
+public sealed record ClinicalKnowledgeCitation(
+    string Label,
+    string Quote,
+    string DocumentType,
+    string? SessionId);
 
 public sealed record ClinicalKnowledgeSessionTranscriptRequest(
     string DoctorId,

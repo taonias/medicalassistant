@@ -7,9 +7,25 @@ public sealed class TranscriptionWorkerOptions
     public const string SectionName = "TranscriptionWorker";
     public const int MaximumConcurrentTranscriptions = 32;
 
+    /// <summary>Which speech-to-text provider the worker uses: "AzureSpeech" (default) or "OpenAiWhisper".</summary>
+    public string Provider { get; set; } = TranscriptionProvider.AzureSpeech;
+
     public TimeSpan ShutdownDrainTimeout { get; set; } = TimeSpan.FromSeconds(30);
     public TimeSpan ProcessingLeaseDuration { get; set; } = TimeSpan.FromMinutes(10);
     public int MaxConcurrentTranscriptions { get; set; } = 1;
+}
+
+public static class TranscriptionProvider
+{
+    public const string AzureSpeech = "AzureSpeech";
+    public const string OpenAiWhisper = "OpenAiWhisper";
+
+    public static bool IsOpenAiWhisper(string? provider) =>
+        string.Equals(provider, OpenAiWhisper, StringComparison.OrdinalIgnoreCase);
+
+    public static bool IsKnown(string? provider) =>
+        string.Equals(provider, AzureSpeech, StringComparison.OrdinalIgnoreCase)
+        || IsOpenAiWhisper(provider);
 }
 
 public sealed class TranscriptionWorkerOptionsValidator : IValidateOptions<TranscriptionWorkerOptions>
@@ -17,6 +33,11 @@ public sealed class TranscriptionWorkerOptionsValidator : IValidateOptions<Trans
     public ValidateOptionsResult Validate(string? name, TranscriptionWorkerOptions options)
     {
         var failures = new List<string>();
+
+        if (!TranscriptionProvider.IsKnown(options.Provider))
+        {
+            failures.Add($"{TranscriptionWorkerOptions.SectionName}:{nameof(options.Provider)} must be '{TranscriptionProvider.AzureSpeech}' or '{TranscriptionProvider.OpenAiWhisper}'.");
+        }
 
         if (options.MaxConcurrentTranscriptions < 1)
         {
