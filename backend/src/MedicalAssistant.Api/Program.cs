@@ -91,6 +91,7 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
 app.MapControllers();
 
 await IdentityDbInitializer.SeedRolesAsync(app.Services);
+await IdentityDbInitializer.SeedDevelopmentDoctorAsync(app.Services);
 
 app.Run();
 

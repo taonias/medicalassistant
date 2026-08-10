@@ -148,6 +148,7 @@ services:
       context: .
       dockerfile: backend/src/MedicalAssistant.Migrations/Dockerfile
     environment:
+      ASPNETCORE_ENVIRONMENT: Development
       Database__Provider: PostgreSQL
       ConnectionStrings__MedicalAssistantDatabasePostgreSQL: Host=postgres-app;Port=5432;Database=MedicalAssistantDb;Username=medicalassistant;Password=${POSTGRES_APP_PASSWORD:-medicalassistant-local}
     depends_on:

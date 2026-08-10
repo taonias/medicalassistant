@@ -22,3 +22,4 @@ var host = builder.Build();
 await PersistenceDbInitializer.MigrateAsync(host.Services);
 await IdentityDbMigrator.MigrateAsync(host.Services);
 await IdentityDbInitializer.SeedRolesAsync(host.Services);
+await IdentityDbInitializer.SeedDevelopmentDoctorAsync(host.Services);
