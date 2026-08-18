@@ -5,21 +5,67 @@ using MedicalAssistant.Infrastructure;
 using MedicalAssistant.Persistence;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Models;
+using OpenTelemetry;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var otlpEndpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"];
+var otlpConfigured = !string.IsNullOrWhiteSpace(otlpEndpoint);
 
 builder.Host.UseSerilog((context, loggerConfig) =>
 {
     loggerConfig
         .WriteTo.Console()
         .ReadFrom.Configuration(context.Configuration);
+
+    // Ship logs to the central OTLP collector (Aspire dashboard) when configured.
+    if (otlpConfigured)
+    {
+        loggerConfig.WriteTo.OpenTelemetry(options =>
+        {
+            options.Endpoint = otlpEndpoint;
+            options.Protocol = Serilog.Sinks.OpenTelemetry.OtlpProtocol.Grpc;
+            options.ResourceAttributes = new Dictionary<string, object>
+            {
+                ["service.name"] = "MedicalAssistant.Api"
+            };
+        });
+    }
 });
 
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddPersistenceServices(builder.Configuration);
 builder.Services.AddIdentityServices(builder.Configuration);
+
+// OpenTelemetry traces + metrics (logs are exported via the Serilog OTLP sink
+// above), sent over OTLP only when OTEL_EXPORTER_OTLP_ENDPOINT is configured.
+builder.Services.AddOpenTelemetry()
+    .ConfigureResource(resource => resource.AddService("MedicalAssistant.Api"))
+    .WithTracing(tracing =>
+    {
+        tracing
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            // Database spans from Npgsql's built-in ActivitySource (no extra package).
+            .AddSource("Npgsql");
+        if (otlpConfigured)
+            tracing.AddOtlpExporter();
+    })
+    .WithMetrics(metrics =>
+    {
+        metrics
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddMeter("MedicalAssistant.ConsultationOutbox")
+            .AddMeter("MedicalAssistant.EventBusRabbitMQ");
+        if (otlpConfigured)
+            metrics.AddOtlpExporter();
+    });
 
 builder.Services.AddControllers();
 builder.Services.AddHttpContextAccessor();

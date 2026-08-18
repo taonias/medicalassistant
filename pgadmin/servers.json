@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "Medical Assistant (local)",
+      "Group": "Servers",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "MedicalAssistantDb",
+      "Username": "postgres",
+      "SSLMode": "prefer",
+      "Comment": "One server, two databases: MedicalAssistantDb + ai_med. Connect as postgres/postgres (superuser) or medicalassistant."
+    }
+  }
+}

@@ -1,9 +1,0 @@
-# Local dev override (auto-loaded by docker compose).
-# Remaps the clinical Postgres host port off 5433 to avoid a conflict with
-# another local project's container already bound to 5433. Internal service-to-
-# service access still uses postgres-clinical:5432 on the compose network, so
-# this only affects host-side dev access.
-services:
-  postgres-clinical:
-    ports: !override
-      - "5434:5432"

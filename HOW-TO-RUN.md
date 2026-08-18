@@ -5,13 +5,19 @@
 - Node.js (for the frontend)
 - A root `.env` copied from `compose.env.example` (fill in keys below)
 
-## Start everything
-```bash
-# from repo root — brings up all backend services
-docker compose up -d --build
+## Start everything (one command)
+```powershell
+./start.ps1            # backend services + frontend  (add -Build to rebuild images, -NoFrontend for API only)
+```
+To stop:
+```powershell
+./stop.ps1             # pause, keep data   (./stop.ps1 -Reset wipes all volumes)
+```
 
-# frontend runs separately
-cd frontend && npm install && npm run dev -- --host --port 5173
+Or manually:
+```bash
+docker compose up -d --build                          # all backend services
+cd frontend && npm install && npm run dev -- --port 5173   # frontend
 ```
 Open **http://localhost:5173**, register a doctor, and go.
 
@@ -26,8 +32,10 @@ Open **http://localhost:5173**, register a doctor, and go.
 | Clinical Knowledge API | http://localhost:8000 | header `X-Api-Key` |
 | Clinical Knowledge docs | http://localhost:8000/swagger | — |
 | RabbitMQ management UI | http://localhost:15672 | broker user/pass |
-| App PostgreSQL | localhost:5432 / db `MedicalAssistantDb` | user/pass |
-| Clinical PostgreSQL | localhost:5434 / db `ai_med` | user/pass |
+| pgAdmin (DB UI) | http://localhost:5050 | opens straight in; server pre-registered |
+| Vector DB UI | http://localhost:8787 | paste `postgresql://postgres:postgres@postgres:5432/ai_med` into the UI |
+| Telemetry (Aspire Dashboard) | http://localhost:18888 | OpenTelemetry logs + traces + metrics from all services |
+| PostgreSQL (one server, two DBs) | localhost:5432 / dbs `MedicalAssistantDb` + `ai_med` | user/pass |
 | Azurite (Blob) | http://localhost:10000/devstoreaccount1 | account key |
 
 ## Test credentials
@@ -43,8 +51,7 @@ All are **local-dev only** (values come from your `.env`).
     ```
 - **Clinical Knowledge API** — header `X-Api-Key: local-development-key` (`CLINICAL_KNOWLEDGE_API_KEY`)
 - **RabbitMQ UI** — user `medicalassistant-broker-bootstrap` / pass = `RABBITMQ_BOOTSTRAP_PASSWORD`
-- **App PostgreSQL** — user `medicalassistant` / pass = `POSTGRES_APP_PASSWORD`
-- **Clinical PostgreSQL** — user `clinicalknowledge` / pass = `POSTGRES_CLINICAL_PASSWORD`
+- **PostgreSQL** (one server, both `MedicalAssistantDb` and `ai_med`) — user `medicalassistant` / pass = `POSTGRES_APP_PASSWORD`
 - **Azurite** — account `devstoreaccount1`, well-known dev key (`Eby8vd...E4E2j+Q==`)
 
 ## Keys (in `.env`)
@@ -69,8 +76,7 @@ docker compose down --volumes  # full reset
 | **Backend API** | 7037 | ASP.NET Core API. Owns auth, patients, consultations, blob upload, and the outbox that publishes events. The system's front door. |
 | **Transcription Worker** | — | Standalone service. Consumes audio-uploaded events, pulls the audio, transcribes via OpenAI Whisper (or Azure Speech), stores the transcript, emits transcript-ready. |
 | **Clinical Knowledge** | 8000 | AI service (`AI/`). Ingests transcripts/notes/reports into a pgvector store and answers doctor questions with grounded, cited RAG. |
-| **App PostgreSQL** | 5432 | Main database: users, patients, consultations, transcripts, outbox/inbox. |
-| **Clinical PostgreSQL** | 5434 | pgvector database for Clinical Knowledge: document chunks + embeddings. |
+| **PostgreSQL** | 5432 | One pgvector server hosting two databases: `MedicalAssistantDb` (app: users, patients, consultations, transcripts, outbox/inbox) and `ai_med` (Clinical Knowledge: document chunks + embeddings). Same credentials. |
 | **RabbitMQ** | 5672 / 15672 | Event bus connecting backend ↔ worker ↔ Clinical Knowledge. Management UI at :15672. |
 | **Azurite** | 10000 | Local Azure Blob emulator. Stores uploaded consultation audio/PDF files. |
 | **Backend Migrations** | — | One-shot job. Applies the app database schema on startup, then exits. |

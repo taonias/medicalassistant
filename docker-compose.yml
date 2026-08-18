@@ -1,8 +1,12 @@
 name: medicalassistant
 
 services:
-  postgres-app:
-    image: postgres:16-alpine
+  # Single Postgres server (with pgvector) hosting BOTH databases:
+  #   - MedicalAssistantDb (app)   created by POSTGRES_DB
+  #   - ai_med (clinical/pgvector) created by ./db-init on first start
+  # Both use the same credentials (medicalassistant / POSTGRES_APP_PASSWORD).
+  postgres:
+    image: pgvector/pgvector:pg16
     environment:
       POSTGRES_DB: MedicalAssistantDb
       POSTGRES_USER: medicalassistant
@@ -10,7 +14,8 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - medicalassistant_app_pgdata:/var/lib/postgresql/data
+      - medicalassistant_pgdata:/var/lib/postgresql/data
+      - ./db-init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U medicalassistant -d MedicalAssistantDb"]
       interval: 10s
@@ -18,22 +23,35 @@ services:
       retries: 10
       start_period: 10s
 
-  postgres-clinical:
-    image: pgvector/pgvector:pg16
+  pgadmin:
+    image: dpage/pgadmin4:latest
     environment:
-      POSTGRES_DB: ai_med
-      POSTGRES_USER: clinicalknowledge
-      POSTGRES_PASSWORD: ${POSTGRES_CLINICAL_PASSWORD:-clinicalknowledge-local}
+      PGADMIN_DEFAULT_EMAIL: admin@local.dev
+      PGADMIN_DEFAULT_PASSWORD: admin
+      # Desktop mode: no pgAdmin login screen, no master password (local dev).
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
     ports:
-      - "5433:5432"
+      - "5050:80"
     volumes:
-      - medicalassistant_clinical_pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U clinicalknowledge -d ai_med"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 10s
+      - medicalassistant_pgadmin_data:/var/lib/pgadmin
+      # Pre-registers the "Medical Assistant (local)" server on first start.
+      - ./pgadmin/servers.json:/pgadmin4/servers.json:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Custom Vector Database UI (pgvector / Qdrant / Weaviate). Serves UI + API on 8787.
+  # For pgvector, paste this connection string into the UI's top input
+  # (host is the compose service name, reachable from inside the container):
+  #   postgresql://postgres:postgres@postgres:5432/ai_med
+  vector-db-ui:
+    image: vector-db-ui:latest
+    ports:
+      - "8787:8787"
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   rabbitmq:
     image: rabbitmq:3.13-management
@@ -150,9 +168,9 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       Database__Provider: PostgreSQL
-      ConnectionStrings__MedicalAssistantDatabasePostgreSQL: Host=postgres-app;Port=5432;Database=MedicalAssistantDb;Username=medicalassistant;Password=${POSTGRES_APP_PASSWORD:-medicalassistant-local}
+      ConnectionStrings__MedicalAssistantDatabasePostgreSQL: Host=postgres;Port=5432;Database=MedicalAssistantDb;Username=medicalassistant;Password=${POSTGRES_APP_PASSWORD:-medicalassistant-local}
     depends_on:
-      postgres-app:
+      postgres:
         condition: service_healthy
     restart: "no"
 
@@ -163,7 +181,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__Postgres: Host=postgres-clinical;Port=5432;Database=ai_med;Username=clinicalknowledge;Password=${POSTGRES_CLINICAL_PASSWORD:-clinicalknowledge-local};Maximum Pool Size=50
+      ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=ai_med;Username=medicalassistant;Password=${POSTGRES_APP_PASSWORD:-medicalassistant-local};Maximum Pool Size=50
       Authentication__ApiKeys__0: ${CLINICAL_KNOWLEDGE_API_KEY:-local-development-key}
       Authentication__AdminApiKeys__0: ${CLINICAL_KNOWLEDGE_ADMIN_API_KEY:-local-development-admin-key}
       # OpenAI for chunking/summaries (chat) and embeddings. Each section activates
@@ -173,10 +191,11 @@ services:
       OpenAIChat__Model: ${OPENAI_CHAT_MODEL:-gpt-4.1-mini}
       OpenAIEmbeddings__ApiKey: ${OPENAI_API_KEY:-}
       OpenAIEmbeddings__Model: ${OPENAI_EMBEDDINGS_MODEL:-text-embedding-3-large}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://aspire-dashboard:18889
     ports:
       - "8000:8080"
     depends_on:
-      postgres-clinical:
+      postgres:
         condition: service_healthy
 
   backend-api:
@@ -187,7 +206,7 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
       Database__Provider: PostgreSQL
-      ConnectionStrings__MedicalAssistantDatabasePostgreSQL: Host=postgres-app;Port=5432;Database=MedicalAssistantDb;Username=medicalassistant;Password=${POSTGRES_APP_PASSWORD:-medicalassistant-local}
+      ConnectionStrings__MedicalAssistantDatabasePostgreSQL: Host=postgres;Port=5432;Database=MedicalAssistantDb;Username=medicalassistant;Password=${POSTGRES_APP_PASSWORD:-medicalassistant-local}
       JwtSettings__Key: ${JWT_KEY:-MedicalAssistantLocalDevelopmentJwtKey_ChangeMe_32chars}
       JwtSettings__Issuer: MedicalAssistantApi
       JwtSettings__Audience: MedicalAssistantClient
@@ -211,10 +230,11 @@ services:
       ConsultationOutboxRelay__LeaseDuration: ${BACKEND_OUTBOX_RELAY_LEASE_DURATION:-00:02:00}
       ConsultationOutboxRelay__PollInterval: ${BACKEND_OUTBOX_RELAY_POLL_INTERVAL:-00:00:05}
       ConsultationOutboxRelay__FailureBackoff: ${BACKEND_OUTBOX_RELAY_FAILURE_BACKOFF:-00:00:30}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://aspire-dashboard:18889
     ports:
       - "7037:8080"
     depends_on:
-      postgres-app:
+      postgres:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
@@ -233,7 +253,7 @@ services:
       dockerfile: backend/src/MedicalAssistant.Transcription.Worker/Dockerfile
     environment:
       Database__Provider: PostgreSQL
-      ConnectionStrings__MedicalAssistantDatabasePostgreSQL: Host=postgres-app;Port=5432;Database=MedicalAssistantDb;Username=medicalassistant;Password=${POSTGRES_APP_PASSWORD:-medicalassistant-local}
+      ConnectionStrings__MedicalAssistantDatabasePostgreSQL: Host=postgres;Port=5432;Database=MedicalAssistantDb;Username=medicalassistant;Password=${POSTGRES_APP_PASSWORD:-medicalassistant-local}
       RabbitMQ__HostName: rabbitmq
       RabbitMQ__UserName: transcription-worker
       RabbitMQ__Password: ${RABBITMQ_WORKER_PASSWORD:-worker-rabbitmq-local}
@@ -253,8 +273,9 @@ services:
       TranscriptionWorker__OpenAiWhisper__ApiKey: ${OPENAI_WHISPER_API_KEY:-}
       TranscriptionWorker__OpenAiWhisper__Model: ${OPENAI_WHISPER_MODEL:-gpt-4o-transcribe}
       TranscriptionWorker__OpenAiWhisper__BaseUrl: ${OPENAI_WHISPER_BASE_URL:-https://api.openai.com/v1}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://aspire-dashboard:18889
     depends_on:
-      postgres-app:
+      postgres:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
@@ -265,8 +286,19 @@ services:
       backend-migrations:
         condition: service_completed_successfully
 
+  # Central OpenTelemetry dashboard: receives OTLP (traces + metrics + logs) from
+  # every instrumented service and shows them in one UI at http://localhost:18888.
+  aspire-dashboard:
+    image: mcr.microsoft.com/dotnet/aspire-dashboard:9.0
+    environment:
+      DOTNET_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS: "true"
+      ASPNETCORE_URLS: http://0.0.0.0:18888
+      DOTNET_DASHBOARD_OTLP_ENDPOINT_URL: http://0.0.0.0:18889
+    ports:
+      - "18888:18888"
+
 volumes:
-  medicalassistant_app_pgdata:
-  medicalassistant_clinical_pgdata:
+  medicalassistant_pgdata:
+  medicalassistant_pgadmin_data:
   medicalassistant_rabbitmq_data:
   medicalassistant_azurite_data:
