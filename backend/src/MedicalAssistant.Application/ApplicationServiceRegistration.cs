@@ -15,7 +15,10 @@ public static class ApplicationServiceRegistration
         services.AddAutoMapper(Assembly.GetExecutingAssembly());
         services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
         services.AddMediatR(Assembly.GetExecutingAssembly());
+        // Order matters: validation runs first (outermost) so invalid requests are never
+        // audited; the audit behavior then records successful business commands centrally.
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(AuditBehavior<,>));
         services.AddScoped<Services.PatientHistoryAssembler>();
         services.AddSingleton<Services.IConsultationOutboxRelayObserver, Services.ConsultationOutboxRelayMetrics>();
         services.AddSingleton<Services.IntegrationEventReplayPolicy>();

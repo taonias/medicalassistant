@@ -1,4 +1,3 @@
-using MedicalAssistant.Application.Contracts.Logging;
 using MedicalAssistant.Application.Features.ActionRequest.Command.TriggerAiAction;
 using MedicalAssistant.Application.Features.ActionRequest.Queries.GetActionRequestStatus;
 using MediatR;
@@ -13,12 +12,10 @@ namespace MedicalAssistant.Api.Controllers;
 public class ActionController : ControllerBase
 {
     private readonly IMediator _mediator;
-    private readonly IAuditLogger _auditLogger;
 
-    public ActionController(IMediator mediator, IAuditLogger auditLogger)
+    public ActionController(IMediator mediator)
     {
         _mediator = mediator;
-        _auditLogger = auditLogger;
     }
 
     [HttpPost("trigger")]
@@ -26,8 +23,6 @@ public class ActionController : ControllerBase
     public async Task<ActionResult<ActionRequestDto>> Trigger(TriggerAiActionCommand command)
     {
         var response = await _mediator.Send(command);
-        await _auditLogger.LogAsync("TriggerAction", "ActionRequest", response.CorrelationId,
-            $"ActionType: {response.ActionType}");
         return Accepted(response);
     }
 

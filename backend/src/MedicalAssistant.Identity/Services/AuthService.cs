@@ -148,7 +148,10 @@ public class AuthService : IAuthService
             new Claim(JwtRegisteredClaimNames.Sub, user.UserName ?? user.Id),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
-            new Claim("uid", user.Id)
+            new Claim("uid", user.Id),
+            // Custom, non-remapped claim (like "uid") so the audit logger can record a readable
+            // username. JwtRegisteredClaimNames.Sub gets remapped away from "sub" on the way in.
+            new Claim("username", user.UserName ?? user.Id)
         }.Union(userClaims).Union(roleClaims);
 
         var signingCredentials = new SigningCredentials(

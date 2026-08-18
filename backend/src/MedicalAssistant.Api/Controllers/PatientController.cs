@@ -1,4 +1,3 @@
-using MedicalAssistant.Application.Contracts.Logging;
 using MedicalAssistant.Application.Features.Patient.Command.CreatePatient;
 using MedicalAssistant.Application.Features.Patient.Command.UpdatePatient;
 using MedicalAssistant.Application.Features.Patient.Queries.GetPatientById;
@@ -17,12 +16,10 @@ namespace MedicalAssistant.Api.Controllers;
 public class PatientController : ControllerBase
 {
     private readonly IMediator _mediator;
-    private readonly IAuditLogger _auditLogger;
 
-    public PatientController(IMediator mediator, IAuditLogger auditLogger)
+    public PatientController(IMediator mediator)
     {
         _mediator = mediator;
-        _auditLogger = auditLogger;
     }
 
     [HttpGet]
@@ -66,7 +63,6 @@ public class PatientController : ControllerBase
     public async Task<ActionResult<PatientDto>> Post(CreatePatientCommand command)
     {
         var response = await _mediator.Send(command);
-        await _auditLogger.LogAsync("CreatePatient", "Patient", response.Id.ToString());
         return CreatedAtAction(nameof(Get), new { id = response.Id }, response);
     }
 
@@ -74,7 +70,6 @@ public class PatientController : ControllerBase
     public async Task<ActionResult<PatientDto>> Put(UpdatePatientCommand command)
     {
         var response = await _mediator.Send(command);
-        await _auditLogger.LogAsync("UpdatePatient", "Patient", response.Id.ToString());
         return Ok(response);
     }
 }

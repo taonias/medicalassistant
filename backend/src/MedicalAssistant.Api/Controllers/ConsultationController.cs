@@ -1,4 +1,3 @@
-using MedicalAssistant.Application.Contracts.Logging;
 using MedicalAssistant.Application.Features.Consultation.Command.AssignConsultationPatient;
 using MedicalAssistant.Application.Features.Consultation.Command.CreateConsultation;
 using MedicalAssistant.Application.Features.Consultation.Command.DeleteConsultation;
@@ -24,12 +23,10 @@ namespace MedicalAssistant.Api.Controllers;
 public class ConsultationController : ControllerBase
 {
     private readonly IMediator _mediator;
-    private readonly IAuditLogger _auditLogger;
 
-    public ConsultationController(IMediator mediator, IAuditLogger auditLogger)
+    public ConsultationController(IMediator mediator)
     {
         _mediator = mediator;
-        _auditLogger = auditLogger;
     }
 
     [HttpGet("drafts")]
@@ -75,7 +72,6 @@ public class ConsultationController : ControllerBase
             ConsultationId = id,
             PatientId = body.PatientId,
         });
-        await _auditLogger.LogAsync("AssignConsultationPatient", "Consultation", id.ToString());
         return Ok(response);
     }
 
@@ -83,7 +79,6 @@ public class ConsultationController : ControllerBase
     public async Task<IActionResult> Delete(int id)
     {
         await _mediator.Send(new DeleteConsultationCommand(id));
-        await _auditLogger.LogAsync("DeleteConsultation", "Consultation", id.ToString());
         return NoContent();
     }
 
@@ -99,8 +94,6 @@ public class ConsultationController : ControllerBase
 
         var existingKey = command.IdempotencyKey;
         var response = await _mediator.Send(command);
-
-        await _auditLogger.LogAsync("CreateConsultation", "Consultation", response.Id.ToString());
 
         if (!string.IsNullOrWhiteSpace(existingKey) && response.IdempotencyKey == existingKey)
         {
@@ -124,7 +117,6 @@ public class ConsultationController : ControllerBase
         };
 
         var response = await _mediator.Send(command);
-        await _auditLogger.LogAsync("UploadAudio", "Consultation", id.ToString());
         return Ok(response);
     }
 
@@ -139,7 +131,6 @@ public class ConsultationController : ControllerBase
         };
 
         var response = await _mediator.Send(command);
-        await _auditLogger.LogAsync("UploadDocument", "Consultation", id.ToString());
         return Ok(response);
     }
 
@@ -150,7 +141,6 @@ public class ConsultationController : ControllerBase
         {
             ConsultationId = id,
         });
-        await _auditLogger.LogAsync("RetryConsultationProcessing", "Consultation", id.ToString());
         return Ok(response);
     }
 

@@ -21,7 +21,9 @@ public class AuditLogger : IAuditLogger
     {
         var user = _httpContextAccessor.HttpContext?.User;
         var userId = overrideUserId ?? user?.FindFirst("uid")?.Value ?? "Anonymous";
-        var userName = overrideUserName ?? user?.FindFirst(ClaimTypes.Name)?.Value
+        var userName = overrideUserName
+            ?? user?.FindFirst("username")?.Value
+            ?? user?.FindFirst(ClaimTypes.Name)?.Value
             ?? user?.FindFirst("sub")?.Value;
         var ipAddress = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
 

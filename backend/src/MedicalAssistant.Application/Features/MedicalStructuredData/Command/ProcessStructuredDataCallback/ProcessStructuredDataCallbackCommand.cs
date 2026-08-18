@@ -1,8 +1,9 @@
 using MediatR;
+using MedicalAssistant.Application.Contracts.Logging;
 
 namespace MedicalAssistant.Application.Features.MedicalStructuredData.Command.ProcessStructuredDataCallback;
 
-public class ProcessStructuredDataCallbackCommand : IRequest<Unit>
+public class ProcessStructuredDataCallbackCommand : IRequest<Unit>, IAuditableRequest<Unit>
 {
     public required string JobId { get; set; }
     public required string CorrelationId { get; set; }
@@ -12,4 +13,9 @@ public class ProcessStructuredDataCallbackCommand : IRequest<Unit>
     public required string StructuredPayload { get; set; }
     public required string Status { get; set; }
     public string? FailureReason { get; set; }
+
+    public AuditEntry ToAuditEntry(Unit response) =>
+        new("StructuredDataCallback", "Consultation", ConsultationId.ToString(),
+            $"Status: {Status}",
+            SystemAuditActors.AiModuleId, SystemAuditActors.AiModuleName);
 }

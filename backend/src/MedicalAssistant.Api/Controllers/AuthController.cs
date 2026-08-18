@@ -1,4 +1,5 @@
 using MedicalAssistant.Application.Contracts.Identity;
+using MedicalAssistant.Application.Contracts.Logging;
 using MedicalAssistant.Application.Models.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,10 +11,12 @@ namespace MedicalAssistant.Api.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
+    private readonly IAuditLogger _auditLogger;
 
-    public AuthController(IAuthService authService)
+    public AuthController(IAuthService authService, IAuditLogger auditLogger)
     {
         _authService = authService;
+        _auditLogger = auditLogger;
     }
 
     [HttpPost("login")]
@@ -21,6 +24,13 @@ public class AuthController : ControllerBase
     public async Task<ActionResult<AuthResponse>> Login(AuthRequest request)
     {
         var response = await _authService.Login(request);
+        // The request is anonymous (no JWT yet), so the authenticated user is passed explicitly.
+        await _auditLogger.LogAsync(
+            "Login",
+            "User",
+            response.Id,
+            overrideUserId: response.Id,
+            overrideUserName: response.UserName ?? request.UserName);
         return Ok(response);
     }
 
@@ -29,6 +39,12 @@ public class AuthController : ControllerBase
     public async Task<ActionResult<RegistrationResponse>> Register(RegistrationRequest request)
     {
         var response = await _authService.Register(request);
+        await _auditLogger.LogAsync(
+            "Register",
+            "User",
+            response.UserId,
+            overrideUserId: response.UserId,
+            overrideUserName: request.UserName);
         return Ok(response);
     }
 
@@ -53,6 +69,7 @@ public class AuthController : ControllerBase
             return Unauthorized();
 
         var session = await _authService.UpdateProfileAsync(userId, request);
+        await _auditLogger.LogAsync("UpdateProfile", "User", userId);
         return Ok(session);
     }
 
@@ -65,6 +82,7 @@ public class AuthController : ControllerBase
             return Unauthorized();
 
         await _authService.ChangePasswordAsync(userId, request);
+        await _auditLogger.LogAsync("ChangePassword", "User", userId);
         return NoContent();
     }
 }

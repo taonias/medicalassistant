@@ -1,5 +1,6 @@
 using MedicalAssistant.Application.Contracts.AiModule;
 using MedicalAssistant.Application.Contracts.Identity;
+using MedicalAssistant.Application.Contracts.Logging;
 using MedicalAssistant.Application.Contracts.Persistence;
 using MedicalAssistant.Application.Exceptions;
 using MedicalAssistant.Application.Models.AiModule;
@@ -9,11 +10,15 @@ using Microsoft.Extensions.Logging;
 
 namespace MedicalAssistant.Application.Features.DoctorNotes.Command.CreateDoctorNote;
 
-public class CreateDoctorNoteCommand : IRequest<DoctorNote>
+public class CreateDoctorNoteCommand : IRequest<DoctorNote>, IAuditableRequest<DoctorNote>
 {
     public int? ConsultationId { get; set; }
     public int? PatientId { get; set; }
     public required string Content { get; set; }
+
+    public AuditEntry ToAuditEntry(DoctorNote response) =>
+        new("CreateDoctorNote", "DoctorNote", response.Id.ToString(),
+            response.ConsultationId is int c ? $"ConsultationId: {c}" : $"PatientId: {response.PatientId}");
 }
 
 public class CreateDoctorNoteCommandHandler : IRequestHandler<CreateDoctorNoteCommand, DoctorNote>

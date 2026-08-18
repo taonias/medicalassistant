@@ -1,12 +1,18 @@
 using MedicalAssistant.Application.Contracts.Persistence;
 using MedicalAssistant.Application.Contracts.Identity;
+using MedicalAssistant.Application.Contracts.Logging;
 using MedicalAssistant.Application.Exceptions;
 using MedicalAssistant.Domain;
 using MediatR;
 
 namespace MedicalAssistant.Application.Features.MedicalStructuredData.Command.ApproveStructuredData;
 
-public record ApproveStructuredDataCommand(int ConsultationId) : IRequest<Unit>;
+public record ApproveStructuredDataCommand(int ConsultationId)
+    : IRequest<Unit>, IAuditableRequest<Unit>
+{
+    public AuditEntry ToAuditEntry(Unit response) =>
+        new("ApproveStructuredData", "Consultation", ConsultationId.ToString());
+}
 
 public class ApproveStructuredDataCommandHandler : IRequestHandler<ApproveStructuredDataCommand, Unit>
 {
