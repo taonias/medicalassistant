@@ -2,6 +2,7 @@ using MedicalAssistant.Application.Contracts.Logging;
 using MedicalAssistant.Application.Features.Consultation.Command.AssignConsultationPatient;
 using MedicalAssistant.Application.Features.Consultation.Command.CreateConsultation;
 using MedicalAssistant.Application.Features.Consultation.Command.DeleteConsultation;
+using MedicalAssistant.Application.Features.Consultation.Command.RetryConsultationProcessing;
 using MedicalAssistant.Application.Features.Consultation.Command.UploadConsultationAudio;
 using MedicalAssistant.Application.Features.Consultation.Command.UploadConsultationDocument;
 using MedicalAssistant.Application.Features.Consultation.Queries.GetConsultationAudio;
@@ -139,6 +140,17 @@ public class ConsultationController : ControllerBase
 
         var response = await _mediator.Send(command);
         await _auditLogger.LogAsync("UploadDocument", "Consultation", id.ToString());
+        return Ok(response);
+    }
+
+    [HttpPost("{id:int}/retry")]
+    public async Task<ActionResult<ConsultationDto>> Retry(int id)
+    {
+        var response = await _mediator.Send(new RetryConsultationProcessingCommand
+        {
+            ConsultationId = id,
+        });
+        await _auditLogger.LogAsync("RetryConsultationProcessing", "Consultation", id.ToString());
         return Ok(response);
     }
 

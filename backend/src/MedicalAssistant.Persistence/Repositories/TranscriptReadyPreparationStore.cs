@@ -211,6 +211,64 @@ public sealed class TranscriptReadyPreparationStore : ITranscriptReadyPreparatio
         await transaction.CommitAsync(cancellationToken);
     }
 
+    public async Task RecordFailedAsync(
+        string consumerName,
+        IntegrationEventEnvelope<ConsultationTranscriptReadyV1> envelope,
+        string failureCode,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(consumerName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(failureCode);
+
+        var now = DateTime.UtcNow;
+        await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+
+        var inbox = await _context.ConsultationInboxMessages
+            .SingleOrDefaultAsync(message =>
+                    message.ConsumerName == consumerName &&
+                    message.EventId == envelope.EventId,
+                cancellationToken);
+
+        if (inbox?.Status == ConsultationEventMessageStatus.Completed)
+        {
+            await transaction.CommitAsync(cancellationToken);
+            return;
+        }
+
+        if (inbox is null)
+        {
+            inbox = new ConsultationInboxMessage
+            {
+                ConsumerName = consumerName,
+                EventId = envelope.EventId,
+                EventType = envelope.EventType,
+                EventVersion = envelope.EventVersion,
+                ReceivedAtUtc = now
+            };
+            await _context.ConsultationInboxMessages.AddAsync(inbox, cancellationToken);
+        }
+
+        inbox.Status = ConsultationEventMessageStatus.Failed;
+        inbox.AttemptCount++;
+        inbox.LastAttemptAtUtc = now;
+        inbox.CompletedAtUtc = null;
+        inbox.LeaseOwner = null;
+        inbox.LeaseExpiresAtUtc = null;
+        inbox.LastFailureCategory = IngestionFailureCategory;
+        inbox.LastFailureCode = failureCode;
+
+        var consultation = await _context.Consultations
+            .SingleOrDefaultAsync(c => c.Id == envelope.Payload.ConsultationId, cancellationToken);
+        // The transcript is valid; only downstream indexing failed. Surface a doctor-visible
+        // reason without altering the workflow status so the transcript stays viewable.
+        consultation?.MarkIndexingFailed(failureCode);
+
+        await _context.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+    }
+
+    private const string IngestionFailureCategory = "ClinicalKnowledgeIngestion";
+
     private async Task CompleteInboxAndCommitAsync(
         ConsultationInboxMessage inbox,
         DateTime completedAtUtc,

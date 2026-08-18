@@ -36,6 +36,12 @@ export const consultationApi = {
       body: { patientId },
     }),
 
+  /** Manually retry a failed consultation (transcription or indexing). */
+  retryProcessing: (consultationId: number) =>
+    httpClient<Consultation>(`/consultation/${consultationId}/retry`, {
+      method: 'POST',
+    }),
+
   uploadAudio: (consultationId: number, audioFile: File, durationSeconds?: number) => {
     const formData = new FormData();
     formData.append('audioFile', audioFile);

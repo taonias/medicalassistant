@@ -24,9 +24,11 @@ public static class PersistenceServiceRegistration
             // BeginTransactionAsync blocks (inbox/outbox claim, transcription completion,
             // transcript-ready preparation), and a retrying execution strategy rejects
             // user-initiated transactions unless every such block is wrapped in
-            // Database.CreateExecutionStrategy().Execute(...). Transient-fault resilience is
-            // instead provided at the message layer via RabbitMQ retry queues. Re-enabling
-            // DB-level retry requires wrapping those transactions (tracked as a follow-up).
+            // Database.CreateExecutionStrategy().Execute(...). Automatic transient-fault retries
+            // are not used at the message layer either: each subscriber runs a single queue with
+            // a dead-letter safety net, and failures are recorded to the database for doctor-
+            // triggered manual retry. Re-enabling DB-level retry requires wrapping those
+            // transactions (tracked as a follow-up).
             switch (provider)
             {
                 case RelationalDatabaseProvider.SqlServer:
@@ -46,6 +48,7 @@ public static class PersistenceServiceRegistration
         services.AddScoped<ITranscriptionInboxStore, TranscriptionInboxStore>();
         services.AddScoped<ITranscriptionCompletionUnitOfWork, TranscriptionCompletionUnitOfWork>();
         services.AddScoped<ITranscriptReadyPreparationStore, TranscriptReadyPreparationStore>();
+        services.AddScoped<IConsultationRetryStore, ConsultationRetryStore>();
         services.AddScoped<IConsultationDeletionCleanupStore, ConsultationDeletionCleanupStore>();
         services.AddScoped<IMedicalStructuredDataRepository, MedicalStructuredDataRepository>();
         services.AddScoped<IDoctorNoteRepository, DoctorNoteRepository>();

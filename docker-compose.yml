@@ -121,11 +121,12 @@ services:
         # configure and read scopes in addition to their own queue namespace.
         # They also need write on the default exchange (amq.default): the main queue
         # is declared with x-dead-letter-exchange="" (RabbitMQ validates write on the
-        # DLX at declare time), and failed messages are re-published to the retry/dlq
-        # queues by name through the default exchange.
-        put_permissions backend-clinical-knowledge '{"configure":"^medicalassistant\\.events$$|^medicalassistant\\.backend\\.transcript-ready(\\.retry\\.[0-9]+|\\.dlq)?$$","write":"^amq\\.default$$|^medicalassistant\\.events$$|^medicalassistant\\.backend\\.transcript-ready(\\.retry\\.[0-9]+|\\.dlq)?$$","read":"^medicalassistant\\.events$$|^medicalassistant\\.backend\\.transcript-ready(\\.retry\\.[0-9]+|\\.dlq)?$$"}'
+        # DLX at declare time), and poison messages are re-published to the .dlq queue
+        # by name through the default exchange. Automatic retries are disabled, so there
+        # are no .retry.* queues - each subscriber runs one live queue plus its .dlq.
+        put_permissions backend-clinical-knowledge '{"configure":"^medicalassistant\\.events$$|^medicalassistant\\.backend\\.transcript-ready(\\.dlq)?$$","write":"^amq\\.default$$|^medicalassistant\\.events$$|^medicalassistant\\.backend\\.transcript-ready(\\.dlq)?$$","read":"^medicalassistant\\.events$$|^medicalassistant\\.backend\\.transcript-ready(\\.dlq)?$$"}'
         put_permissions backend-outbox-relay '{"configure":"^$$","write":"^medicalassistant\\.events$$","read":"^$$"}'
-        put_permissions transcription-worker '{"configure":"^medicalassistant\\.events$$|^medicalassistant\\.transcription-worker(\\.retry\\.[0-9]+|\\.dlq)?$$","write":"^amq\\.default$$|^medicalassistant\\.events$$|^medicalassistant\\.transcription-worker(\\.retry\\.[0-9]+|\\.dlq)?$$","read":"^medicalassistant\\.events$$|^medicalassistant\\.transcription-worker(\\.retry\\.[0-9]+|\\.dlq)?$$"}'
+        put_permissions transcription-worker '{"configure":"^medicalassistant\\.events$$|^medicalassistant\\.transcription-worker(\\.dlq)?$$","write":"^amq\\.default$$|^medicalassistant\\.events$$|^medicalassistant\\.transcription-worker(\\.dlq)?$$","read":"^medicalassistant\\.events$$|^medicalassistant\\.transcription-worker(\\.dlq)?$$"}'
         # consultation.transcription-failed.v1 is emitted but has no subscriber, so
         # the outbox relay's mandatory publish returns unroutable and retries forever.
         # Give it a durable, bounded audit queue (visible in the management UI) so the

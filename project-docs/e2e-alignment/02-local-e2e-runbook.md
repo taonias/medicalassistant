@@ -84,8 +84,8 @@ curl -s http://localhost:8000/ingestions/<id> -H "X-Api-Key: local-development-k
 
 ## Credential-gated steps
 
-- **Transcription (Azure Speech):** set `AZURE_SPEECH_KEY`/`AZURE_SPEECH_REGION` in `.env`, then `docker compose up -d transcription-worker`. Without them the worker classifies the failure as `speech-key-missing` (consultation → `Failed`) — no crash, no secret leak.
-- **Clinical Knowledge (OpenAI):** set the OpenAI section on `clinical-knowledge`, then `docker compose up -d clinical-knowledge`. Without it, `POST /ingestions` returns `202` + `ingestionId` but the ingestion ends `Failed` with "No chat provider is configured".
+- **Transcription (Azure Speech):** set `AZURE_SPEECH_KEY`/`AZURE_SPEECH_REGION` in `.env`, then `docker compose up -d transcription-worker`. Without them the worker classifies the failure as `speech-key-missing` (consultation → `Failed`) — no crash, no secret leak. The doctor retries from the consultation page (`POST /api/consultation/{id}/retry`) once the key is set.
+- **Clinical Knowledge (OpenAI):** set the OpenAI section on `clinical-knowledge`, then `docker compose up -d clinical-knowledge`. Without it, `POST /ingestions` returns `202` + `ingestionId` but the ingestion ends `Failed` with "No chat provider is configured"; the transcript-ready consumer records an indexing failure (consultation `FailureReason` set, status stays `Transcribed`) which the doctor retries from the consultation page.
 
 ## Shutdown
 
@@ -99,6 +99,6 @@ docker compose down --volumes  # full reset (re-migrates from empty)
 ## Notes / known follow-ups
 
 - Azurite is reached with an emulator-mode connection string (`UseDevelopmentStorage=true;DevelopmentStorageProxyUri=http://azurite`) so shared-key signing works behind the docker service name; a plain `BlobEndpoint=...` connection string fails with `AuthorizationFailure`.
-- DB-level retry (`EnableRetryOnFailure`) is disabled on the app context because the durable paths use explicit transactions; RabbitMQ retry queues provide resilience. Follow-up: wrap those transactions in EF execution strategies and re-enable retry.
-- Multi-event-type RabbitMQ retry re-routing is a known limitation (single dead-letter routing key); follow-up tracked.
-- `consultation.transcription-failed.v1` has no bound queue, so the relay's mandatory publish of it is unroutable (failure path only).
+- **Messaging is one live queue per subscriber, no automatic retries.** Each subscriber (transcription worker, backend transcript-ready consumer) runs a single main queue plus a `.dlq` safety net — there are no `.retry.*` queues. A transcription or indexing failure is recorded to the database as `Failed`/`FailureReason` and surfaced to the doctor, who triggers a manual retry from the consultation page (`POST /api/consultation/{id}/retry`). The delayed-retry mechanism is retained in code but off by default; set `RabbitMQ:Topology:RetryDelays` to re-enable it. The `.dlq` catches only poison or otherwise unrecordable messages.
+- DB-level retry (`EnableRetryOnFailure`) is disabled on the app context because the durable paths use explicit transactions. Follow-up: wrap those transactions in EF execution strategies and re-enable retry.
+- `consultation.transcription-failed.v1` has no bound queue, so the relay's mandatory publish of it routes to the bounded audit queue (failure path only).

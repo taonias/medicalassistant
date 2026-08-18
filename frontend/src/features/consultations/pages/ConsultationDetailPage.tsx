@@ -12,7 +12,11 @@ import { parseStructuredSummary } from '../../../shared/utils/structuredData';
 import { formatDate, formatDuration } from '../../../shared/utils/format';
 import { DownloadIcon, SaveIcon } from '../../../layouts/navigation/NavIcons';
 import { usePatient, usePatientHistory } from '../../patients/hooks/usePatients';
-import { useConsultation, useConsultationAudio } from '../hooks/useConsultations';
+import {
+  useConsultation,
+  useConsultationAudio,
+  useRetryConsultationProcessing,
+} from '../hooks/useConsultations';
 import { consultationApi } from '../api/consultationApi';
 import { useTranscript } from '../../transcripts/hooks/useTranscript';
 import { TranscriptViewer } from '../../transcripts/components/TranscriptViewer';
@@ -51,6 +55,7 @@ export function ConsultationDetailPage() {
 
   const notesQuery = useDoctorNotes(consultationIdNum);
   const createNoteMutation = useCreateDoctorNote();
+  const retryMutation = useRetryConsultationProcessing();
   const [content, setContent] = useState('');
 
   useEffect(() => {
@@ -137,7 +142,19 @@ export function ConsultationDetailPage() {
       </div>
 
       {consultation.data.failureReason ? (
-        <ErrorMessage message={consultation.data.failureReason} />
+        <ErrorMessage
+          message={
+            retryMutation.isPending
+              ? 'Retrying…'
+              : consultation.data.failureReason
+          }
+          onRetry={
+            retryMutation.isPending
+              ? undefined
+              : () =>
+                  retryMutation.mutate({ consultationId: consultationIdNum })
+          }
+        />
       ) : null}
 
       <div className="consultation-grid">

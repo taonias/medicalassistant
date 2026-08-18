@@ -55,6 +55,25 @@ public class ConsultationTranscriptReadyIntegrationEventHandlerTests
         Assert.Null(store.Accepted);
     }
 
+    [Fact]
+    public async Task HandleAsync_records_failure_and_does_not_rethrow_when_ingestion_fails()
+    {
+        // Automatic retries are disabled: an ingestion failure must be recorded (for the doctor
+        // to retry manually) and the message acknowledged, so the handler must not rethrow.
+        var store = new RecordingTranscriptReadyPreparationStore();
+        var client = new RecordingClinicalKnowledgeClient(throwOnSubmit: true);
+        var handler = new ConsultationTranscriptReadyIntegrationEventHandler(
+            client,
+            store,
+            NullLogger<ConsultationTranscriptReadyIntegrationEventHandler>.Instance);
+
+        await handler.HandleAsync(CreateEnvelope(), CancellationToken.None);
+
+        Assert.True(store.RecordFailedCalled);
+        Assert.Equal("clinical-knowledge-ingestion-failed", store.FailedCode);
+        Assert.Null(store.Accepted);
+    }
+
     private sealed class RecordingTranscriptReadyPreparationStore : ITranscriptReadyPreparationStore
     {
         private readonly TranscriptReadyPreparationStatus _status;
@@ -68,6 +87,8 @@ public class ConsultationTranscriptReadyIntegrationEventHandlerTests
         public string? ConsumerName { get; private set; }
         public IntegrationEventEnvelope<ConsultationTranscriptReadyV1>? Envelope { get; private set; }
         public TranscriptReadyAcceptedResult? Accepted { get; private set; }
+        public bool RecordFailedCalled { get; private set; }
+        public string? FailedCode { get; private set; }
 
         public Task<TranscriptReadyPreparationResult> PrepareAsync(
             string consumerName,
@@ -108,10 +129,30 @@ public class ConsultationTranscriptReadyIntegrationEventHandlerTests
             Accepted = accepted;
             return Task.CompletedTask;
         }
+
+        public Task RecordFailedAsync(
+            string consumerName,
+            IntegrationEventEnvelope<ConsultationTranscriptReadyV1> envelope,
+            string failureCode,
+            CancellationToken cancellationToken = default)
+        {
+            ConsumerName = consumerName;
+            Envelope = envelope;
+            RecordFailedCalled = true;
+            FailedCode = failureCode;
+            return Task.CompletedTask;
+        }
     }
 
     private sealed class RecordingClinicalKnowledgeClient : IClinicalKnowledgeClient
     {
+        private readonly bool _throwOnSubmit;
+
+        public RecordingClinicalKnowledgeClient(bool throwOnSubmit = false)
+        {
+            _throwOnSubmit = throwOnSubmit;
+        }
+
         public ClinicalKnowledgeSessionTranscriptRequest? Request { get; private set; }
 
         public Task<ClinicalKnowledgeIngestionAccepted> SubmitSessionTranscriptAsync(
@@ -119,6 +160,11 @@ public class ConsultationTranscriptReadyIntegrationEventHandlerTests
             CancellationToken cancellationToken = default)
         {
             Request = request;
+            if (_throwOnSubmit)
+            {
+                throw new InvalidOperationException("clinical knowledge unavailable");
+            }
+
             return Task.FromResult(new ClinicalKnowledgeIngestionAccepted(
                 Guid.Parse("aaaaaaaa-1111-1111-1111-aaaaaaaaaaaa"),
                 Duplicate: false));
@@ -131,6 +177,11 @@ public class ConsultationTranscriptReadyIntegrationEventHandlerTests
             Task.FromResult(new ClinicalKnowledgeUnIngestResult(
                 documentId,
                 ClinicalKnowledgeUnIngestStatus.Removed));
+
+        public Task<ClinicalKnowledgeAnswer> GetGroundedAnswerAsync(
+            ClinicalKnowledgeChatRequest request,
+            CancellationToken cancellationToken = default) =>
+            throw new NotImplementedException();
     }
 
     private static IntegrationEventEnvelope<ConsultationTranscriptReadyV1> CreateEnvelope()

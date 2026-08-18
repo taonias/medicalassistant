@@ -113,6 +113,29 @@ export function useAssignConsultationPatient() {
   });
 }
 
+export function useRetryConsultationProcessing() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ consultationId }: { consultationId: number }) =>
+      consultationApi.retryProcessing(consultationId),
+    onSuccess: (consultation) => {
+      queryClient.setQueryData(queryKeys.consultation(consultation.id), consultation);
+      queryClient.invalidateQueries({ queryKey: queryKeys.transcript(consultation.id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.structuredData(consultation.id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboardAnalytics });
+      if (consultation.patientId) {
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.consultationsByPatient(consultation.patientId),
+        });
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.patientHistoryPrefix(consultation.patientId),
+        });
+      }
+    },
+  });
+}
+
 export function useUploadConsultationAudio() {
   const queryClient = useQueryClient();
 

@@ -89,22 +89,38 @@ public sealed class ConsultationAudioUploadedIntegrationEventHandler
                 cancellationToken);
             speechResult = await _speechTranscriptionService.TranscribeAsync(audio, cancellationToken);
         }
+        // Automatic retries are disabled. Every transcription failure - whether classified
+        // Transient or Permanent - is recorded to the database as Failed with its code, so the
+        // doctor sees it and can trigger a manual retry from the UI. Nothing is re-queued.
         catch (SpeechTranscriptionFailureException ex)
-            when (ex.Category == SpeechTranscriptionFailureCategory.Permanent)
         {
             await _completionUnitOfWork.FailAsync(
                 new TranscriptionFailureRequest(
                     consumerName,
                     envelope,
                     ex.Code,
-                    "Permanent"),
+                    ex.Category.ToString()),
                 cancellationToken);
             return;
         }
+        // A blob policy violation is genuine poison (e.g. a reference outside the private
+        // container); dead-letter it rather than record it as a retryable transcription failure.
         catch (BlobRetrievalFailureException ex)
             when (ex.Category == BlobRetrievalFailureCategory.PolicyViolation)
         {
             throw new NonRetryableIntegrationEventException(ex.Code);
+        }
+        // Missing or transiently-unavailable audio is recorded as a failure for manual retry.
+        catch (BlobRetrievalFailureException ex)
+        {
+            await _completionUnitOfWork.FailAsync(
+                new TranscriptionFailureRequest(
+                    consumerName,
+                    envelope,
+                    ex.Code,
+                    ex.Category.ToString()),
+                cancellationToken);
+            return;
         }
 
         await _completionUnitOfWork.CompleteAsync(

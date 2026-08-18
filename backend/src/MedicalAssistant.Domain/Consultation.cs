@@ -70,6 +70,37 @@ public class Consultation : BaseEntity
         FailureReason = reason;
     }
 
+    /// <summary>
+    /// Doctor-triggered manual retry of a failed transcription. Returns the consultation
+    /// to the AudioUploaded state (so a fresh audio-uploaded event re-runs the worker) and
+    /// clears the previous failure reason. Blob references are left intact and reused.
+    /// </summary>
+    public void MarkForTranscriptionRetry()
+    {
+        Status = ConsultationStatus.AudioUploaded;
+        FailureReason = null;
+    }
+
+    /// <summary>
+    /// Records a downstream (post-transcription) failure such as clinical-knowledge indexing.
+    /// The workflow status is left unchanged because the transcript itself remains valid; only
+    /// a doctor-visible failure reason is set so the failure can be surfaced and retried.
+    /// </summary>
+    public void MarkIndexingFailed(string code)
+    {
+        FailureReason = $"Indexing failed: {code}";
+    }
+
+    /// <summary>
+    /// Clears a recorded failure reason without changing the workflow status. Used when a
+    /// downstream (post-transcription) failure such as clinical-knowledge indexing is
+    /// manually retried; the transcript itself remains valid.
+    /// </summary>
+    public void ClearFailureReason()
+    {
+        FailureReason = null;
+    }
+
     public void MarkDeleted(string deletedBy, string? reasonCode)
     {
         Status = ConsultationStatus.Deleted;

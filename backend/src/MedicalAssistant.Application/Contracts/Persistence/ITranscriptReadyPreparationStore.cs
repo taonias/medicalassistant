@@ -15,6 +15,18 @@ public interface ITranscriptReadyPreparationStore
         IntegrationEventEnvelope<ConsultationTranscriptReadyV1> envelope,
         TranscriptReadyAcceptedResult accepted,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Records that clinical-knowledge ingestion for a prepared transcript failed. The inbox
+    /// row is marked Failed with the given code and the consultation gets a doctor-visible
+    /// failure reason (its workflow status is left unchanged, because the transcript is still
+    /// valid). No automatic retry occurs; the doctor retries manually from the UI.
+    /// </summary>
+    Task RecordFailedAsync(
+        string consumerName,
+        IntegrationEventEnvelope<ConsultationTranscriptReadyV1> envelope,
+        string failureCode,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed record TranscriptReadyPreparationResult(

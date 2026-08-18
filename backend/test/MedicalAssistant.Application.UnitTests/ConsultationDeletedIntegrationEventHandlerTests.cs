@@ -141,6 +141,11 @@ public class ConsultationDeletedIntegrationEventHandlerTests
                 documentId,
                 ClinicalKnowledgeUnIngestStatus.Removed));
         }
+
+        public Task<ClinicalKnowledgeAnswer> GetGroundedAnswerAsync(
+            ClinicalKnowledgeChatRequest request,
+            CancellationToken cancellationToken = default) =>
+            throw new NotImplementedException();
     }
 
     private static IntegrationEventEnvelope<ConsultationDeletedV1> CreateEnvelope()
