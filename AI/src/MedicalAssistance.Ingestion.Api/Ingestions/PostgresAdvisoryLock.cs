@@ -27,6 +27,14 @@ public sealed class PostgresAdvisoryLock : IAsyncDisposable
     public const long SchemaMigrationKey = 6_941_233_071_002;
 
     /// <summary>
+    /// Serializes the integration-event outbox relay across instances: one instance drains a
+    /// pass while the others skip it, so a message is never double-published. Single-key space
+    /// (like the migration lock) so the recovery sweep, which reads the two-key space, never
+    /// mistakes it for an ingestion in progress.
+    /// </summary>
+    public const long OutboxRelayKey = 6_941_233_071_003;
+
+    /// <summary>
     /// A single-key lock that serializes rolling-summary regeneration for one
     /// patient, so two ingestions of the same patient completing at once cannot
     /// interleave into a stale overview (the later writer would otherwise clobber
@@ -67,6 +75,23 @@ public sealed class PostgresAdvisoryLock : IAsyncDisposable
         command.Parameters.AddWithValue(key);
         await command.ExecuteNonQueryAsync(ct);
         return new PostgresAdvisoryLock(connection, "SELECT pg_advisory_unlock($1)", [key]);
+    }
+
+    /// <summary>
+    /// Takes the single-key lock if it is free, and returns null if another session holds it.
+    /// Never waits: used to let one instance drain a shared queue while the others skip the
+    /// pass rather than queue behind it.
+    /// </summary>
+    public static async Task<PostgresAdvisoryLock?> TryAcquireAsync(
+        NpgsqlConnection connection, long key, CancellationToken ct = default)
+    {
+        await using var command = new NpgsqlCommand("SELECT pg_try_advisory_lock($1)", connection);
+        command.Parameters.AddWithValue(key);
+
+        var acquired = (bool)(await command.ExecuteScalarAsync(ct))!;
+        return acquired
+            ? new PostgresAdvisoryLock(connection, "SELECT pg_advisory_unlock($1)", [key])
+            : null;
     }
 
     /// <summary>

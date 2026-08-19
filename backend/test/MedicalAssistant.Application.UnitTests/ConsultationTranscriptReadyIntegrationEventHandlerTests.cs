@@ -142,6 +142,13 @@ public class ConsultationTranscriptReadyIntegrationEventHandlerTests
             FailedCode = failureCode;
             return Task.CompletedTask;
         }
+
+        public Task RecordIngestionOutcomeAsync(
+            int consultationId,
+            bool succeeded,
+            string? failureReason,
+            CancellationToken cancellationToken = default) =>
+            Task.CompletedTask;
     }
 
     private sealed class RecordingClinicalKnowledgeClient : IClinicalKnowledgeClient

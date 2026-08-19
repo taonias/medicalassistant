@@ -72,7 +72,7 @@ public sealed class ProseIngestionPipeline
         var (instructions, instructionVersion) = _instructionProvider.Get(agentInstructionName);
         var chunkingAgent = _chatClient.AsAIAgent(name: agentInstructionName, instructions: instructions);
 
-        var lines = SplitIntoLines(body);
+        var lines = ProseLineSegmenter.Segment(body);
 
         await _statusPublisher.PublishAsync(
             ingestionId, IngestionIdentity.Of(request), IngestionStages.Chunking, ct: ct);
@@ -90,13 +90,6 @@ public sealed class ProseIngestionPipeline
             ingestionId, request, chunks, instructionVersion, _chatModel,
             analytes: null, analytesExtracted: null, documentSummary: plan.Summary, ct, diagnostics);
     }
-
-    private static IReadOnlyList<string> SplitIntoLines(string body) =>
-        body
-            .Split('\n')
-            .Select(line => line.TrimEnd('\r'))
-            .Where(line => !string.IsNullOrWhiteSpace(line))
-            .ToList();
 
     private async Task<(ChunkPlan Plan, bool CorrectiveRetryFired)> RequestChunkPlanAsync(
         AIAgent chunkingAgent, string agentName, IReadOnlyList<string> lines, string promptHeader, CancellationToken ct)

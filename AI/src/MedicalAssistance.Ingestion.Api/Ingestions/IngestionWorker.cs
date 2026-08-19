@@ -195,5 +195,9 @@ public sealed class IngestionWorker(
             logger.LogWarning(
                 exception, "Could not announce the failure of ingestion {IngestionId}", ingestionId);
         }
+
+        // The backend is told about the failure through the transactional outbox written inside
+        // MarkFailedAsync (published by the outbox relay), not from here — so the notification is
+        // durable and cannot be lost if the broker is briefly unreachable at this moment.
     }
 }

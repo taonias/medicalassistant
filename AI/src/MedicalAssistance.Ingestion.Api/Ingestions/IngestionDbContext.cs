@@ -43,6 +43,9 @@ public sealed class IngestionDbContext(DbContextOptions<IngestionDbContext> opti
     /// <summary>The chunking quality of each completed ingestion (T35) — the golden-set baseline's measured numbers.</summary>
     public DbSet<IngestionQualityReport> IngestionQualityReports => Set<IngestionQualityReport>();
 
+    /// <summary>Transactional outbox for integration events published to the shared event bus.</summary>
+    public DbSet<IntegrationEventOutboxMessage> IntegrationEventOutbox => Set<IntegrationEventOutboxMessage>();
+
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -189,6 +192,24 @@ public sealed class IngestionDbContext(DbContextOptions<IngestionDbContext> opti
             // so it is deleted with the ingestion (erasure and rerun both remove
             // the row) rather than left orphaned.
             entity.HasOne<IngestionRecord>().WithMany().HasForeignKey(q => q.IngestionId);
+        });
+
+        modelBuilder.Entity<IntegrationEventOutboxMessage>(entity =>
+        {
+            entity.ToTable("clinicalknowledge_outbox");
+            entity.HasKey(m => m.Id);
+            entity.Property(m => m.Id).HasColumnName("id");
+            entity.Property(m => m.EventId).HasColumnName("event_id");
+            entity.Property(m => m.EventType).HasColumnName("event_type");
+            entity.Property(m => m.Body).HasColumnName("body").HasColumnType("jsonb");
+            entity.Property(m => m.CreatedAt).HasColumnName("created_at");
+            entity.Property(m => m.PublishedAt).HasColumnName("published_at");
+            entity.Property(m => m.Attempts).HasColumnName("attempts");
+            entity.Property(m => m.NextAttemptAt).HasColumnName("next_attempt_at");
+            entity.Property(m => m.LastError).HasColumnName("last_error");
+
+            // The relay's due query: unpublished rows whose next attempt has come, oldest first.
+            entity.HasIndex(m => new { m.PublishedAt, m.NextAttemptAt });
         });
 
         modelBuilder.Entity<AnalyteResult>(entity =>

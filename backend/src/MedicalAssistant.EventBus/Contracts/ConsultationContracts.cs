@@ -33,3 +33,14 @@ public sealed record ConsultationDeletedV1(
     [property: JsonPropertyName("consultationId")] int ConsultationId,
     [property: JsonPropertyName("deletedAtUtc")] DateTime DeletedAtUtc,
     [property: JsonPropertyName("reasonCode")] string? ReasonCode);
+
+/// <summary>
+/// A clinical-knowledge ingestion reached a terminal failure out of band, after the backend
+/// already accepted it. Produced by the Clinical Knowledge service (a separate codebase), so
+/// the wire shape here is the contract — keep the property names in sync on both sides.
+/// <c>SessionId</c> is the backend consultation id as a string.
+/// </summary>
+public sealed record ConsultationIngestionFailedV1(
+    [property: JsonPropertyName("sessionId")] string SessionId,
+    [property: JsonPropertyName("ingestionId")] Guid IngestionId,
+    [property: JsonPropertyName("reason")] string? Reason);

@@ -267,6 +267,34 @@ public sealed class TranscriptReadyPreparationStore : ITranscriptReadyPreparatio
         await transaction.CommitAsync(cancellationToken);
     }
 
+    public async Task RecordIngestionOutcomeAsync(
+        int consultationId,
+        bool succeeded,
+        string? failureReason,
+        CancellationToken cancellationToken = default)
+    {
+        await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+
+        var consultation = await _context.Consultations
+            .SingleOrDefaultAsync(c => c.Id == consultationId, cancellationToken);
+
+        // Only annotate a live consultation still in the post-transcription window; a stale
+        // callback for a deleted or already-finalized consultation is ignored.
+        if (consultation is not null &&
+            consultation.DeletedAtUtc is null &&
+            consultation.Status is ConsultationStatus.Transcribed or ConsultationStatus.StructuredDataPending)
+        {
+            if (succeeded)
+                consultation.ClearFailureReason();
+            else
+                consultation.MarkIndexingFailed(failureReason ?? "clinical-knowledge-ingestion-failed");
+
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+
+        await transaction.CommitAsync(cancellationToken);
+    }
+
     private const string IngestionFailureCategory = "ClinicalKnowledgeIngestion";
 
     private async Task CompleteInboxAndCommitAsync(

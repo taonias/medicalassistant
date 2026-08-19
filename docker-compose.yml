@@ -84,6 +84,7 @@ services:
       RABBITMQ_BOOTSTRAP_PASSWORD: ${RABBITMQ_BOOTSTRAP_PASSWORD:-medicalassistant-local-bootstrap}
       RABBITMQ_BACKEND_PASSWORD: ${RABBITMQ_BACKEND_PASSWORD:-backend-rabbitmq-local}
       RABBITMQ_WORKER_PASSWORD: ${RABBITMQ_WORKER_PASSWORD:-worker-rabbitmq-local}
+      RABBITMQ_CLINICAL_PASSWORD: ${RABBITMQ_CLINICAL_PASSWORD:-clinical-knowledge-rabbitmq-local}
     command:
       - sh
       - -ec
@@ -116,6 +117,7 @@ services:
         put_user backend-clinical-knowledge "$${RABBITMQ_BACKEND_PASSWORD}"
         put_user backend-outbox-relay "$${RABBITMQ_BACKEND_PASSWORD}"
         put_user transcription-worker "$${RABBITMQ_WORKER_PASSWORD}"
+        put_user clinical-knowledge "$${RABBITMQ_CLINICAL_PASSWORD}"
         # Consumers declare the shared exchange (configure) and bind their queue to
         # it (write on queue + read on exchange), so both need the exchange in their
         # configure and read scopes in addition to their own queue namespace.
@@ -126,6 +128,9 @@ services:
         # are no .retry.* queues - each subscriber runs one live queue plus its .dlq.
         put_permissions backend-clinical-knowledge '{"configure":"^medicalassistant\\.events$$|^medicalassistant\\.backend\\.transcript-ready(\\.dlq)?$$","write":"^amq\\.default$$|^medicalassistant\\.events$$|^medicalassistant\\.backend\\.transcript-ready(\\.dlq)?$$","read":"^medicalassistant\\.events$$|^medicalassistant\\.backend\\.transcript-ready(\\.dlq)?$$"}'
         put_permissions backend-outbox-relay '{"configure":"^$$","write":"^medicalassistant\\.events$$","read":"^$$"}'
+        # Clinical Knowledge publishes only: it declares the shared exchange (configure) and
+        # publishes to it (write); it never consumes, so read is empty.
+        put_permissions clinical-knowledge '{"configure":"^medicalassistant\\.events$$","write":"^medicalassistant\\.events$$","read":"^$$"}'
         put_permissions transcription-worker '{"configure":"^medicalassistant\\.events$$|^medicalassistant\\.transcription-worker(\\.dlq)?$$","write":"^amq\\.default$$|^medicalassistant\\.events$$|^medicalassistant\\.transcription-worker(\\.dlq)?$$","read":"^medicalassistant\\.events$$|^medicalassistant\\.transcription-worker(\\.dlq)?$$"}'
         # consultation.transcription-failed.v1 is emitted but has no subscriber, so
         # the outbox relay's mandatory publish returns unroutable and retries forever.
@@ -192,12 +197,22 @@ services:
       OpenAIChat__Model: ${OPENAI_CHAT_MODEL:-gpt-4.1-mini}
       OpenAIEmbeddings__ApiKey: ${OPENAI_API_KEY:-}
       OpenAIEmbeddings__Model: ${OPENAI_EMBEDDINGS_MODEL:-text-embedding-3-large}
+      # Publish terminal transcript-ingestion failures to the shared event bus (transactional
+      # outbox + relay) so the backend reconciles the consultation into a retryable failure.
+      RabbitMQ__Host: rabbitmq
+      RabbitMQ__Port: "5672"
+      RabbitMQ__VirtualHost: /
+      RabbitMQ__Username: clinical-knowledge
+      RabbitMQ__Password: ${RABBITMQ_CLINICAL_PASSWORD:-clinical-knowledge-rabbitmq-local}
+      RabbitMQ__ExchangeName: medicalassistant.events
       OTEL_EXPORTER_OTLP_ENDPOINT: http://aspire-dashboard:18889
     ports:
       - "8000:8080"
     depends_on:
       postgres:
         condition: service_healthy
+      rabbitmq-provisioner:
+        condition: service_completed_successfully
 
   backend-api:
     build:

@@ -258,6 +258,14 @@ builder.Services.AddSingleton(Channel.CreateUnbounded<Guid>());
 builder.Services.AddHostedService<IngestionWorker>();
 builder.Services.AddHostedService<IngestionRecoverySweep>();
 
+// Publish integration events (a transcript ingestion failing) to the shared event bus via a
+// transactional outbox, so the backend can reconcile the consultation into a retryable failure.
+// Inert unless RabbitMQ:Host is configured, keeping the service standalone-capable.
+builder.Services.Configure<RabbitMqPublishOptions>(
+    builder.Configuration.GetSection(RabbitMqPublishOptions.SectionName));
+builder.Services.AddSingleton<RabbitMqEventPublisher>();
+builder.Services.AddHostedService<IntegrationEventOutboxRelay>();
+
 var app = builder.Build();
 
 await using (var scope = app.Services.CreateAsyncScope())

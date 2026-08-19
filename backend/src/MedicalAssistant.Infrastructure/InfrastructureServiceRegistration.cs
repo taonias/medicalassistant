@@ -50,6 +50,7 @@ public static class InfrastructureServiceRegistration
         services.AddSingleton<IIntegrationEventReplaySafetyCheck, SupportedContractReplaySafetyCheck>();
         services.AddScoped<ConsultationTranscriptReadyIntegrationEventHandler>();
         services.AddScoped<ConsultationDeletedIntegrationEventHandler>();
+        services.AddScoped<ConsultationIngestionFailedIntegrationEventHandler>();
         services.AddSingleton(ConsultationIntegrationEvents.Registry);
         services.AddSingleton(provider =>
             IntegrationEventSubscriptionRegistry.Create(
@@ -59,7 +60,10 @@ public static class InfrastructureServiceRegistration
                     ConsultationTranscriptReadyIntegrationEventHandler>()
                     .Subscribe<
                     ConsultationDeletedV1,
-                    ConsultationDeletedIntegrationEventHandler>()));
+                    ConsultationDeletedIntegrationEventHandler>()
+                    .Subscribe<
+                    ConsultationIngestionFailedV1,
+                    ConsultationIngestionFailedIntegrationEventHandler>()));
         services.AddSingleton<IntegrationEventDispatcher>();
         services.AddRabbitMqEventBusConsumer(configuration);
         services.PostConfigure<RabbitMqTopologyOptions>(options =>

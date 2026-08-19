@@ -27,6 +27,19 @@ public interface ITranscriptReadyPreparationStore
         IntegrationEventEnvelope<ConsultationTranscriptReadyV1> envelope,
         string failureCode,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Reconciles the asynchronous outcome of a clinical-knowledge ingestion, reported by the
+    /// AI service after it finishes (or fails) out of band. On failure the consultation gets a
+    /// doctor-visible indexing-failure reason so it can be retried; on success any prior reason
+    /// is cleared. Only a live consultation still in the post-transcription window is touched,
+    /// so stale callbacks for deleted or finalized consultations are ignored.
+    /// </summary>
+    Task RecordIngestionOutcomeAsync(
+        int consultationId,
+        bool succeeded,
+        string? failureReason,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed record TranscriptReadyPreparationResult(

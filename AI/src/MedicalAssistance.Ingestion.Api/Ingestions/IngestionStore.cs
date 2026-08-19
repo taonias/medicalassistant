@@ -590,7 +590,29 @@ public sealed class IngestionStore(IngestionDbContext db)
 
     /// <summary>Moves an Ingestion to Failed, recording why — an honest, retriable failure (never silent).</summary>
     public Task MarkFailedAsync(Guid id, string errorMessage, CancellationToken ct = default) =>
-        UpdateStatusAsync(id, "Failed", errorMessage, ct);
+        InTransactionAsync(async innerCt =>
+        {
+            await db.Ingestions.Where(i => i.Id == id).ExecuteUpdateAsync(setters => setters
+                .SetProperty(i => i.Status, "Failed")
+                .SetProperty(i => i.ErrorMessage, errorMessage)
+                .SetProperty(i => i.UpdatedAt, DateTimeOffset.UtcNow), innerCt);
+
+            // Only a transcript maps to a backend consultation. Enqueue the ingestion-failed
+            // event in the same transaction as the status, so the backend can reconcile the
+            // consultation into a doctor-visible, retryable failure. The relay publishes it.
+            var info = await db.Ingestions
+                .Where(i => i.Id == id)
+                .Select(i => new { i.DocumentType, i.SessionId })
+                .SingleOrDefaultAsync(innerCt);
+
+            if (info is { DocumentType: DocumentTypes.SessionTranscript, SessionId: not null } &&
+                !string.IsNullOrWhiteSpace(info.SessionId))
+            {
+                db.IntegrationEventOutbox.Add(
+                    IntegrationEventOutboxMessage.IngestionFailed(id, info.SessionId, errorMessage));
+                await db.SaveChangesAsync(innerCt);
+            }
+        }, ct);
 
     /// <summary>
     /// GDPR Erasure: removes everything the service holds about a patient — all
