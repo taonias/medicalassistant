@@ -146,6 +146,11 @@ public class ConsultationDeletedIntegrationEventHandlerTests
             ClinicalKnowledgeChatRequest request,
             CancellationToken cancellationToken = default) =>
             throw new NotImplementedException();
+
+        public Task<string> SummarizeConversationAsync(
+            ClinicalKnowledgeSummarizeRequest request,
+            CancellationToken cancellationToken = default) =>
+            throw new NotImplementedException();
     }
 
     private static IntegrationEventEnvelope<ConsultationDeletedV1> CreateEnvelope()

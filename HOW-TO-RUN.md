@@ -29,6 +29,7 @@ Open **http://localhost:5173**, register a doctor, and go.
 | Backend API | http://localhost:7037 | JWT (from `/api/Auth/login`) |
 | Backend API docs | http://localhost:7037/swagger | — |
 | Backend health | http://localhost:7037/health/ready | — |
+| Chat progress hub (SignalR) | ws://localhost:7037/hubs/chat | JWT via `access_token` query string |
 | Clinical Knowledge API | http://localhost:8000 | header `X-Api-Key` |
 | Clinical Knowledge docs | http://localhost:8000/swagger | — |
 | RabbitMQ management UI | http://localhost:15672 | broker user/pass |

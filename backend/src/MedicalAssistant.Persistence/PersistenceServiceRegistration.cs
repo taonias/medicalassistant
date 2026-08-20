@@ -52,6 +52,7 @@ public static class PersistenceServiceRegistration
         services.AddScoped<IConsultationDeletionCleanupStore, ConsultationDeletionCleanupStore>();
         services.AddScoped<IMedicalStructuredDataRepository, MedicalStructuredDataRepository>();
         services.AddScoped<IDoctorNoteRepository, DoctorNoteRepository>();
+        services.AddScoped<IConversationRepository, ConversationRepository>();
         services.AddScoped<IActionRequestRepository, ActionRequestRepository>();
         services.AddScoped<IConsultationOutboxStore, ConsultationOutboxStore>();
         services.AddScoped<IAuditLogger, AuditLogger>();

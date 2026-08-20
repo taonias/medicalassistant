@@ -95,9 +95,19 @@ public sealed class ClinicalKnowledgeHttpClient : IClinicalKnowledgeClient
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeout.CancelAfter(TimeSpan.FromSeconds(_settings.SubmitTimeoutSeconds));
 
+        var recentTurns = request.RecentTurns?
+            .Select(t => new ChatTurnRequest(t.Role, t.Text))
+            .ToList();
+
         var response = await _httpClient.PostAsJsonAsync(
             $"patients/{Uri.EscapeDataString(request.PatientId)}/chat/answer",
-            new ChatAnswerRequest(request.DoctorId, request.Question, request.TopK),
+            new ChatAnswerRequest(
+                request.DoctorId,
+                request.Question,
+                request.TopK,
+                recentTurns,
+                request.PriorSummary,
+                request.AskId),
             JsonOptions,
             timeout.Token);
 
@@ -108,16 +118,44 @@ public sealed class ClinicalKnowledgeHttpClient : IClinicalKnowledgeClient
         var citations = (body.Citations ?? [])
             .Select(c => new ClinicalKnowledgeCitation(
                 c.Label ?? string.Empty,
-                c.Quote ?? string.Empty,
+                c.ChunkId,
+                c.DocumentId ?? string.Empty,
                 c.DocumentType ?? string.Empty,
-                c.SessionId))
+                c.SessionId,
+                c.DocumentDate,
+                c.SourceRef,
+                c.Quote ?? string.Empty,
+                c.Score))
             .ToArray();
 
         return new ClinicalKnowledgeAnswer(
             body.Answer ?? string.Empty,
             body.Refused,
             body.RetrievalUsed,
+            body.Language ?? string.Empty,
             citations);
+    }
+
+    public async Task<string> SummarizeConversationAsync(
+        ClinicalKnowledgeSummarizeRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeout.CancelAfter(TimeSpan.FromSeconds(_settings.SubmitTimeoutSeconds));
+
+        var newTurns = request.NewTurns
+            .Select(t => new ChatTurnRequest(t.Role, t.Text))
+            .ToList();
+
+        var response = await _httpClient.PostAsJsonAsync(
+            $"patients/{Uri.EscapeDataString(request.PatientId)}/chat/summarize",
+            new ChatSummarizeRequest(request.PriorSummary, newTurns),
+            JsonOptions,
+            timeout.Token);
+
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadFromJsonAsync<ChatSummarizeResponse>(JsonOptions, timeout.Token);
+        return body?.Summary ?? string.Empty;
     }
 
     private sealed record SessionTranscriptIngestionRequest(
@@ -130,17 +168,35 @@ public sealed class ClinicalKnowledgeHttpClient : IClinicalKnowledgeClient
         string? Language,
         string Transcript);
 
-    private sealed record ChatAnswerRequest(string DoctorId, string Question, int TopK);
+    private sealed record ChatAnswerRequest(
+        string DoctorId,
+        string Question,
+        int TopK,
+        List<ChatTurnRequest>? RecentTurns,
+        string? PriorSummary,
+        Guid? AskId);
+
+    private sealed record ChatTurnRequest(string Role, string Text);
+
+    private sealed record ChatSummarizeRequest(string? PriorSummary, List<ChatTurnRequest> NewTurns);
+
+    private sealed record ChatSummarizeResponse(string? Summary);
 
     private sealed record ChatAnswerResponse(
         string? Answer,
         bool Refused,
         bool RetrievalUsed,
+        string? Language,
         List<ChatCitationResponse>? Citations);
 
     private sealed record ChatCitationResponse(
         string? Label,
-        string? Quote,
+        Guid ChunkId,
+        string? DocumentId,
         string? DocumentType,
-        string? SessionId);
+        string? SessionId,
+        DateTimeOffset? DocumentDate,
+        string? SourceRef,
+        string? Quote,
+        double Score);
 }

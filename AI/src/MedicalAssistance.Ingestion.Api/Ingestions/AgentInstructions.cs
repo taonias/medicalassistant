@@ -50,6 +50,9 @@ public static class AgentNames
 
     /// <summary>The query-refinement agent: rewrites a question into a cleaner search query using conversation context (T44).</summary>
     public const string QueryRefinement = "QueryRefinement";
+
+    /// <summary>The conversation-summarizer agent: folds older chat turns into one rolling conversation summary.</summary>
+    public const string ConversationSummarizer = "ConversationSummarizer";
 }
 
 /// <summary>

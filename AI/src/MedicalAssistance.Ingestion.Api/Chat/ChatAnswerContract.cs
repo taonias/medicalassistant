@@ -11,6 +11,9 @@ public sealed record ChatAnswerRequest
     /// <summary>The asking doctor — audit/telemetry, not a scope filter (narrowing is <see cref="ChatAnswerFilters.DoctorId"/>).</summary>
     public string? DoctorId { get; init; }
 
+    /// <summary>Correlation id for the in-flight turn, echoed onto every progress callback so the client can match them.</summary>
+    public Guid? AskId { get; init; }
+
     /// <summary>The question to answer, as asked.</summary>
     public string? Question { get; init; }
 

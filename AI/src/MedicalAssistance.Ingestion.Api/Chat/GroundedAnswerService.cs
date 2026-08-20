@@ -16,7 +16,9 @@ public interface IGroundedAnswerService
 
 /// <inheritdoc />
 public sealed class GroundedAnswerService(
-    IRetrievalService retrieval, IGroundedAnswerGenerator generator) : IGroundedAnswerService
+    IRetrievalService retrieval,
+    IGroundedAnswerGenerator generator,
+    IChatProgressReporter progress) : IGroundedAnswerService
 {
     private const int DefaultTopK = 8;
 
@@ -52,6 +54,9 @@ public sealed class GroundedAnswerService(
             PriorSummary = request.PriorSummary,
         };
 
+        await progress.ReportAsync(
+            request.AskId, request.DoctorId, ChatPhases.SearchingHistory, "Searching patient history…", cancellationToken);
+
         var result = await retrieval.SearchAsync(retrievalRequest, cancellationToken);
 
         // Nothing cleared the confidence threshold — including a patient with no
@@ -85,9 +90,15 @@ public sealed class GroundedAnswerService(
             })
             .ToList();
 
+        await progress.ReportAsync(
+            request.AskId, request.DoctorId, ChatPhases.ComposingAnswer, "Composing the answer…", cancellationToken);
+
         var answer = await generator.GenerateAsync(
             new GroundedAnswerContext(question, language, result.Evidence, request.RecentTurns, request.PriorSummary),
             cancellationToken);
+
+        await progress.ReportAsync(
+            request.AskId, request.DoctorId, ChatPhases.VerifyingCitations, "Verifying citations…", cancellationToken);
 
         // Verify grounding before release (ADR-0012): every [E#] the answer cites must
         // have been supplied this turn. A fabricated reference throws — fail-fast, no

@@ -1,4 +1,5 @@
 using MedicalAssistant.Application.Features.ActionRequest.Command.ProcessActionCallback;
+using MedicalAssistant.Application.Features.Chat.Common;
 using MedicalAssistant.Application.Features.MedicalStructuredData.Command.ProcessStructuredDataCallback;
 using MedicalAssistant.Application.Features.Transcript.Command.ProcessTranscriptionCallback;
 using MedicalAssistant.Application.Models;
@@ -14,11 +15,14 @@ public class AiCallbackController : ControllerBase
 {
     private readonly IMediator _mediator;
     private readonly AiCallbackSettings _settings;
+    private readonly IChatProgressNotifier _chatProgress;
 
-    public AiCallbackController(IMediator mediator, IOptions<AiCallbackSettings> settings)
+    public AiCallbackController(
+        IMediator mediator, IOptions<AiCallbackSettings> settings, IChatProgressNotifier chatProgress)
     {
         _mediator = mediator;
         _settings = settings.Value;
+        _chatProgress = chatProgress;
     }
 
     [HttpPost("transcription")]
@@ -79,6 +83,31 @@ public class AiCallbackController : ControllerBase
         return Ok();
     }
 
+    /// <summary>
+    /// Receives a live "what the system is doing" phase event from the AI service mid-answer
+    /// and relays it to the asking doctor over the chat hub. Fire-and-forget on the AI side;
+    /// nothing here can affect the answer.
+    /// </summary>
+    [HttpPost("chat-progress")]
+    public async Task<IActionResult> ChatProgress([FromBody] ChatProgressCallbackDto dto)
+    {
+        if (!IsAuthorized())
+            return Unauthorized();
+
+        if (string.IsNullOrWhiteSpace(dto.DoctorId) || dto.AskId == Guid.Empty)
+            return Ok();
+
+        await _chatProgress.NotifyAsync(
+            dto.DoctorId,
+            new ChatProgressEvent(
+                dto.AskId,
+                dto.Phase ?? string.Empty,
+                dto.Message ?? string.Empty,
+                dto.OccurredAt ?? DateTimeOffset.UtcNow));
+
+        return Ok();
+    }
+
     private bool IsAuthorized()
     {
         if (Request.Headers.TryGetValue("X-Api-Key", out var apiKey))
@@ -86,6 +115,15 @@ public class AiCallbackController : ControllerBase
 
         return false;
     }
+}
+
+public class ChatProgressCallbackDto
+{
+    public Guid AskId { get; set; }
+    public string? DoctorId { get; set; }
+    public string? Phase { get; set; }
+    public string? Message { get; set; }
+    public DateTimeOffset? OccurredAt { get; set; }
 }
 
 public class TranscriptionCallbackDto

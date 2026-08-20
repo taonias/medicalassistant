@@ -69,6 +69,24 @@ public static class IdentityServicesRegistration
                 ValidAudience = configuration["JwtSettings:Audience"],
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JwtSettings:Key"]!))
             };
+
+            o.Events = new JwtBearerEvents
+            {
+                OnMessageReceived = context =>
+                {
+                    // SignalR (WebSockets) cannot set an Authorization header, so the JS client
+                    // sends the JWT as ?access_token= on the hub connection. Accept it only on
+                    // hub paths; every other endpoint still requires the bearer header.
+                    var accessToken = context.Request.Query["access_token"];
+                    if (!string.IsNullOrEmpty(accessToken) &&
+                        context.HttpContext.Request.Path.StartsWithSegments("/hubs"))
+                    {
+                        context.Token = accessToken;
+                    }
+
+                    return Task.CompletedTask;
+                }
+            };
         });
 
         return services;

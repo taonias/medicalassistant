@@ -32,4 +32,6 @@ export const queryKeys = {
   doctorNotes: (consultationId: number) => ["consultation", consultationId, "doctor-notes"] as const,
   patientDoctorNotes: (patientId: number) => ["patient", patientId, "doctor-notes"] as const,
   action: (correlationId: string) => ["action", correlationId] as const,
+  conversations: (patientId: number) => ["patient", patientId, "conversations"] as const,
+  conversationThread: (conversationId: number) => ["conversation", conversationId, "thread"] as const,
 };

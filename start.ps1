@@ -6,12 +6,14 @@
 #   - Chrome tabs: frontend, backend Swagger, Clinical Knowledge Swagger, RabbitMQ UI
 #
 # Usage:
-#   ./start.ps1             # start everything + open browser
-#   ./start.ps1 -Build      # rebuild service images first
+#   ./start.ps1             # start everything + open browser (asks whether to rebuild)
+#   ./start.ps1 -Build      # incremental image rebuild first (docker compose --build)
+#   ./start.ps1 -Rebuild    # full from-scratch rebuild: delete built images + --no-cache
 #   ./start.ps1 -NoFrontend # backend only, no frontend, no browser
 #   ./start.ps1 -NoBrowser  # start everything but don't open Chrome
 param(
     [switch]$Build,
+    [switch]$Rebuild,
     [switch]$NoFrontend,
     [switch]$NoBrowser
 )
@@ -50,8 +52,28 @@ if (-not (Test-Path ".env")) {
     exit 1
 }
 
-Write-Host "==> Starting backend services (docker compose)..." -ForegroundColor Cyan
-if ($Build) { docker compose up -d --build } else { docker compose up -d }
+# Decide how to bring the stack up:
+#   -Rebuild : delete the locally-built images and rebuild from scratch (--no-cache)
+#   -Build   : incremental image rebuild
+#   neither  : ask whether to do a full from-scratch rebuild, default No
+$doRebuild = [bool]$Rebuild
+if (-not $Rebuild -and -not $Build) {
+    $answer = Read-Host "Completely rebuild all Docker images from scratch? This deletes the built images and rebuilds with --no-cache (slow; data volumes are kept) [y/N]"
+    if ($answer -match '^(y|yes)$') { $doRebuild = $true }
+}
+
+if ($doRebuild) {
+    Write-Host "==> Removing locally-built images and rebuilding from scratch (docker compose)..." -ForegroundColor Cyan
+    docker compose down --rmi local --remove-orphans
+    docker compose build --no-cache
+    docker compose up -d
+} elseif ($Build) {
+    Write-Host "==> Starting backend services with an incremental image rebuild (docker compose)..." -ForegroundColor Cyan
+    docker compose up -d --build
+} else {
+    Write-Host "==> Starting backend services (docker compose)..." -ForegroundColor Cyan
+    docker compose up -d
+}
 
 Write-Host "==> Waiting for backend API (http://localhost:7037/health/ready)..." -ForegroundColor Cyan
 $ready = $false

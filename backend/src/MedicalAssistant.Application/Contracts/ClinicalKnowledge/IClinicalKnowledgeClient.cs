@@ -14,25 +14,52 @@ public interface IClinicalKnowledgeClient
     Task<ClinicalKnowledgeAnswer> GetGroundedAnswerAsync(
         ClinicalKnowledgeChatRequest request,
         CancellationToken cancellationToken = default);
+
+    /// <summary>Folds older conversation turns into an updated rolling summary.</summary>
+    Task<string> SummarizeConversationAsync(
+        ClinicalKnowledgeSummarizeRequest request,
+        CancellationToken cancellationToken = default);
 }
+
+public sealed record ClinicalKnowledgeSummarizeRequest(
+    string PatientId,
+    string? PriorSummary,
+    IReadOnlyList<ClinicalKnowledgeConversationTurn> NewTurns);
 
 public sealed record ClinicalKnowledgeChatRequest(
     string PatientId,
     string DoctorId,
     string Question,
-    int TopK = 5);
+    int TopK = 5,
+    IReadOnlyList<ClinicalKnowledgeConversationTurn>? RecentTurns = null,
+    string? PriorSummary = null,
+    Guid? AskId = null);
+
+/// <summary>One prior turn replayed to the AI for phrasing/refinement only (never evidence).</summary>
+public sealed record ClinicalKnowledgeConversationTurn(string Role, string Text);
 
 public sealed record ClinicalKnowledgeAnswer(
     string Text,
     bool Refused,
     bool RetrievalUsed,
+    string Language,
     IReadOnlyList<ClinicalKnowledgeCitation> Citations);
 
+/// <summary>
+/// One cited Evidence Item, carried through structurally (not flattened to a
+/// string) so the backend can persist and richly render the answer's grounding.
+/// Mirrors the AI service's ChatCitation field-for-field.
+/// </summary>
 public sealed record ClinicalKnowledgeCitation(
     string Label,
-    string Quote,
+    Guid ChunkId,
+    string DocumentId,
     string DocumentType,
-    string? SessionId);
+    string? SessionId,
+    DateTimeOffset? DocumentDate,
+    string? SourceRef,
+    string Quote,
+    double Score);
 
 public sealed record ClinicalKnowledgeSessionTranscriptRequest(
     string DoctorId,

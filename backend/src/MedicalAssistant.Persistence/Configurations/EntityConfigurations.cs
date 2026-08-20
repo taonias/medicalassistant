@@ -165,6 +165,60 @@ public class ErrorLogConfiguration : IEntityTypeConfiguration<ErrorLog>
     }
 }
 
+public class ConversationConfiguration : IEntityTypeConfiguration<Conversation>
+{
+    public void Configure(EntityTypeBuilder<Conversation> builder)
+    {
+        builder.ToTable("Conversations");
+        builder.Property(c => c.DoctorId).HasMaxLength(450).IsRequired();
+        builder.Property(c => c.Title).HasMaxLength(200).IsRequired();
+        builder.Property(c => c.RollingSummary).HasColumnType("text");
+
+        builder.HasIndex(c => new { c.DoctorId, c.PatientId });
+
+        builder.HasOne<Patient>().WithMany().HasForeignKey(c => c.PatientId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<Consultation>().WithMany().HasForeignKey(c => c.ConsultationId).OnDelete(DeleteBehavior.Restrict);
+
+        // The conversation owns its messages: deleting it removes the whole thread.
+        builder.HasMany(c => c.Messages).WithOne().HasForeignKey(m => m.ConversationId).OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
+public class ChatMessageConfiguration : IEntityTypeConfiguration<ChatMessage>
+{
+    public void Configure(EntityTypeBuilder<ChatMessage> builder)
+    {
+        builder.ToTable("ChatMessages");
+        builder.Property(m => m.Content).HasColumnType("text").IsRequired();
+        builder.Property(m => m.FailureReason).HasMaxLength(2000);
+        builder.Property(m => m.Language).HasMaxLength(20);
+
+        // One message per (conversation, sequence); AskId powers idempotency and retry lookups.
+        builder.HasIndex(m => new { m.ConversationId, m.Sequence }).IsUnique();
+        builder.HasIndex(m => m.AskId);
+
+        builder.HasMany(m => m.Citations).WithOne().HasForeignKey(c => c.ChatMessageId).OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
+public class MessageCitationConfiguration : IEntityTypeConfiguration<MessageCitation>
+{
+    public void Configure(EntityTypeBuilder<MessageCitation> builder)
+    {
+        builder.ToTable("MessageCitations");
+        builder.Property(c => c.Label).HasMaxLength(16).IsRequired();
+        builder.Property(c => c.DocumentId).HasMaxLength(512).IsRequired();
+        builder.Property(c => c.DocumentType).HasMaxLength(100).IsRequired();
+        builder.Property(c => c.SessionId).HasMaxLength(512);
+        // Type-specific provenance is arbitrary JSON text; stored as text (not jsonb) so an
+        // unexpected provenance shape can never fail the insert.
+        builder.Property(c => c.SourceRef).HasColumnType("text");
+        builder.Property(c => c.Quote).HasColumnType("text").IsRequired();
+
+        builder.HasIndex(c => c.ChatMessageId);
+    }
+}
+
 public class DoctorNoteConfiguration : IEntityTypeConfiguration<DoctorNote>
 {
     public void Configure(EntityTypeBuilder<DoctorNote> builder)

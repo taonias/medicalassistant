@@ -128,6 +128,63 @@ namespace MedicalAssistant.Persistence.Migrations
                     b.ToTable("AuditLogs", (string)null);
                 });
 
+            modelBuilder.Entity("MedicalAssistant.Domain.ChatMessage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<Guid>("AskId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("ConversationId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("DateCreated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("DateModified")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FailureReason")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("Language")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("State")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AskId");
+
+                    b.HasIndex("ConversationId", "Sequence")
+                        .IsUnique();
+
+                    b.ToTable("ChatMessages", (string)null);
+                });
+
             modelBuilder.Entity("MedicalAssistant.Domain.Consultation", b =>
                 {
                     b.Property<int>("Id")
@@ -294,12 +351,12 @@ namespace MedicalAssistant.Persistence.Migrations
                     b.Property<int>("AttemptCount")
                         .HasColumnType("integer");
 
-                    b.Property<bool?>("ClinicalKnowledgeDuplicate")
-                        .HasColumnType("boolean");
-
                     b.Property<string>("ClinicalKnowledgeDocumentId")
                         .HasMaxLength(512)
                         .HasColumnType("character varying(512)");
+
+                    b.Property<bool?>("ClinicalKnowledgeDuplicate")
+                        .HasColumnType("boolean");
 
                     b.Property<Guid?>("ClinicalKnowledgeIngestionId")
                         .HasColumnType("uuid");
@@ -446,6 +503,62 @@ namespace MedicalAssistant.Persistence.Migrations
                     b.ToTable("ConsultationOutboxMessages", (string)null);
                 });
 
+            modelBuilder.Entity("MedicalAssistant.Domain.Conversation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("ConsultationId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("DateCreated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("DateModified")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DoctorId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<int>("PatientId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("RollingSummary")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("SummarizedThroughSequence")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConsultationId");
+
+                    b.HasIndex("PatientId");
+
+                    b.HasIndex("DoctorId", "PatientId");
+
+                    b.ToTable("Conversations", (string)null);
+                });
+
             modelBuilder.Entity("MedicalAssistant.Domain.DoctorNote", b =>
                 {
                     b.Property<int>("Id")
@@ -569,6 +682,71 @@ namespace MedicalAssistant.Persistence.Migrations
                     b.ToTable("MedicalStructuredData", (string)null);
                 });
 
+            modelBuilder.Entity("MedicalAssistant.Domain.MessageCitation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ChatMessageId")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("ChunkId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("DateCreated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("DateModified")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("DocumentDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DocumentId")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<string>("DocumentType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Quote")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<double>("Score")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("SessionId")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<string>("SourceRef")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChatMessageId");
+
+                    b.ToTable("MessageCitations", (string)null);
+                });
+
             modelBuilder.Entity("MedicalAssistant.Domain.Patient", b =>
                 {
                     b.Property<int>("Id")
@@ -685,6 +863,15 @@ namespace MedicalAssistant.Persistence.Migrations
                     b.ToTable("Transcripts", (string)null);
                 });
 
+            modelBuilder.Entity("MedicalAssistant.Domain.ChatMessage", b =>
+                {
+                    b.HasOne("MedicalAssistant.Domain.Conversation", null)
+                        .WithMany("Messages")
+                        .HasForeignKey("ConversationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("MedicalAssistant.Domain.Consultation", b =>
                 {
                     b.HasOne("MedicalAssistant.Domain.Patient", null)
@@ -702,6 +889,20 @@ namespace MedicalAssistant.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("MedicalAssistant.Domain.Conversation", b =>
+                {
+                    b.HasOne("MedicalAssistant.Domain.Consultation", null)
+                        .WithMany()
+                        .HasForeignKey("ConsultationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("MedicalAssistant.Domain.Patient", null)
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("MedicalAssistant.Domain.DoctorNote", b =>
                 {
                     b.HasOne("MedicalAssistant.Domain.Consultation", null)
@@ -714,6 +915,25 @@ namespace MedicalAssistant.Persistence.Migrations
                         .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("MedicalAssistant.Domain.MessageCitation", b =>
+                {
+                    b.HasOne("MedicalAssistant.Domain.ChatMessage", null)
+                        .WithMany("Citations")
+                        .HasForeignKey("ChatMessageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("MedicalAssistant.Domain.ChatMessage", b =>
+                {
+                    b.Navigation("Citations");
+                });
+
+            modelBuilder.Entity("MedicalAssistant.Domain.Conversation", b =>
+                {
+                    b.Navigation("Messages");
                 });
 #pragma warning restore 612, 618
         }

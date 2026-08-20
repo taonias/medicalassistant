@@ -43,6 +43,7 @@ public static class InfrastructureServiceRegistration
         services.AddHttpClient<IClinicalKnowledgeClient, ClinicalKnowledgeHttpClient>();
         services.AddScoped<ConsultationOutboxRelay>();
         services.AddHostedService<ConsultationOutboxRelayHostedService>();
+        services.AddHostedService<MedicalAssistant.Application.Features.Chat.Common.ConversationSummaryRefreshHostedService>();
         services.AddSingleton<IRabbitMqPersistentConnection, RabbitMqPersistentConnection>();
         services.AddSingleton<RabbitMqConfirmedPublisher>();
         services.AddSingleton<IConsultationOutboxPublisher, RabbitMqConsultationOutboxPublisher>();

@@ -70,6 +70,12 @@ builder.Services.AddOpenTelemetry()
 builder.Services.AddControllers();
 builder.Services.AddHttpContextAccessor();
 
+// Real-time chat progress: the browser connects to /hubs/chat and receives phase events
+// routed by doctorId while a turn is in flight (the answer itself is not streamed).
+builder.Services.AddSignalR();
+builder.Services.AddSingleton<Microsoft.AspNetCore.SignalR.IUserIdProvider, MedicalAssistant.Api.Realtime.DoctorUserIdProvider>();
+builder.Services.AddScoped<MedicalAssistant.Application.Features.Chat.Common.IChatProgressNotifier, MedicalAssistant.Api.Realtime.SignalRChatProgressNotifier>();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("all", policy =>
@@ -135,6 +141,7 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
     Predicate = registration => registration.Tags.Contains("ready")
 });
 app.MapControllers();
+app.MapHub<MedicalAssistant.Api.Realtime.ChatHub>("/hubs/chat");
 
 await IdentityDbInitializer.SeedRolesAsync(app.Services);
 await IdentityDbInitializer.SeedDevelopmentDoctorAsync(app.Services);

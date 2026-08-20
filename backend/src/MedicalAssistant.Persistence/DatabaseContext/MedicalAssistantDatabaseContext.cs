@@ -27,6 +27,9 @@ public class MedicalAssistantDatabaseContext : DbContext
     public virtual DbSet<ConsultationOutboxMessage> ConsultationOutboxMessages { get; set; }
     public virtual DbSet<ConsultationInboxMessage> ConsultationInboxMessages { get; set; }
     public virtual DbSet<ConsultationDeletionCleanup> ConsultationDeletionCleanups { get; set; }
+    public virtual DbSet<Conversation> Conversations { get; set; }
+    public virtual DbSet<ChatMessage> ChatMessages { get; set; }
+    public virtual DbSet<MessageCitation> MessageCitations { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

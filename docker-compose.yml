@@ -205,6 +205,10 @@ services:
       RabbitMQ__Username: clinical-knowledge
       RabbitMQ__Password: ${RABBITMQ_CLINICAL_PASSWORD:-clinical-knowledge-rabbitmq-local}
       RabbitMQ__ExchangeName: medicalassistant.events
+      # AI → backend chat-progress callback (SignalR relay). Shares AI_CALLBACK_API_KEY
+      # with the backend's AiCallback:ApiKey. Best-effort; no depends_on (would cycle).
+      BackendCallback__BaseUrl: http://backend-api:8080
+      BackendCallback__ApiKey: ${AI_CALLBACK_API_KEY:-dev-callback-key}
       OTEL_EXPORTER_OTLP_ENDPOINT: http://aspire-dashboard:18889
     ports:
       - "8000:8080"
@@ -235,6 +239,8 @@ services:
       BlobStorage__ConsultationDocumentsContainer: pdf
       ClinicalKnowledge__BaseUrl: http://clinical-knowledge:8080
       ClinicalKnowledge__ApiKey: ${CLINICAL_KNOWLEDGE_API_KEY:-local-development-key}
+      # Shared secret the AI service presents on ai-callback endpoints (incl. chat-progress).
+      AiCallback__ApiKey: ${AI_CALLBACK_API_KEY:-dev-callback-key}
       RabbitMQ__HostName: rabbitmq
       RabbitMQ__UserName: backend-clinical-knowledge
       RabbitMQ__Password: ${RABBITMQ_BACKEND_PASSWORD:-backend-rabbitmq-local}

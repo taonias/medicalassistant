@@ -226,6 +226,20 @@ builder.Services.AddScoped<IRetrievalService, RetrievalService>();
 // (refusal T45, verification T46) can land without reshaping the endpoint.
 builder.Services.AddScoped<IGroundedAnswerGenerator, GroundedAnswerGenerator>();
 builder.Services.AddScoped<IGroundedAnswerService, GroundedAnswerService>();
+builder.Services.AddScoped<IConversationSummarizer, ConversationSummarizer>();
+
+// AI → backend chat-progress callback: emits real phase boundaries mid-answer, which the
+// backend relays to the asking doctor over SignalR. Best-effort; short timeout.
+builder.Services.Configure<BackendCallbackOptions>(builder.Configuration.GetSection(BackendCallbackOptions.SectionName));
+builder.Services.AddHttpClient<IChatProgressReporter, ChatProgressReporter>((sp, client) =>
+{
+    var options = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<BackendCallbackOptions>>().Value;
+    if (!string.IsNullOrWhiteSpace(options.BaseUrl))
+        client.BaseAddress = new Uri(options.BaseUrl.TrimEnd('/') + "/");
+    if (!string.IsNullOrWhiteSpace(options.ApiKey))
+        client.DefaultRequestHeaders.Add("X-Api-Key", options.ApiKey);
+    client.Timeout = TimeSpan.FromSeconds(5);
+});
 
 // The extraction seam (ADR-0005): one provider-neutral interface for turning a
 // PDF into text + table cell grids. Unconfigured by default so the app boots with
