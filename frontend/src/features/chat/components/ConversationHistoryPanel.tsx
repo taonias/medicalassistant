@@ -7,6 +7,7 @@ interface Props {
   onNew: () => void;
   onDelete: (id: number) => void;
   onRename: (id: number, currentTitle: string) => void;
+  onClose?: () => void;
 }
 
 /** History list of the doctor's conversations about this patient, with New + rename + delete. */
@@ -17,14 +18,27 @@ export function ConversationHistoryPanel({
   onNew,
   onDelete,
   onRename,
+  onClose,
 }: Props) {
   return (
     <aside className="conversation-history">
       <div className="conversation-history__header">
         <span>Conversations</span>
-        <button type="button" className="button button--secondary button--small" onClick={onNew}>
-          New
-        </button>
+        <div className="conversation-history__header-actions">
+          <button type="button" className="button button--secondary button--small" onClick={onNew}>
+            New
+          </button>
+          {onClose ? (
+            <button
+              type="button"
+              className="conversation-history__close"
+              aria-label="Close"
+              onClick={onClose}
+            >
+              ×
+            </button>
+          ) : null}
+        </div>
       </div>
       <div className="conversation-history__list">
         {conversations.length === 0 ? (

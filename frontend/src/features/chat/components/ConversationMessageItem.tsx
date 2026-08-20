@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { MessageState, type ChatCitation } from '../../../shared/types/api';
 import { CitationCards } from './CitationCards';
 import { CitationText } from './CitationText';
@@ -22,6 +22,15 @@ interface Props {
 
 export function ConversationMessageItem({ message, onRetry, retrying }: Props) {
   const [activeLabel, setActiveLabel] = useState<string | null>(null);
+  const [evidenceOpen, setEvidenceOpen] = useState(true);
+
+  // Scroll to the activated card once it's on screen (after any expand has rendered).
+  useEffect(() => {
+    if (!activeLabel || !evidenceOpen) return;
+    document
+      .getElementById(`citation-${message.key}-${activeLabel}`)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, [activeLabel, evidenceOpen, message.key]);
 
   if (message.role === 'user') {
     return (
@@ -59,10 +68,8 @@ export function ConversationMessageItem({ message, onRetry, retrying }: Props) {
   const citationByLabel = new Map(citations.map((citation) => [citation.label, citation]));
 
   function activate(label: string) {
+    setEvidenceOpen(true);
     setActiveLabel(label);
-    document
-      .getElementById(`citation-${message.key}-${label}`)
-      ?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
   return (
@@ -83,6 +90,8 @@ export function ConversationMessageItem({ message, onRetry, retrying }: Props) {
           citations={citations}
           activeLabel={activeLabel}
           onActivate={activate}
+          expanded={evidenceOpen}
+          onToggle={() => setEvidenceOpen((open) => !open)}
         />
       </div>
     </div>

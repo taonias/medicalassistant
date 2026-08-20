@@ -78,6 +78,7 @@ export function ConversationChat({ patientId, consultationId }: Props) {
   const [input, setInput] = useState('');
   const [pendingAskId, setPendingAskId] = useState<string | null>(null);
   const [retryingId, setRetryingId] = useState<number | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -165,17 +166,9 @@ export function ConversationChat({ patientId, consultationId }: Props) {
     pendingAskId && progress?.askId === pendingAskId ? progress.message : 'Thinking…';
 
   return (
-    <div className="conversation-layout">
-      <ConversationHistoryPanel
-        conversations={conversations}
-        activeId={conversationId}
-        onSelect={(id) => void selectConversation(id)}
-        onNew={startNewConversation}
-        onDelete={(id) => void handleDelete(id)}
-        onRename={(id, title) => void handleRename(id, title)}
-      />
-
-      <div className="chat-page conversation-main">
+    <>
+      <div className="chat-page-layout">
+        <div className="chat-page conversation-main conversation-main--full">
         <div className="chat-context-banner">
           <div>
             <span className="chat-context-banner__eyebrow muted">Chatting about</span>
@@ -190,14 +183,23 @@ export function ConversationChat({ patientId, consultationId }: Props) {
               <span className="muted"> · Full patient history context</span>
             )}
           </div>
-          {consultationId ? (
-            <Link
-              to={`/patients/${patientId}/consultations/${consultationId}`}
+          <div className="chat-context-banner__actions">
+            <button
+              type="button"
               className="button button--secondary button--small"
+              onClick={() => setHistoryOpen(true)}
             >
-              View consultation
-            </Link>
-          ) : null}
+              Conversations
+            </button>
+            {consultationId ? (
+              <Link
+                to={`/patients/${patientId}/consultations/${consultationId}`}
+                className="button button--secondary button--small"
+              >
+                View consultation
+              </Link>
+            ) : null}
+          </div>
         </div>
 
         <div className="chat-message-list" ref={listRef}>
@@ -242,7 +244,36 @@ export function ConversationChat({ patientId, consultationId }: Props) {
             </button>
           </div>
         </form>
+        </div>
       </div>
-    </div>
+
+      {historyOpen ? (
+        <div className="modal-backdrop" role="presentation" onClick={() => setHistoryOpen(false)}>
+          <div
+            className="modal modal--history"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Conversations"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <ConversationHistoryPanel
+              conversations={conversations}
+              activeId={conversationId}
+              onSelect={(id) => {
+                void selectConversation(id);
+                setHistoryOpen(false);
+              }}
+              onNew={() => {
+                startNewConversation();
+                setHistoryOpen(false);
+              }}
+              onDelete={(id) => void handleDelete(id)}
+              onRename={(id, title) => void handleRename(id, title)}
+              onClose={() => setHistoryOpen(false)}
+            />
+          </div>
+        </div>
+      ) : null}
+    </>
   );
 }
