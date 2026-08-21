@@ -35,17 +35,25 @@ fi
 echo "==> Pulling base images..."
 $COMPOSE pull postgres rabbitmq rabbitmq-provisioner azurite certbot || true
 
-# Does a real certificate already exist in the letsencrypt volume?
-cert_exists() {
-  $COMPOSE run --rm --no-deps --entrypoint sh certbot \
-    -c "test -s /etc/letsencrypt/live/$DOMAIN/fullchain.pem" >/dev/null 2>&1
+# Does a REAL (Let's Encrypt, not self-signed dummy) certificate exist in the volume?
+# The bootstrap writes a temporary self-signed cert so nginx can start; that has
+# issuer == subject. A real cert's issuer (Let's Encrypt) differs from its subject, so
+# comparing them distinguishes the two and prevents a leftover dummy from blocking issuance.
+cert_is_real() {
+  $COMPOSE run --rm --no-deps --entrypoint sh certbot -c '
+    f=/etc/letsencrypt/live/'"$DOMAIN"'/fullchain.pem
+    [ -s "$f" ] || exit 1
+    iss=$(openssl x509 -in "$f" -noout -issuer | sed "s/^issuer=//")
+    sub=$(openssl x509 -in "$f" -noout -subject | sed "s/^subject=//")
+    [ "$iss" != "$sub" ]
+  ' >/dev/null 2>&1
 }
 
-if cert_exists; then
+if cert_is_real; then
   echo "==> Certificate for $DOMAIN present; starting the stack..."
   $COMPOSE up -d --remove-orphans
 else
-  echo "==> No certificate yet; bootstrapping Let's Encrypt for $DOMAIN"
+  echo "==> No real certificate yet (missing or self-signed dummy); bootstrapping Let's Encrypt for $DOMAIN"
 
   echo "  - writing a temporary self-signed cert so nginx can start on 443"
   $COMPOSE run --rm --no-deps --entrypoint sh certbot -c "

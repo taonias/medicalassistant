@@ -145,6 +145,7 @@ app.MapHub<MedicalAssistant.Api.Realtime.ChatHub>("/hubs/chat");
 
 await IdentityDbInitializer.SeedRolesAsync(app.Services);
 await IdentityDbInitializer.SeedDevelopmentDoctorAsync(app.Services);
+await IdentityDbInitializer.SeedConfiguredDoctorAsync(app.Services, app.Configuration);
 
 app.Run();
 

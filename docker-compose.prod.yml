@@ -168,6 +168,14 @@ services:
       JwtSettings__Key: ${JWT_KEY:?set a long random JWT_KEY in .env.prod}
       JwtSettings__Issuer: MedicalAssistantApi
       JwtSettings__Audience: MedicalAssistantClient
+      # First-doctor seed. Created on startup if it does not exist (idempotent).
+      # Leave SEED_DOCTOR_USERNAME/PASSWORD empty to disable seeding.
+      SeedDoctor__UserName: ${SEED_DOCTOR_USERNAME:-}
+      SeedDoctor__Password: ${SEED_DOCTOR_PASSWORD:-}
+      SeedDoctor__Email: ${SEED_DOCTOR_EMAIL:-}
+      SeedDoctor__FirstName: ${SEED_DOCTOR_FIRST_NAME:-}
+      SeedDoctor__LastName: ${SEED_DOCTOR_LAST_NAME:-}
+      SeedDoctor__ResetPassword: ${SEED_DOCTOR_RESET_PASSWORD:-false}
       # Same-origin behind the proxy; kept as a safety net for the canonical domain.
       CorsSettings__AllowedOrigins__0: https://${DOMAIN:?set your domain in .env.prod}
       BlobStorage__ConnectionString: ${AZURITE_CONNECTION_STRING:-UseDevelopmentStorage=true;DevelopmentStorageProxyUri=http://azurite}
@@ -240,10 +248,9 @@ services:
     restart: unless-stopped
     environment:
       DOMAIN: ${DOMAIN:?set your domain in .env.prod}
-    # Reload every 6h so renewed certs are picked up without a redeploy. The base image's
-    # entrypoint still runs envsubst over the template first, then execs this command.
-    command: >-
-      /bin/sh -c "while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g 'daemon off;'"
+    # No command override: the proxy image's base entrypoint renders app.conf from the
+    # template (envsubst, DOMAIN-only) and a baked docker-entrypoint.d hook runs the 6h
+    # cert-reload loop. Keeping the default CMD (nginx) is what triggers that rendering.
     ports:
       - "80:80"
       - "443:443"
