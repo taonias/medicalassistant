@@ -1,0 +1,272 @@
+name: medicalassistant-prod
+
+# Production stack for a single Ubuntu VM behind one nginx reverse proxy.
+#
+# Differences from docker-compose.yml (local dev):
+#   - Only `proxy` publishes host ports (80/443). Everything else is internal.
+#   - App images are pulled from local tags loaded from .tar (built by package-release.ps1),
+#     not built here. Base images (postgres/rabbitmq/azurite/certbot) are pulled from Docker Hub.
+#   - ASPNETCORE_ENVIRONMENT=Production; secrets come from .env.prod (fail fast if missing).
+#   - Dev-only services dropped: pgadmin, vector-db-ui, aspire-dashboard.
+#   - Frontend is served by `proxy` (SPA baked into that image); no separate frontend service.
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: MedicalAssistantDb
+      POSTGRES_USER: medicalassistant
+      POSTGRES_PASSWORD: ${POSTGRES_APP_PASSWORD:?set POSTGRES_APP_PASSWORD in .env.prod}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U medicalassistant -d MedicalAssistantDb"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    hostname: rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_BOOTSTRAP_USER:?set in .env.prod}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_BOOTSTRAP_PASSWORD:?set in .env.prod}
+      RABBITMQ_DEFAULT_VHOST: /
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ./rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics -q ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  # Mirrors the dev provisioner: creates the per-service broker users, their scoped
+  # permissions, and the transcription-failed audit queue. Kept in sync with
+  # docker-compose.yml by hand (it changes rarely).
+  rabbitmq-provisioner:
+    image: curlimages/curl:8.10.1
+    restart: "no"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      RABBITMQ_BOOTSTRAP_USER: ${RABBITMQ_BOOTSTRAP_USER:?set in .env.prod}
+      RABBITMQ_BOOTSTRAP_PASSWORD: ${RABBITMQ_BOOTSTRAP_PASSWORD:?set in .env.prod}
+      RABBITMQ_BACKEND_PASSWORD: ${RABBITMQ_BACKEND_PASSWORD:?set in .env.prod}
+      RABBITMQ_WORKER_PASSWORD: ${RABBITMQ_WORKER_PASSWORD:?set in .env.prod}
+      RABBITMQ_CLINICAL_PASSWORD: ${RABBITMQ_CLINICAL_PASSWORD:?set in .env.prod}
+    command:
+      - sh
+      - -ec
+      - |
+        api="http://rabbitmq:15672/api"
+        auth="$${RABBITMQ_BOOTSTRAP_USER}:$${RABBITMQ_BOOTSTRAP_PASSWORD}"
+        echo "waiting for rabbitmq management api..."
+        until curl --fail --silent --show-error -u "$$auth" "$$api/overview" >/dev/null 2>&1; do
+          sleep 2
+        done
+        put_user() {
+          curl --fail --silent --show-error -u "$$auth" \
+            -H "content-type: application/json" \
+            -X PUT "$$api/users/$$1" \
+            --data-raw "{\"password\":\"$$2\",\"tags\":\"\"}"
+        }
+        put_permissions() {
+          curl --fail --silent --show-error -u "$$auth" \
+            -H "content-type: application/json" \
+            -X PUT "$$api/permissions/%2F/$$1" \
+            --data-raw "$$2"
+        }
+        put_user backend-clinical-knowledge "$${RABBITMQ_BACKEND_PASSWORD}"
+        put_user backend-outbox-relay "$${RABBITMQ_BACKEND_PASSWORD}"
+        put_user transcription-worker "$${RABBITMQ_WORKER_PASSWORD}"
+        put_user clinical-knowledge "$${RABBITMQ_CLINICAL_PASSWORD}"
+        put_permissions backend-clinical-knowledge '{"configure":"^medicalassistant\\.events$$|^medicalassistant\\.backend\\.transcript-ready(\\.dlq)?$$","write":"^amq\\.default$$|^medicalassistant\\.events$$|^medicalassistant\\.backend\\.transcript-ready(\\.dlq)?$$","read":"^medicalassistant\\.events$$|^medicalassistant\\.backend\\.transcript-ready(\\.dlq)?$$"}'
+        put_permissions backend-outbox-relay '{"configure":"^$$","write":"^medicalassistant\\.events$$","read":"^$$"}'
+        put_permissions clinical-knowledge '{"configure":"^medicalassistant\\.events$$","write":"^medicalassistant\\.events$$","read":"^$$"}'
+        put_permissions transcription-worker '{"configure":"^medicalassistant\\.events$$|^medicalassistant\\.transcription-worker(\\.dlq)?$$","write":"^amq\\.default$$|^medicalassistant\\.events$$|^medicalassistant\\.transcription-worker(\\.dlq)?$$","read":"^medicalassistant\\.events$$|^medicalassistant\\.transcription-worker(\\.dlq)?$$"}'
+        curl --fail --silent --show-error -u "$$auth" -H "content-type: application/json" \
+          -X PUT "$$api/exchanges/%2F/medicalassistant.events" \
+          --data-raw '{"type":"direct","durable":true}'
+        curl --fail --silent --show-error -u "$$auth" -H "content-type: application/json" \
+          -X PUT "$$api/queues/%2F/medicalassistant.transcription-failed" \
+          --data-raw '{"durable":true,"arguments":{"x-max-length":10000,"x-overflow":"drop-head"}}'
+        curl --fail --silent --show-error -u "$$auth" -H "content-type: application/json" \
+          -X POST "$$api/bindings/%2F/e/medicalassistant.events/q/medicalassistant.transcription-failed" \
+          --data-raw '{"routing_key":"consultation.transcription-failed.v1"}'
+
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite:latest
+    restart: unless-stopped
+    command: azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --skipApiVersionCheck --loose
+    volumes:
+      - azurite_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 10000"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  backend-migrations:
+    image: ${IMAGE_PREFIX:-medicalassistant}/backend-migrations:${IMAGE_TAG:-latest}
+    restart: "no"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      Database__Provider: PostgreSQL
+      ConnectionStrings__MedicalAssistantDatabasePostgreSQL: Host=postgres;Port=5432;Database=MedicalAssistantDb;Username=medicalassistant;Password=${POSTGRES_APP_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  clinical-knowledge:
+    image: ${IMAGE_PREFIX:-medicalassistant}/clinical-knowledge:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      # Quiet the per-second outbox-relay SQL spam in production (keep warnings/errors).
+      Logging__LogLevel__Microsoft.EntityFrameworkCore.Database.Command: Warning
+      ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=ai_med;Username=medicalassistant;Password=${POSTGRES_APP_PASSWORD};Maximum Pool Size=50
+      Authentication__ApiKeys__0: ${CLINICAL_KNOWLEDGE_API_KEY:?set in .env.prod}
+      Authentication__AdminApiKeys__0: ${CLINICAL_KNOWLEDGE_ADMIN_API_KEY:?set in .env.prod}
+      OpenAIChat__ApiKey: ${OPENAI_API_KEY:?set in .env.prod}
+      OpenAIChat__Model: ${OPENAI_CHAT_MODEL:-gpt-4.1-mini}
+      OpenAIEmbeddings__ApiKey: ${OPENAI_API_KEY}
+      OpenAIEmbeddings__Model: ${OPENAI_EMBEDDINGS_MODEL:-text-embedding-3-large}
+      RabbitMQ__Host: rabbitmq
+      RabbitMQ__Port: "5672"
+      RabbitMQ__VirtualHost: /
+      RabbitMQ__Username: clinical-knowledge
+      RabbitMQ__Password: ${RABBITMQ_CLINICAL_PASSWORD}
+      RabbitMQ__ExchangeName: medicalassistant.events
+      BackendCallback__BaseUrl: http://backend-api:8080
+      BackendCallback__ApiKey: ${AI_CALLBACK_API_KEY:?set in .env.prod}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq-provisioner:
+        condition: service_completed_successfully
+
+  backend-api:
+    image: ${IMAGE_PREFIX:-medicalassistant}/backend-api:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      # Quiet the per-second outbox-relay SQL spam in production (keep warnings/errors).
+      Logging__LogLevel__Microsoft.EntityFrameworkCore.Database.Command: Warning
+      Database__Provider: PostgreSQL
+      ConnectionStrings__MedicalAssistantDatabasePostgreSQL: Host=postgres;Port=5432;Database=MedicalAssistantDb;Username=medicalassistant;Password=${POSTGRES_APP_PASSWORD}
+      JwtSettings__Key: ${JWT_KEY:?set a long random JWT_KEY in .env.prod}
+      JwtSettings__Issuer: MedicalAssistantApi
+      JwtSettings__Audience: MedicalAssistantClient
+      # Same-origin behind the proxy; kept as a safety net for the canonical domain.
+      CorsSettings__AllowedOrigins__0: https://${DOMAIN:?set your domain in .env.prod}
+      BlobStorage__ConnectionString: ${AZURITE_CONNECTION_STRING:-UseDevelopmentStorage=true;DevelopmentStorageProxyUri=http://azurite}
+      BlobStorage__ConsultationAudioContainer: audio
+      BlobStorage__ConsultationDocumentsContainer: pdf
+      ClinicalKnowledge__BaseUrl: http://clinical-knowledge:8080
+      ClinicalKnowledge__ApiKey: ${CLINICAL_KNOWLEDGE_API_KEY}
+      AiCallback__ApiKey: ${AI_CALLBACK_API_KEY}
+      RabbitMQ__HostName: rabbitmq
+      RabbitMQ__UserName: backend-clinical-knowledge
+      RabbitMQ__Password: ${RABBITMQ_BACKEND_PASSWORD}
+      RabbitMQ__ClientProvidedName: backend-clinical-knowledge
+      RabbitMQ__Consumer__QueueName: medicalassistant.backend.transcript-ready
+      RabbitMQ__Topology__SubscriberName: backend-clinical-knowledge
+      RabbitMQ__Topology__QueueName: medicalassistant.backend.transcript-ready
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      rabbitmq-provisioner:
+        condition: service_completed_successfully
+      azurite:
+        condition: service_healthy
+      # started (not healthy): the backend calls clinical-knowledge per-request with its own
+      # timeouts, so it must not refuse to boot over that service's health probe. This also
+      # keeps the proxy from being blocked when the probe is a false negative.
+      clinical-knowledge:
+        condition: service_started
+      backend-migrations:
+        condition: service_completed_successfully
+
+  transcription-worker:
+    image: ${IMAGE_PREFIX:-medicalassistant}/transcription-worker:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    environment:
+      Database__Provider: PostgreSQL
+      ConnectionStrings__MedicalAssistantDatabasePostgreSQL: Host=postgres;Port=5432;Database=MedicalAssistantDb;Username=medicalassistant;Password=${POSTGRES_APP_PASSWORD}
+      RabbitMQ__HostName: rabbitmq
+      RabbitMQ__UserName: transcription-worker
+      RabbitMQ__Password: ${RABBITMQ_WORKER_PASSWORD}
+      RabbitMQ__ClientProvidedName: transcription-worker
+      RabbitMQ__Consumer__QueueName: medicalassistant.transcription-worker
+      RabbitMQ__Topology__SubscriberName: transcription-worker
+      RabbitMQ__Topology__QueueName: medicalassistant.transcription-worker
+      TranscriptionWorker__MaxConcurrentTranscriptions: ${TRANSCRIPTION_WORKER_MAX_CONCURRENT_TRANSCRIPTIONS:-1}
+      TranscriptionWorker__BlobRetrieval__ConnectionString: ${AZURITE_CONNECTION_STRING:-UseDevelopmentStorage=true;DevelopmentStorageProxyUri=http://azurite}
+      TranscriptionWorker__BlobRetrieval__ConsultationAudioContainer: audio
+      TranscriptionWorker__Provider: ${TRANSCRIPTION_PROVIDER:-AzureSpeech}
+      TranscriptionWorker__AzureSpeech__Key: ${AZURE_SPEECH_KEY:-}
+      TranscriptionWorker__AzureSpeech__Region: ${AZURE_SPEECH_REGION:-}
+      TranscriptionWorker__OpenAiWhisper__ApiKey: ${OPENAI_WHISPER_API_KEY:-}
+      TranscriptionWorker__OpenAiWhisper__Model: ${OPENAI_WHISPER_MODEL:-gpt-4o-transcribe}
+      TranscriptionWorker__OpenAiWhisper__BaseUrl: ${OPENAI_WHISPER_BASE_URL:-https://api.openai.com/v1}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      rabbitmq-provisioner:
+        condition: service_completed_successfully
+      azurite:
+        condition: service_healthy
+      backend-migrations:
+        condition: service_completed_successfully
+
+  # The only public service: serves the SPA and reverse-proxies /api + /hubs, terminating TLS.
+  proxy:
+    image: ${IMAGE_PREFIX:-medicalassistant}/proxy:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN:?set your domain in .env.prod}
+    # Reload every 6h so renewed certs are picked up without a redeploy. The base image's
+    # entrypoint still runs envsubst over the template first, then execs this command.
+    command: >-
+      /bin/sh -c "while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g 'daemon off;'"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - letsencrypt:/etc/letsencrypt:ro
+      - certbot_webroot:/var/www/certbot:ro
+    depends_on:
+      backend-api:
+        condition: service_healthy
+
+  # Renews the Let's Encrypt certificate and exits; the schedule is the host cron / a
+  # periodic `docker compose run --rm certbot renew` (see DEPLOYMENT.md). First issuance
+  # is done by init-letsencrypt.sh.
+  certbot:
+    image: certbot/certbot:latest
+    volumes:
+      - letsencrypt:/etc/letsencrypt
+      - certbot_webroot:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet; sleep 12h & wait $${!}; done'"
+
+volumes:
+  pgdata:
+  rabbitmq_data:
+  azurite_data:
+  letsencrypt:
+  certbot_webroot:

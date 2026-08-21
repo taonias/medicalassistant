@@ -1,0 +1,25 @@
+# Build-context ignore for the proxy image ONLY (BuildKit uses <dockerfile>.dockerignore
+# in preference to the root .dockerignore). Unlike the root file, this KEEPS frontend/ in
+# the context (the proxy builds the SPA) while still dropping the heavy/secret bits.
+**/bin/
+**/obj/
+**/.vs/
+**/.vscode/
+**/node_modules/
+**/dist/
+**/coverage/
+**/.pytest_cache/
+**/.scratch/
+.git/
+release/
+project-docs/
+docs/
+graphify-out/
+tests/
+transcriber/
+# Backend/AI source isn't needed to build the SPA — exclude to keep the context small.
+backend/
+AI/
+# Never bake dev env files into the SPA build.
+frontend/.env
+frontend/.env.*

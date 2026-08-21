@@ -129,3 +129,8 @@ htmlcov/
 graphify-out/
 .scratch/
 frontend/.env
+**/helping_documents_to_ignore/
+
+# Production deployment: release bundle (image tars) and real secrets stay local/on-VM only.
+release/
+**/.env.prod
