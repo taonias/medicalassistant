@@ -1,0 +1,36 @@
+name: PostgreSQL persistence characterization
+
+on:
+  pull_request:
+    paths:
+      - "backend/src/**"
+      - "backend/test/MedicalAssistant.Persistence.IntegrationTests/**"
+      - ".github/workflows/postgresql-persistence-characterization.yml"
+  push:
+    paths:
+      - "backend/src/**"
+      - "backend/test/MedicalAssistant.Persistence.IntegrationTests/**"
+      - ".github/workflows/postgresql-persistence-characterization.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  postgres-characterization:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Restore persistence tests
+        run: >-
+          dotnet restore
+          backend/test/MedicalAssistant.Persistence.IntegrationTests/MedicalAssistant.Persistence.IntegrationTests.csproj
+      - name: Run PostgreSQL characterization gate
+        run: >-
+          dotnet test
+          backend/test/MedicalAssistant.Persistence.IntegrationTests/MedicalAssistant.Persistence.IntegrationTests.csproj
+          --no-restore
+          --filter "FullyQualifiedName~PostgreSql"
