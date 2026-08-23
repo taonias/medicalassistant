@@ -5,4 +5,5 @@ These Playwright journeys freeze user-visible behavior that component and API co
 - HTTP is intercepted only at the external API boundary.
 - Media-device shims replace browser hardware, not application modules.
 - Desktop and mobile projects share each journey so global CSS changes produce deliberate diffs.
+- Key ownership classes are asserted alongside pixels so class-renaming refactors are deliberate too.
 - Update screenshots only after confirming the behavior change is intentional: `npm run test:browser:update`.

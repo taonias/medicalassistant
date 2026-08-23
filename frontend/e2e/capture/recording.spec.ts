@@ -55,6 +55,10 @@ test('recording keeps MIME, soft pause/resume, duration, and autosave order', as
 
   await page.goto('/record?patientId=7');
   await expect(page.getByRole('button', { name: 'Pause recording' })).toBeVisible();
+  await expect(page.locator('.record-page')).toHaveCount(1);
+  await expect(page.locator('.record-session')).toHaveCount(1);
+  await expect(page.locator('.record-controls-dock')).toHaveCount(1);
+  await expect(page.locator('.record-controls')).toHaveCount(1);
   await expect(page.locator('.app-shell')).toHaveClass(/app-shell--recording-locked/);
 
   await page.getByRole('button', { name: 'Pause recording' }).click();

@@ -23,6 +23,9 @@ test('general chat keeps the stateless send-and-answer journey', async ({
   await expect(
     page.getByText('Review the latest consultation and unresolved follow-up notes.'),
   ).toBeVisible();
+  await expect(page.locator('.chat-page-layout')).toHaveCount(1);
+  await expect(page.locator('.chat-message-list')).toHaveCount(1);
+  await expect(page.locator('.chat-input')).toHaveCount(1);
   await expect(page.locator('.app-shell')).toHaveScreenshot('general-chat-answer.png', {
     animations: 'disabled',
     caret: 'hide',

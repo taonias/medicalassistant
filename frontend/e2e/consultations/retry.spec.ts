@@ -21,6 +21,10 @@ test('failed consultation retries and revokes its recording object URL on exit',
 }) => {
   await installDeterministicMediaCapture(page);
   let retryCount = 0;
+  let releaseRetry: (() => void) | undefined;
+  const retryGate = new Promise<void>((resolve) => {
+    releaseRetry = resolve;
+  });
 
   await page.route('**/api/patient/7', (route) =>
     route.fulfill({
@@ -60,6 +64,7 @@ test('failed consultation retries and revokes its recording object URL on exit',
   );
   await page.route('**/api/consultation/42/retry', async (route) => {
     retryCount += 1;
+    await retryGate;
     await route.fulfill({
       json: { ...failedConsultation, status: 'AudioUploaded', failureReason: undefined },
     });
@@ -67,6 +72,9 @@ test('failed consultation retries and revokes its recording object URL on exit',
 
   await page.goto('/patients/7/consultations/42');
   await expect(page.getByRole('alert').filter({ hasText: 'Transcription timed out.' })).toBeVisible();
+  await expect(page.locator('.error-message')).toHaveCount(1);
+  await expect(page.locator('.consultation-grid')).toHaveCount(1);
+  await expect(page.locator('.consultation-meta')).toHaveCount(1);
   await expect.poll(async () => (await readCaptureContract(page)).createdObjectUrls.length).toBe(1);
   await expect(page.locator('.app-shell')).toHaveScreenshot('consultation-failed.png', {
     animations: 'disabled',
@@ -75,6 +83,10 @@ test('failed consultation retries and revokes its recording object URL on exit',
 
   await page.getByRole('button', { name: 'Retry' }).click();
   await expect.poll(() => retryCount).toBe(1);
+  await expect(page.getByRole('alert')).toContainText('Retrying…');
+  releaseRetry?.();
+  await expect(page.getByRole('alert')).toHaveCount(0);
+  await expect(page.getByLabel('Audio Uploaded')).toBeVisible();
 
   const createdUrl = (await readCaptureContract(page)).createdObjectUrls[0];
   await page.locator('a[href="/settings"]:visible').click();

@@ -12,6 +12,8 @@ test('dashboard route keeps its responsive shell and empty state', async ({
 
   await page.goto('/');
 
+  await expect(page.locator('.app-shell')).toHaveCount(1);
+  await expect(page.locator('.dashboard-sections')).toHaveCount(1);
   await expect(
     page.getByRole('heading', { name: 'Unassigned recordings', exact: true }),
   ).toBeVisible();
@@ -42,6 +44,9 @@ test('patient list and settings routes keep their owned screen states', async ({
 
   await page.goto('/patients');
   await expect(page.getByText('Taylor, Sam')).toBeVisible();
+  await expect(page.locator('.patients-page')).toHaveCount(1);
+  await expect(page.locator('.patients-toolbar')).toHaveCount(1);
+  await expect(page.locator('.patient-card-grid')).toHaveCount(1);
   await expect(page.locator('.app-shell')).toHaveScreenshot('patients-list.png', {
     animations: 'disabled',
     caret: 'hide',
@@ -49,6 +54,9 @@ test('patient list and settings routes keep their owned screen states', async ({
 
   await page.goto('/settings');
   await expect(page.getByRole('heading', { name: 'Appearance' })).toBeVisible();
+  await expect(page.locator('.settings-page')).toHaveCount(1);
+  await expect(page.locator('.settings-section')).toHaveCount(3);
+  await expect(page.locator('.settings-form')).toHaveCount(2);
   await expect(page.locator('.app-shell')).toHaveScreenshot('settings.png', {
     animations: 'disabled',
     caret: 'hide',
