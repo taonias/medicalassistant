@@ -1,6 +1,14 @@
-# Consultation Processing acceptance gate
+# System acceptance and contract gates
 
-This project is the public-interface acceptance gate for Consultation Processing.
+This project contains public-interface gates that remain stable while implementation
+folders and namespaces are refactored:
+
+- `Contracts/` is the fast R07 Backend API gate. It freezes OpenAPI, HTTP multipart
+  and download behavior, legacy callbacks, and the Doctor-facing SignalR interface
+  without starting Docker. See [Contracts/README.md](Contracts/README.md).
+- the container-backed scenarios are the R06 Consultation Processing acceptance gate.
+
+The Consultation Processing scenarios cross product interfaces only:
 Scenarios cross product interfaces only:
 
 - a Doctor registers, authenticates, creates a Consultation, and uploads a synthetic Recording through the backend HTTP interface;
