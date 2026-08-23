@@ -19,6 +19,7 @@ src/
 ├── features/            # Domain modules (auth, patients, consultations, chat, …)
 ├── layouts/             # App shell and auth layout
 ├── shared/              # API client, types, reusable components
+├── test/                # Shared MSW server and React Query test harness
 └── styles/              # Global styles
 ```
 
@@ -44,6 +45,18 @@ VITE_API_BASE_URL=https://localhost:7037/api
 ```
 
 The dev server uses port **4200** to match backend CORS settings.
+
+## Test
+
+```bash
+npm test
+```
+
+Contract tests live beside the module they protect and use the
+`*.contract.test.ts(x)` suffix. Shared browser/network test infrastructure lives
+under `src/test`. The suite fixes its backend origin to
+`https://backend.test/api`; MSW handles every expected request and fails on any
+unhandled request, so local `.env` values do not affect the contract results.
 
 ## Backend endpoints used
 
