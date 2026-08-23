@@ -13,6 +13,8 @@ dist-ssr
 *.local
 .vite
 coverage
+playwright-report
+test-results
 
 # Env
 .env
