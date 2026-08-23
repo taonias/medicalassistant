@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using MediatR;
+using MedicalAssistant.Application.Features.Chat.Common;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
@@ -25,6 +26,16 @@ public sealed class BackendContractApiFactory : WebApplicationFactory<Program>
     internal const string AuthenticationScheme = "BackendContract";
     internal const string DoctorIdHeader = "X-Contract-Doctor-Id";
     internal const string CallbackApiKey = "backend-contract-callback-key";
+    private readonly IChatProgressNotifier? _chatProgress;
+
+    public BackendContractApiFactory()
+    {
+    }
+
+    internal BackendContractApiFactory(IChatProgressNotifier chatProgress)
+    {
+        _chatProgress = chatProgress;
+    }
 
     public Mock<IMediator> Mediator { get; } = new(MockBehavior.Strict);
 
@@ -52,6 +63,12 @@ public sealed class BackendContractApiFactory : WebApplicationFactory<Program>
 
             services.RemoveAll<IMediator>();
             services.AddSingleton(Mediator.Object);
+
+            if (_chatProgress is not null)
+            {
+                services.RemoveAll<IChatProgressNotifier>();
+                services.AddSingleton(_chatProgress);
+            }
 
             services.RemoveAll<RoleManager<IdentityRole>>();
             services.AddSingleton(CreateRoleManager());

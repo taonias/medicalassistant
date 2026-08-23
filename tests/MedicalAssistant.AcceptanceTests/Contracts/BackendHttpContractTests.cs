@@ -4,6 +4,8 @@ using System.Net.Http.Json;
 using System.Text;
 using MediatR;
 using MedicalAssistant.Application.Features.ActionRequest.Command.ProcessActionCallback;
+using MedicalAssistant.Application.Features.Chat.Common;
+using MedicalAssistant.Application.Features.Chat.Queries.ChatQuery;
 using MedicalAssistant.Application.Features.Consultation.Command.UploadConsultationAudio;
 using MedicalAssistant.Application.Features.Consultation.Command.UploadConsultationDocument;
 using MedicalAssistant.Application.Features.Consultation.Queries.GetConsultationAudio;
@@ -18,7 +20,7 @@ namespace MedicalAssistant.AcceptanceTests.Contracts;
 public sealed class BackendHttpContractTests
 {
     [Fact]
-    public async Task Audio_upload_binds_the_existing_multipart_field_names()
+    public async Task Recording_upload_binds_the_existing_audio_multipart_field_names()
     {
         await using var factory = new BackendContractApiFactory();
         factory.Mediator
@@ -70,7 +72,7 @@ public sealed class BackendHttpContractTests
     }
 
     [Fact]
-    public async Task Audio_download_preserves_range_processing_and_content_type()
+    public async Task Recording_download_preserves_audio_range_processing_and_content_type()
     {
         await using var factory = new BackendContractApiFactory();
         factory.Mediator
@@ -216,6 +218,75 @@ public sealed class BackendHttpContractTests
         Assert.Equal(HttpStatusCode.OK, transcription.StatusCode);
         Assert.Equal(HttpStatusCode.OK, structured.StatusCode);
         Assert.Equal(HttpStatusCode.OK, action.StatusCode);
+        factory.Mediator.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Authorized_chat_progress_callback_keeps_its_route_mapping_and_success_status()
+    {
+        var occurredAt = new DateTimeOffset(2026, 8, 23, 12, 30, 0, TimeSpan.Zero);
+        var progress = new Mock<IChatProgressNotifier>(MockBehavior.Strict);
+        progress
+            .Setup(notifier => notifier.NotifyAsync(
+                "doctor-9",
+                It.Is<ChatProgressEvent>(message =>
+                    message.AskId == Guid.Parse("fc5f18d2-b4c8-4e51-ae15-69340217b9bb") &&
+                    message.Phase == "retrieving" &&
+                    message.Message == "Searching patient evidence" &&
+                    message.OccurredAt == occurredAt),
+                It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        await using var factory = new BackendContractApiFactory(progress.Object);
+        using var client = CreateClient(factory);
+        client.DefaultRequestHeaders.Add("X-Api-Key", BackendContractApiFactory.CallbackApiKey);
+
+        using var response = await client.PostAsJsonAsync("/api/ai-callback/chat-progress", new
+        {
+            askId = "fc5f18d2-b4c8-4e51-ae15-69340217b9bb",
+            doctorId = "doctor-9",
+            phase = "retrieving",
+            message = "Searching patient evidence",
+            occurredAt,
+        });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(0, response.Content.Headers.ContentLength);
+        progress.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Legacy_stateless_chat_query_keeps_its_route_mapping_and_response_JSON()
+    {
+        await using var factory = new BackendContractApiFactory();
+        factory.Mediator
+            .Setup(mediator => mediator.Send(
+                It.Is<ChatQuery>(query =>
+                    query.PatientId == 71 &&
+                    query.ConsultationId == 72 &&
+                    query.Message == "What changed?" &&
+                    query.SessionId == "legacy-session"),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ChatResponseDto
+            {
+                Answer = "No material change.",
+                Citations = ["consultation-72"],
+                SuggestedActions = ["review transcript"],
+            });
+        using var client = CreateClient(factory);
+
+        using var response = await client.PostAsJsonAsync("/api/Chat/query", new
+        {
+            patientId = 71,
+            consultationId = 72,
+            message = "What changed?",
+            sessionId = "legacy-session",
+        });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
+        Assert.Equal(
+            "{\"answer\":\"No material change.\",\"citations\":[\"consultation-72\"],\"suggestedActions\":[\"review transcript\"]}",
+            await response.Content.ReadAsStringAsync());
         factory.Mediator.VerifyAll();
     }
 

@@ -84,7 +84,7 @@ public sealed class BackendOpenApiContractTests : IClassFixture<BackendContractA
     private static string Canonicalize(string json)
     {
         var node = JsonNode.Parse(json) ?? throw new InvalidOperationException("OpenAPI JSON was empty.");
-        return Sort(node).ToJsonString(new JsonSerializerOptions { WriteIndented = true }) + Environment.NewLine;
+        return Sort(node).ToJsonString(new JsonSerializerOptions { WriteIndented = true }) + "\n";
     }
 
     private static JsonNode Sort(JsonNode node) => node switch
