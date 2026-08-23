@@ -1,13 +1,9 @@
 import { render, screen } from '@testing-library/react';
-import {
-  createMemoryRouter,
-  RouterProvider,
-  type RouteObject,
-} from 'react-router-dom';
+import { RouterProvider, type RouteObject } from 'react-router-dom';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { useAuthStore } from '../features/auth/store/authStore';
-import { ProtectedRoute } from '../shared/components/ProtectedRoute';
+import { AppProviders } from './providers';
 import { router } from './router';
 
 function routePaths(routes: readonly RouteObject[], parentPath = ''): string[] {
@@ -50,22 +46,46 @@ describe('browser route contract', () => {
     ]);
   });
 
-  it('redirects an unauthenticated Doctor to login before rendering protected content', async () => {
-    useAuthStore.setState({ token: null, user: null, roles: [] });
-    const protectedRouter = createMemoryRouter(
-      [
-        {
-          element: <ProtectedRoute />,
-          children: [{ path: '/patients', element: <h1>Patients</h1> }],
-        },
-        { path: '/login', element: <h1>Sign in</h1> },
-      ],
-      { initialEntries: ['/patients'] },
+  it('renders the public login route with its existing Doctor-facing DOM', async () => {
+    await router.navigate('/login');
+
+    render(
+      <AppProviders>
+        <RouterProvider router={router} />
+      </AppProviders>,
     );
 
-    render(<RouterProvider router={protectedRouter} />);
+    expect(await screen.findByText('Sign in to continue')).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Username' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Password')).toHaveAttribute('type', 'password');
+    expect(screen.getByRole('button', { name: 'Sign in' })).toBeInTheDocument();
+  });
 
-    expect(await screen.findByRole('heading', { name: 'Sign in' })).toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: 'Patients' })).not.toBeInTheDocument();
+  it('redirects an unauthenticated Doctor before rendering a protected route', async () => {
+    useAuthStore.setState({ token: null, user: null, roles: [] });
+    await router.navigate('/patients');
+
+    render(
+      <AppProviders>
+        <RouterProvider router={router} />
+      </AppProviders>,
+    );
+
+    expect(await screen.findByText('Sign in to continue')).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/login');
+  });
+
+  it('routes an unknown URL through the existing fallback', async () => {
+    useAuthStore.setState({ token: null, user: null, roles: [] });
+    await router.navigate('/not-a-supported-route');
+
+    render(
+      <AppProviders>
+        <RouterProvider router={router} />
+      </AppProviders>,
+    );
+
+    expect(await screen.findByText('Sign in to continue')).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/login');
   });
 });

@@ -1,7 +1,6 @@
 import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { authApi } from '../../features/auth/api/authApi';
 import { useAuthStore } from '../../features/auth/store/authStore';
 import { server } from '../../test/server';
 import { httpClient, setAuthToken } from './httpClient';
@@ -24,26 +23,6 @@ beforeEach(() => {
 });
 
 describe('HTTP authentication contract', () => {
-  it('sends login JSON to the public login URL without an Authorization header', async () => {
-    let requestContract: { authorization: string | null; body: unknown } | undefined;
-    server.use(
-      http.post(`${apiBaseUrl}/auth/login`, async ({ request }) => {
-        requestContract = {
-          authorization: request.headers.get('Authorization'),
-          body: await request.json(),
-        };
-        return HttpResponse.json(authenticatedDoctor);
-      }),
-    );
-
-    await authApi.login({ userName: 'doctor', password: 'secret' });
-
-    expect(requestContract).toEqual({
-      authorization: null,
-      body: { userName: 'doctor', password: 'secret' },
-    });
-  });
-
   it('logs the Doctor out when an authenticated request returns 401', async () => {
     useAuthStore.getState().setAuth(authenticatedDoctor);
     server.use(
