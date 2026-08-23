@@ -166,7 +166,7 @@ public sealed class BackendHttpContractTests
     }
 
     [Fact]
-    public async Task Legacy_AI_callback_generations_keep_their_routes_payloads_and_success_status()
+    public async Task Legacy_transcription_structured_data_and_action_callbacks_keep_their_routes_payloads_and_success_status()
     {
         await using var factory = new BackendContractApiFactory();
         factory.Mediator
