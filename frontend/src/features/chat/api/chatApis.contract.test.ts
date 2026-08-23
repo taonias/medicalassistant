@@ -6,8 +6,8 @@ import { actionApi } from './actionApi';
 import { chatApi } from './chatApi';
 import { conversationApi } from './conversationApi';
 
-describe('Chat API contract', () => {
-  it('keeps legacy chat, conversation, and Action Request URLs unchanged', async () => {
+describe('Chat Query and Action Request API contract', () => {
+  it('keeps Chat Query, conversation, and Action Request URLs unchanged', async () => {
     const { origins, requests } = recordApiRequests();
 
     await chatApi.query({ patientId: 7, message: 'Question' });

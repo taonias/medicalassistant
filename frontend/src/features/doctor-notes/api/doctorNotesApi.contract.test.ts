@@ -4,7 +4,7 @@ import { recordApiRequests } from '../../../test/recordApiRequests';
 import { doctorNotesApi } from './doctorNotesApi';
 
 describe('Doctor Note API contract', () => {
-  it('keeps Consultation and Patient note URLs unchanged', async () => {
+  it('keeps Consultation-level and Patient-level Doctor Note URLs unchanged', async () => {
     const { origins, requests } = recordApiRequests();
 
     await doctorNotesApi.getByConsultation(42);

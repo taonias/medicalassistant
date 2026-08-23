@@ -10,7 +10,7 @@ import { server } from '../../../test/server';
 import { NewConsultationPage } from './NewConsultationPage';
 
 describe('new Consultation upload workflow contract', () => {
-  it('loads the Patient, creates a Consultation, uploads its Document, then navigates', async () => {
+  it('loads the Patient, creates a Consultation, uploads its Consultation Document, then navigates', async () => {
     const requests: string[] = [];
     const patient = {
       id: 7,

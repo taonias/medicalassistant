@@ -1,10 +1,23 @@
 import { render, screen } from '@testing-library/react';
+import { http, HttpResponse } from 'msw';
 import { RouterProvider, type RouteObject } from 'react-router-dom';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { useAuthStore } from '../features/auth/store/authStore';
+import { server } from '../test/server';
 import { AppProviders } from './providers';
 import { router } from './router';
+
+const authenticatedDoctor = {
+  id: 'doctor-1',
+  userName: 'doctor',
+  email: 'doctor@example.test',
+  emailConfirmed: true,
+  firstName: 'Test',
+  lastName: 'Doctor',
+  token: 'doctor-token',
+  roles: ['Doctor'],
+};
 
 function routePaths(routes: readonly RouteObject[], parentPath = ''): string[] {
   return routes.flatMap((route) => {
@@ -22,7 +35,7 @@ function routePaths(routes: readonly RouteObject[], parentPath = ''): string[] {
 }
 
 afterEach(() => {
-  useAuthStore.setState({ token: null, user: null, roles: [] });
+  useAuthStore.getState().logout();
 });
 
 describe('browser route contract', () => {
@@ -76,7 +89,25 @@ describe('browser route contract', () => {
   });
 
   it('routes an unknown URL through the existing fallback', async () => {
-    useAuthStore.setState({ token: null, user: null, roles: [] });
+    useAuthStore.getState().setAuth(authenticatedDoctor);
+    server.use(
+      http.get('https://backend.test/api/auth/session', () =>
+        HttpResponse.json({
+          id: authenticatedDoctor.id,
+          userName: authenticatedDoctor.userName,
+          email: authenticatedDoctor.email,
+          emailConfirmed: authenticatedDoctor.emailConfirmed,
+          firstName: authenticatedDoctor.firstName,
+          lastName: authenticatedDoctor.lastName,
+        }),
+      ),
+      http.get('https://backend.test/api/consultation/analytics', () =>
+        HttpResponse.json(null),
+      ),
+      http.get('https://backend.test/api/consultation/drafts/unattached', () =>
+        HttpResponse.json([]),
+      ),
+    );
     await router.navigate('/not-a-supported-route');
 
     render(
@@ -85,7 +116,8 @@ describe('browser route contract', () => {
       </AppProviders>,
     );
 
-    expect(await screen.findByText('Sign in to continue')).toBeInTheDocument();
-    expect(router.state.location.pathname).toBe('/login');
+    expect(await screen.findByText('No dashboard data yet')).toBeInTheDocument();
+    expect(screen.getByLabelText('Application sidebar')).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/');
   });
 });
