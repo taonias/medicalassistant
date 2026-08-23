@@ -1,5 +1,7 @@
 # Current Code and Gap Analysis
 
+> Historical pre-implementation analysis. Retained to explain design evolution; it is not the current event contract. Use the [observable interface baseline](../../docs/architecture/observable-interface-baseline.md).
+
 ## Scope inspected
 
 This analysis combines the active backend, unused Azure Function transcriber, RabbitMQ Compose configuration, Clinical Knowledge code/design records, and existing project documentation. The user confirmed the Function code has never run in a deployed environment, so these are implementation gaps rather than live-data migration risks.

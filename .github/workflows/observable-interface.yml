@@ -1,0 +1,17 @@
+name: Observable interface
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - develop
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify routes, solution, Compose, schema, events, SignalR, and host registrations
+        shell: pwsh
+        run: ./scripts/verify-observable-interface.ps1

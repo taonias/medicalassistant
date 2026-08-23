@@ -1,0 +1,391 @@
+{
+  "baselineCommit": "ed2e38e49194122e1b4003d4c95f3ade283830ac",
+  "httpRoutes": [
+    "DELETE /api/Consultation/{id:int}",
+    "DELETE /api/conversations/{conversationId:int}",
+    "DELETE /documents/{documentId}",
+    "DELETE /patients/{patientId}/data",
+    "GET /api/Action/{correlationId}",
+    "GET /api/Auth/session",
+    "GET /api/Consultation/{id:int}",
+    "GET /api/Consultation/{id:int}/audio",
+    "GET /api/Consultation/{id:int}/document",
+    "GET /api/Consultation/{id}/structured-data",
+    "GET /api/Consultation/analytics",
+    "GET /api/Consultation/drafts",
+    "GET /api/Consultation/drafts/unattached",
+    "GET /api/Consultation/patient/{patientId}",
+    "GET /api/DoctorNotes/consultations/{consultationId}",
+    "GET /api/DoctorNotes/patients/{patientId}",
+    "GET /api/Patient",
+    "GET /api/Patient/{id}",
+    "GET /api/Patient/{id}/history",
+    "GET /api/Transcript/{consultationId}",
+    "GET /api/conversations/{conversationId:int}/messages",
+    "GET /api/patients/{patientId:int}/conversations",
+    "GET /ingestions",
+    "GET /ingestions/{id:guid}",
+    "GET /ingestions/{id:guid}/quality",
+    "GET /patients/{patientId}/documents",
+    "GET /patients/{patientId}/summary",
+    "PATCH /api/conversations/{conversationId:int}",
+    "POST /api/Action/trigger",
+    "POST /api/Auth/login",
+    "POST /api/Auth/register",
+    "POST /api/Chat/ask",
+    "POST /api/Chat/query",
+    "POST /api/Consultation",
+    "POST /api/Consultation/{id:int}/retry",
+    "POST /api/Consultation/{id}/audio",
+    "POST /api/Consultation/{id}/document",
+    "POST /api/Consultation/{id}/structured-data/approve",
+    "POST /api/DoctorNotes",
+    "POST /api/Patient",
+    "POST /api/ai-callback/action",
+    "POST /api/ai-callback/chat-progress",
+    "POST /api/ai-callback/structured-data",
+    "POST /api/ai-callback/transcription",
+    "POST /api/conversations",
+    "POST /api/conversations/{conversationId:int}/messages/{messageId:int}/retry",
+    "POST /ingestions",
+    "POST /ingestions/{id:guid}/retry",
+    "POST /patients/{patientId}/chat/answer",
+    "POST /patients/{patientId}/chat/summarize",
+    "PUT /api/Auth/password",
+    "PUT /api/Auth/profile",
+    "PUT /api/Consultation/{id:int}/patient",
+    "PUT /api/Patient",
+    "PUT /api/Transcript/{consultationId}"
+  ],
+  "openApi": [
+    "backend:/swagger/v1/swagger.json:Bearer",
+    "clinical-knowledge:/swagger/v1/swagger.json:ApiKey:X-Api-Key"
+  ],
+  "signalR": [
+    "/hubs/chat:ChatProgress",
+    "/hubs/ingestion-status:IngestionStatusChanged"
+  ],
+  "eventRoutingKeys": [
+    "clinicalknowledge.ingestion-failed.v1",
+    "consultation.audio-uploaded.v1",
+    "consultation.deleted.v1",
+    "consultation.document-uploaded.v1",
+    "consultation.transcript-ready.v1",
+    "consultation.transcription-failed.v1"
+  ],
+  "eventEnvelopeFields": [
+    "eventId",
+    "eventType",
+    "eventVersion",
+    "occurredAtUtc",
+    "producer",
+    "correlationId",
+    "causationId",
+    "payload"
+  ],
+  "eventPayloadShapes": [
+    "clinicalknowledge.ingestion-failed.v1=sessionId,ingestionId,reason",
+    "consultation.audio-uploaded.v1=consultationId,fileId,contentType,storageObjectReference,durationSeconds",
+    "consultation.deleted.v1=consultationId,deletedAtUtc,reasonCode",
+    "consultation.document-uploaded.v1=consultationId,fileId,documentType,contentType,storageObjectReference",
+    "consultation.transcript-ready.v1=consultationId,fileId,transcriptId,transcriptRevision,languageCode",
+    "consultation.transcription-failed.v1=consultationId,fileId,failureCode,failureCategory"
+  ],
+  "composeServices": [
+    "aspire-dashboard",
+    "azurite",
+    "backend-api",
+    "backend-migrations",
+    "clinical-knowledge",
+    "pgadmin",
+    "postgres",
+    "rabbitmq",
+    "rabbitmq-provisioner",
+    "transcription-worker",
+    "vector-db-ui"
+  ],
+  "composeVolumes": [
+    "medicalassistant_azurite_data",
+    "medicalassistant_pgadmin_data",
+    "medicalassistant_pgdata",
+    "medicalassistant_rabbitmq_data"
+  ],
+  "solutionProjects": [
+    "AI/src/MedicalAssistance.Ingestion.Api/MedicalAssistance.Ingestion.Api.csproj",
+    "AI/tests/MedicalAssistance.Ingestion.Api.Tests/MedicalAssistance.Ingestion.Api.Tests.csproj",
+    "backend/src/MedicalAssistant.Api/MedicalAssistant.Api.csproj",
+    "backend/src/MedicalAssistant.Application/MedicalAssistant.Application.csproj",
+    "backend/src/MedicalAssistant.Domain/MedicalAssistant.Domain.csproj",
+    "backend/src/MedicalAssistant.EventBus/MedicalAssistant.EventBus.csproj",
+    "backend/src/MedicalAssistant.EventBusRabbitMQ/MedicalAssistant.EventBusRabbitMQ.csproj",
+    "backend/src/MedicalAssistant.Identity/MedicalAssistant.Identity.csproj",
+    "backend/src/MedicalAssistant.Infrastructure/MedicalAssistant.Infrastructure.csproj",
+    "backend/src/MedicalAssistant.Migrations/MedicalAssistant.Migrations.csproj",
+    "backend/src/MedicalAssistant.Persistence/MedicalAssistant.Persistence.csproj",
+    "backend/src/MedicalAssistant.Transcription.Worker/MedicalAssistant.Transcription.Worker.csproj",
+    "backend/test/MedicalAssistant.Application.UnitTests/MedicalAssistant.Application.UnitTests.csproj",
+    "backend/test/MedicalAssistant.EventBus.UnitTests/MedicalAssistant.EventBus.UnitTests.csproj",
+    "backend/test/MedicalAssistant.EventBusRabbitMQ.UnitTests/MedicalAssistant.EventBusRabbitMQ.UnitTests.csproj",
+    "backend/test/MedicalAssistant.Persistence.IntegrationTests/MedicalAssistant.Persistence.IntegrationTests.csproj",
+    "tests/MedicalAssistant.AcceptanceTests/MedicalAssistant.AcceptanceTests.csproj"
+  ],
+  "modelSnapshots": {
+    "AI/src/MedicalAssistance.Ingestion.Api/Ingestions/Migrations/IngestionDbContextModelSnapshot.cs": "DB01996EF1783AE8ECBF7FCC34AE086BCEFA36502E6CCF8F33F1E4BEE6290C73",
+    "backend/src/MedicalAssistant.Identity/Migrations/MedicalAssistantIdentityDbContextModelSnapshot.cs": "9E78A3569B6F3F8D708F37312AC8B915ADDC5891A682B60A878203FD3AD3F1B7",
+    "backend/src/MedicalAssistant.Persistence/Migrations/MedicalAssistantDatabaseContextModelSnapshot.cs": "7201A478751E8F046744BEF42753479D3015E331471FE6B1E18E434012DB3A07"
+  },
+  "migrationFiles": {
+    "backend/src/MedicalAssistant.Persistence/Migrations": [
+      "20260612142639_InitialPostgreSql.cs",
+      "20260612180000_OptionalConsultationPatient.cs",
+      "20260616150544_Phase5DoctorNotesAndApproval.cs",
+      "20260714104617_AddPatientSummary.cs",
+      "20260714153000_MakeConsultationPatientIdOptional.cs",
+      "20260715190000_MakeDoctorNoteConsultationIdOptional.cs",
+      "20260716114500_DropDoctorNoteTitle.cs",
+      "20260716170000_AddConsultationDocumentFields.cs",
+      "20260721120000_RenameTranscriptRawTextAndDropBlobUri.cs",
+      "20260804140025_ConsultationProcessingDurableSchema.cs",
+      "20260804190000_AddClinicalKnowledgeInboxResult.cs",
+      "20260819211817_AddChatConversations.cs"
+    ],
+    "backend/src/MedicalAssistant.Identity/Migrations": [
+      "20260612142659_InitialIdentity.cs"
+    ],
+    "AI/src/MedicalAssistance.Ingestion.Api/Ingestions/Migrations": [
+      "20260718233712_InitialSchema.cs",
+      "20260719140541_DocumentIdCarriesDoctorAndPatient.cs",
+      "20260719201600_UnIngestDocumentIdAndTombstone.cs",
+      "20260719215618_ErasureLog.cs",
+      "20260725143815_SeedAgentInstructions.cs",
+      "20260725155033_AnalyteResultsAndTier2.cs",
+      "20260725234334_SeedImagingChunker.cs",
+      "20260725235310_ChunkEmbeddingModel.cs",
+      "20260727213208_ChunkPatientDoctorAndVectorIndexes.cs",
+      "20260727221420_IngestionDocumentSummary.cs",
+      "20260727223028_PatientRollingSummary.cs",
+      "20260727224332_SeedLabReportSummarizer.cs",
+      "20260729174254_IngestionQualityReport.cs",
+      "20260731130256_SeedGroundedChatAgent.cs",
+      "20260731131533_SeedQueryRefinementAgent.cs",
+      "20260819000239_AddIntegrationEventOutbox.cs",
+      "20260819214536_SeedConversationSummarizer.cs"
+    ]
+  },
+  "endpointStatusSignatures": [
+    "DELETE /api/Consultation/{id:int}=204",
+    "DELETE /api/conversations/{conversationId:int}=204",
+    "DELETE /documents/{documentId}=200,400,404,409",
+    "DELETE /patients/{patientId}/data=200,400,401,403",
+    "GET /api/Action/{correlationId}=200",
+    "GET /api/Auth/session=200,401",
+    "GET /api/Consultation/{id:int}=200",
+    "GET /api/Consultation/{id:int}/audio=200,206,404",
+    "GET /api/Consultation/{id:int}/document=200,404",
+    "GET /api/Consultation/{id}/structured-data=200",
+    "GET /api/Consultation/analytics=200",
+    "GET /api/Consultation/drafts=200",
+    "GET /api/Consultation/drafts/unattached=200",
+    "GET /api/Consultation/patient/{patientId}=200",
+    "GET /api/DoctorNotes/consultations/{consultationId}=200",
+    "GET /api/DoctorNotes/patients/{patientId}=200",
+    "GET /api/Patient=200",
+    "GET /api/Patient/{id}=200",
+    "GET /api/Patient/{id}/history=200",
+    "GET /api/Transcript/{consultationId}=200",
+    "GET /api/conversations/{conversationId:int}/messages=200",
+    "GET /api/patients/{patientId:int}/conversations=200",
+    "GET /ingestions=200,400",
+    "GET /ingestions/{id:guid}=200,404",
+    "GET /ingestions/{id:guid}/quality=200,404",
+    "GET /patients/{patientId}/documents=200",
+    "GET /patients/{patientId}/summary=200,404",
+    "PATCH /api/conversations/{conversationId:int}=200",
+    "POST /api/Action/trigger=202",
+    "POST /api/Auth/login=200",
+    "POST /api/Auth/register=200",
+    "POST /api/Chat/ask=200",
+    "POST /api/Chat/query=200",
+    "POST /api/Consultation=200,201",
+    "POST /api/Consultation/{id:int}/retry=200",
+    "POST /api/Consultation/{id}/audio=200",
+    "POST /api/Consultation/{id}/document=200",
+    "POST /api/Consultation/{id}/structured-data/approve=204",
+    "POST /api/DoctorNotes=200",
+    "POST /api/Patient=201",
+    "POST /api/ai-callback/action=200,401",
+    "POST /api/ai-callback/chat-progress=200,401",
+    "POST /api/ai-callback/structured-data=200,401",
+    "POST /api/ai-callback/transcription=200,401",
+    "POST /api/conversations=200",
+    "POST /api/conversations/{conversationId:int}/messages/{messageId:int}/retry=200",
+    "POST /ingestions=202,400,409",
+    "POST /ingestions/{id:guid}/retry=202,404,409",
+    "POST /patients/{patientId}/chat/answer=200,400,401,500",
+    "POST /patients/{patientId}/chat/summarize=200,401",
+    "PUT /api/Auth/password=204,401",
+    "PUT /api/Auth/profile=200,401",
+    "PUT /api/Consultation/{id:int}/patient=200",
+    "PUT /api/Patient=200",
+    "PUT /api/Transcript/{consultationId}=200"
+  ],
+  "statusAssertions": [
+    {
+      "path": "backend/src/MedicalAssistant.Api/Controllers/ConsultationController.cs",
+      "contains": ["return Ok(response);", "return CreatedAtAction(", "return NoContent();", "return NotFound();", "return File("]
+    },
+    {
+      "path": "backend/src/MedicalAssistant.Api/Controllers/ActionController.cs",
+      "contains": ["return Accepted(response);", "return Ok(response);"]
+    },
+    {
+      "path": "backend/src/MedicalAssistant.Api/Controllers/AuthController.cs",
+      "contains": ["return Ok(response);", "return Unauthorized();", "return NoContent();"]
+    },
+    {
+      "path": "backend/src/MedicalAssistant.Api/Controllers/PatientController.cs",
+      "contains": ["return CreatedAtAction(", "return Ok(response);"]
+    },
+    {
+      "path": "backend/src/MedicalAssistant.Api/Controllers/ConversationsController.cs",
+      "contains": ["return Ok(", "return NoContent();"]
+    },
+    {
+      "path": "backend/src/MedicalAssistant.Api/Controllers/AiCallbackController.cs",
+      "contains": ["return Unauthorized();", "return Ok();"]
+    },
+    {
+      "path": "AI/src/MedicalAssistance.Ingestion.Api/Controllers/IngestionsController.cs",
+      "contains": ["StatusCodes.Status202Accepted", "StatusCodes.Status400BadRequest", "StatusCodes.Status404NotFound", "StatusCodes.Status409Conflict"]
+    },
+    {
+      "path": "AI/src/MedicalAssistance.Ingestion.Api/Controllers/DocumentsController.cs",
+      "contains": ["StatusCodes.Status200OK", "StatusCodes.Status400BadRequest", "StatusCodes.Status404NotFound", "StatusCodes.Status409Conflict"]
+    },
+    {
+      "path": "AI/src/MedicalAssistance.Ingestion.Api/Controllers/PatientsController.cs",
+      "contains": ["StatusCodes.Status200OK", "StatusCodes.Status400BadRequest", "StatusCodes.Status401Unauthorized", "StatusCodes.Status403Forbidden", "StatusCodes.Status404NotFound"]
+    },
+    {
+      "path": "AI/src/MedicalAssistance.Ingestion.Api/Controllers/ChatController.cs",
+      "contains": ["StatusCodes.Status200OK", "StatusCodes.Status400BadRequest", "StatusCodes.Status401Unauthorized", "StatusCodes.Status500InternalServerError"]
+    }
+  ],
+  "configurationAssertions": [
+    {
+      "path": "backend/src/MedicalAssistant.Api/appsettings.json",
+      "keys": ["Database:Provider", "ConnectionStrings:MedicalAssistantDatabasePostgreSQL", "ConnectionStrings:MedicalAssistantDatabaseSqlServer", "JwtSettings", "BlobStorage", "AiModule", "ClinicalKnowledge", "AiCallback", "RabbitMQ", "AppSettings", "EventRetention", "ConsultationOutboxRelay", "CorsSettings:AllowedOrigins"],
+      "contains": ["\"Database\"", "\"Provider\"", "\"MedicalAssistantDatabasePostgreSQL\"", "\"MedicalAssistantDatabaseSqlServer\"", "\"JwtSettings\"", "\"BlobStorage\"", "\"AiModule\"", "\"ClinicalKnowledge\"", "\"AiCallback\"", "\"RabbitMQ\"", "\"AppSettings\"", "\"EventRetention\"", "\"ConsultationOutboxRelay\"", "\"AllowedOrigins\""]
+    },
+    {
+      "path": "backend/src/MedicalAssistant.Transcription.Worker/appsettings.json",
+      "keys": ["TranscriptionWorker:Provider", "TranscriptionWorker:ShutdownDrainTimeout", "TranscriptionWorker:ProcessingLeaseDuration", "TranscriptionWorker:MaxConcurrentTranscriptions", "TranscriptionWorker:BlobRetrieval", "TranscriptionWorker:AzureSpeech", "TranscriptionWorker:OpenAiWhisper"],
+      "contains": ["\"TranscriptionWorker\"", "\"Provider\"", "\"ShutdownDrainTimeout\"", "\"ProcessingLeaseDuration\"", "\"MaxConcurrentTranscriptions\"", "\"BlobRetrieval\"", "\"AzureSpeech\"", "\"OpenAiWhisper\""]
+    },
+    {
+      "path": "AI/src/MedicalAssistance.Ingestion.Api/Program.cs",
+      "keys": ["ConnectionStrings:Postgres", "Ingestion:WorkerCount", "DocumentArchive:LocalRootPath", "OTEL_EXPORTER_OTLP_ENDPOINT"],
+      "contains": ["ConnectionStrings:Postgres", "Ingestion:WorkerCount", "DocumentArchive:LocalRootPath", "OTEL_EXPORTER_OTLP_ENDPOINT"]
+    },
+    {
+      "path": "AI/src/MedicalAssistance.Ingestion.Api/Ingestions/IngestionWorker.cs",
+      "keys": ["Ingestion:WorkerCount", "Ingestion:MaxAttempts"],
+      "contains": ["Ingestion:WorkerCount", "Ingestion:MaxAttempts"]
+    },
+    {
+      "path": "AI/src/MedicalAssistance.Ingestion.Api/Ingestions/IngestionRecoverySweep.cs",
+      "keys": ["Ingestion:RecoverySweepInterval"],
+      "contains": ["Ingestion:RecoverySweepInterval"]
+    },
+    {
+      "path": "AI/src/MedicalAssistance.Ingestion.Api/Ingestions/ProseIngestionPipeline.cs",
+      "keys": ["Chunking:MinTokens", "Chunking:MaxTokens"],
+      "contains": ["Chunking:MinTokens", "Chunking:MaxTokens"]
+    },
+    {
+      "path": "AI/src/MedicalAssistance.Ingestion.Api/Retrieval/RefineRetrievalStep.cs",
+      "keys": ["Retrieval:QueryRefinement:Enabled"],
+      "contains": ["Retrieval:QueryRefinement:Enabled"]
+    },
+    {
+      "path": "AI/src/MedicalAssistance.Ingestion.Api/Retrieval/PackageRetrievalStep.cs",
+      "keys": ["Retrieval:ConfidenceThreshold"],
+      "contains": ["Retrieval:ConfidenceThreshold"]
+    },
+    {
+      "path": "AI/src/MedicalAssistance.Ingestion.Api/Ingestions/PdfIntake.cs",
+      "keys": ["Extraction:MaxPdfBytes"],
+      "contains": ["Extraction:MaxPdfBytes"]
+    },
+    {
+      "path": "AI/src/MedicalAssistance.Ingestion.Api/Ingestions/OpenAiProviders.cs",
+      "keys": ["OpenAIChat:{ApiKey,BaseUrl,Model}", "OpenAIEmbeddings:{ApiKey,BaseUrl,Model}"],
+      "contains": ["OpenAIChat", "OpenAIEmbeddings", "section[\"ApiKey\"]", "section[\"BaseUrl\"]", "section[\"Model\"]"]
+    },
+    {
+      "path": "AI/src/MedicalAssistance.Ingestion.Api/Ingestions/AzureAi.cs",
+      "keys": ["AzureOpenAI:{Endpoint,ApiKey,ChatDeployment,EmbeddingDeployment,Embedding:Dimensions}", "DocumentIntelligence:{Endpoint,ApiKey}"],
+      "contains": ["AzureOpenAI", "DocumentIntelligence", "Embedding:Dimensions", "section[\"Endpoint\"]", "section[\"ApiKey\"]", "section[\"ChatDeployment\"]", "section[\"EmbeddingDeployment\"]"]
+    }
+  ],
+  "diAssertions": [
+    {
+      "path": "backend/src/MedicalAssistant.Application/ApplicationServiceRegistration.cs",
+      "contains": ["AddTransient(typeof(IPipelineBehavior<,>)", "AddScoped<Features.Chat.Common.IChatTurnRunner", "AddSingleton<Features.Chat.Common.IConversationSummaryRefreshQueue"]
+    },
+    {
+      "path": "backend/src/MedicalAssistant.Persistence/PersistenceServiceRegistration.cs",
+      "contains": ["AddDbContext<MedicalAssistantDatabaseContext>", "AddScoped<IPatientRepository", "AddScoped<IConsultationOutboxStore"]
+    },
+    {
+      "path": "backend/src/MedicalAssistant.Infrastructure/InfrastructureServiceRegistration.cs",
+      "contains": ["AddHostedService<ConsultationOutboxRelayHostedService>()", "AddSingleton<IRabbitMqPersistentConnection", "AddScoped<ConsultationTranscriptReadyIntegrationEventHandler>()"]
+    },
+    {
+      "path": "backend/src/MedicalAssistant.Transcription.Worker/TranscriptionWorkerServiceRegistration.cs",
+      "contains": ["AddScoped<IConsultationAudioBlobRetriever", "AddScoped<ConsultationAudioUploadedIntegrationEventHandler>()", "AddSingleton<IntegrationEventDispatcher>()"]
+    },
+    {
+      "path": "AI/src/MedicalAssistance.Ingestion.Api/Program.cs",
+      "contains": ["AddSingleton<AgentInstructionProvider>()", "AddScoped<IngestionStore>()", "AddScoped<IRetrievalService, RetrievalService>()", "AddHostedService<IngestionWorker>()", "AddHostedService<IngestionRecoverySweep>()", "AddHostedService<IntegrationEventOutboxRelay>()"]
+    }
+  ],
+  "sourceAssertions": [
+    {
+      "path": "backend/src/MedicalAssistant.Api/Program.cs",
+      "contains": ["app.UseSwagger();", "c.AddSecurityDefinition(\"Bearer\"", "app.MapHealthChecks(\"/health/live\"", "app.MapHealthChecks(\"/health/ready\"", "app.MapHub<MedicalAssistant.Api.Realtime.ChatHub>(\"/hubs/chat\")", "AddSingleton<Microsoft.AspNetCore.SignalR.IUserIdProvider", "AddScoped<MedicalAssistant.Application.Features.Chat.Common.IChatProgressNotifier"]
+    },
+    {
+      "path": "AI/src/MedicalAssistance.Ingestion.Api/Program.cs",
+      "contains": ["app.UseSwagger();", "app.MapHub<IngestionStatusHub>(\"/hubs/ingestion-status\")", "AddScoped<IngestionStore>()", "AddHostedService<IngestionWorker>()", "AddHostedService<IngestionRecoverySweep>()", "AddHostedService<IntegrationEventOutboxRelay>()"]
+    },
+    {
+      "path": "backend/src/MedicalAssistant.Api/Realtime/ChatHub.cs",
+      "contains": ["public const string ClientMethod = \"ChatProgress\";"]
+    },
+    {
+      "path": "AI/src/MedicalAssistance.Ingestion.Api/Realtime/IngestionStatusPublisher.cs",
+      "contains": ["public const string ClientMethod = \"IngestionStatusChanged\";"]
+    },
+    {
+      "path": "AI/src/MedicalAssistance.Ingestion.Api/Security/ApiKeyAuthentication.cs",
+      "contains": ["public const string HeaderName = \"X-Api-Key\";", "public const string KeysConfigurationPath = \"Authentication:ApiKeys\";", "public const string AdminKeysConfigurationPath = \"Authentication:AdminApiKeys\";"]
+    },
+    {
+      "path": "backend/src/MedicalAssistant.EventBus/Contracts/ConsultationIntegrationEvents.cs",
+      "contains": ["consultation.audio-uploaded.v1", "consultation.document-uploaded.v1", "consultation.transcript-ready.v1", "consultation.transcription-failed.v1", "consultation.deleted.v1", "clinicalknowledge.ingestion-failed.v1"]
+    },
+    {
+      "path": "AI/src/MedicalAssistance.Ingestion.Api/Ingestions/IntegrationEventOutbox.cs",
+      "contains": ["eventId,", "eventType = IngestionFailedEventType", "eventVersion = 1", "occurredAtUtc = DateTime.UtcNow", "producer = Producer", "correlationId = (string?)null", "causationId = (string?)null", "payload = new", "sessionId,", "ingestionId,", "reason"]
+    },
+    {
+      "path": "backend/src/MedicalAssistant.Infrastructure/InfrastructureServiceRegistration.cs",
+      "contains": ["AddHostedService<ConsultationOutboxRelayHostedService>()", "AddSingleton<IRabbitMqPersistentConnection", "AddScoped<ConsultationTranscriptReadyIntegrationEventHandler>()"]
+    },
+    {
+      "path": "backend/src/MedicalAssistant.Transcription.Worker/TranscriptionWorkerServiceRegistration.cs",
+      "contains": ["AddScoped<IConsultationAudioBlobRetriever", "AddScoped<ConsultationAudioUploadedIntegrationEventHandler>()", "AddSingleton<IntegrationEventDispatcher>()"]
+    }
+  ]
+}

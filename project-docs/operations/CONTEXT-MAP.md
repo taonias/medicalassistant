@@ -1,5 +1,7 @@
 # Medical Assistant Context Map
 
+> Superseded two-context snapshot. The current system has three bounded contexts; use the [root context map](../../CONTEXT-MAP.md) and [canonical system map](../../docs/architecture/system-map.md).
+
 The repository contains two related domain contexts with different models and data ownership.
 
 ## Contexts

@@ -1,5 +1,7 @@
 # Medical Assistant Context Map
 
+For the canonical, source-verified runtime topology, deployables, data ownership, and developer ownership seams, see [System Map](docs/architecture/system-map.md).
+
 Medical Assistant contains three related domain contexts. Each owns different language and responsibilities; integrations use explicit contracts rather than merging their models.
 
 ## Contexts

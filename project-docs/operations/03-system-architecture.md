@@ -1,5 +1,7 @@
 # System Architecture
 
+> Superseded architecture snapshot. It describes the removed Azure Function transcription topology and predates the root Compose manifest. Use the [canonical system map](../../docs/architecture/system-map.md).
+
 ## Architectural shape
 
 The repository is a monorepo containing four applications and one infrastructure package:

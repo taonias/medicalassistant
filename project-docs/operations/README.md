@@ -1,5 +1,7 @@
 # Medical Assistant Documentation
 
+> Historical snapshot (31 July 2026). This review is retained as investigation evidence and is not the current architecture contract. Use the [canonical system map](../../docs/architecture/system-map.md) and [observable interface baseline](../../docs/architecture/observable-interface-baseline.md) for refactoring decisions.
+
 This documentation explains what the Medical Assistant is, who it serves, how the system works, what is implemented today, and what remains to make the full product vision operational.
 
 It combines the active repository documentation with a code review performed on 31 July 2026. When a design document and the code disagree, these pages describe the code as the current state and preserve the document as intended direction.

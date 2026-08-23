@@ -9,6 +9,7 @@
     <Project Path="backend/src/MedicalAssistant.Infrastructure/MedicalAssistant.Infrastructure.csproj" />
     <Project Path="backend/src/MedicalAssistant.Migrations/MedicalAssistant.Migrations.csproj" />
     <Project Path="backend/src/MedicalAssistant.Persistence/MedicalAssistant.Persistence.csproj" />
+    <Project Path="backend/src/MedicalAssistant.Transcription.Worker/MedicalAssistant.Transcription.Worker.csproj" />
     <Project Path="backend/test/MedicalAssistant.Application.UnitTests/MedicalAssistant.Application.UnitTests.csproj" />
     <Project Path="backend/test/MedicalAssistant.EventBus.UnitTests/MedicalAssistant.EventBus.UnitTests.csproj" />
     <Project Path="backend/test/MedicalAssistant.EventBusRabbitMQ.UnitTests/MedicalAssistant.EventBusRabbitMQ.UnitTests.csproj" />

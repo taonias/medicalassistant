@@ -1,5 +1,7 @@
 # Capabilities and User Journeys
 
+> Historical capability snapshot. Use the [canonical system map](../../docs/architecture/system-map.md) and [observable interface baseline](../../docs/architecture/observable-interface-baseline.md) for current behavior.
+
 ## Capability map
 
 | Capability | End-user surface | Current status |

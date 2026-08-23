@@ -1,5 +1,7 @@
 # Medical Assistant Project Summary
 
+> Superseded topology snapshot. It references the former transcriber layout and disconnected services. Use the [canonical system map](../docs/architecture/system-map.md) for the current system.
+
 This repository implements a doctor-facing medical assistant as several cooperating applications. The active project is split into five top-level components: `frontend`, `backend`, `transcriber`, `AI`, and `rabbitmq`.
 
 ## System at a glance

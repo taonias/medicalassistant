@@ -1,5 +1,7 @@
 # Current State, Contradictions, and Integration Gaps
 
+> Historical review snapshot. Several listed gaps have since been implemented. Use the [current risk baseline](../../docs/known-issues/refactor-baseline.md) for unresolved risks and the [canonical system map](../../docs/architecture/system-map.md) for current behavior.
+
 ## Executive assessment
 
 The repository contains a credible doctor-facing workflow and a sophisticated clinical-knowledge service, but they are not one operational end-to-end product yet. The largest work is integration and production hardening, not inventing the AI design from scratch.

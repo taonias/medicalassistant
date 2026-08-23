@@ -1,5 +1,7 @@
 # Local Operations Guide
 
+> Superseded local-topology snapshot. Root Docker Compose now provides the connected stack; use [HOW-TO-RUN](../../HOW-TO-RUN.md) and the [observable interface baseline](../../docs/architecture/observable-interface-baseline.md).
+
 This guide describes the repository as it exists. A fully integrated one-command environment is not available.
 
 ## Prerequisites

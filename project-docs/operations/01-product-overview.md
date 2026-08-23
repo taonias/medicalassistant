@@ -1,5 +1,7 @@
 # Product Overview and End-User Value
 
+> Historical product/architecture snapshot. Use the [canonical system map](../../docs/architecture/system-map.md) for the current three-context runtime.
+
 ## What the product is
 
 Medical Assistant is a doctor-facing workspace for capturing consultations and turning fragmented clinical material into an organized, searchable patient record.

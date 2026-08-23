@@ -1,5 +1,7 @@
 # Component Reference
 
+> Historical component snapshot. Use the [canonical system map](../../docs/architecture/system-map.md) for current deployables and ownership.
+
 ## Frontend
 
 **Path:** `frontend/`  
