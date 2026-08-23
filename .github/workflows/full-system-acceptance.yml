@@ -1,0 +1,46 @@
+name: Full-system acceptance
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - develop
+
+jobs:
+  consultation-processing:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      TESTCONTAINERS_RYUK_DISABLED: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+      - name: Restore acceptance gate
+        run: dotnet restore tests/MedicalAssistant.AcceptanceTests/MedicalAssistant.AcceptanceTests.csproj
+      - name: Run fast full-system characterization scenarios
+        run: >-
+          dotnet test tests/MedicalAssistant.AcceptanceTests/MedicalAssistant.AcceptanceTests.csproj
+          --no-restore
+          --filter FullyQualifiedName~FullSystemAcceptanceTests
+      - name: Run root Compose packaged-image gate
+        env:
+          RUN_ROOT_COMPOSE_GATE: "true"
+        run: >-
+          dotnet test tests/MedicalAssistant.AcceptanceTests/MedicalAssistant.AcceptanceTests.csproj
+          --no-restore
+          --filter FullyQualifiedName~RootComposeConsultationProcessingTests
+      - name: Clean root Compose acceptance stack
+        if: always()
+        env:
+          CONTROLLED_PROVIDER_PORT: "1"
+        run: >-
+          docker compose
+          --project-name medicalassistant-r06
+          --file docker-compose.yml
+          --file tests/MedicalAssistant.AcceptanceTests/docker-compose.acceptance.yml
+          down --volumes --remove-orphans

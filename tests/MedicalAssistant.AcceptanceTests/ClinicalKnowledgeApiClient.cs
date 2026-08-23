@@ -64,6 +64,31 @@ public sealed class ClinicalKnowledgeApiClient : IDisposable
             ?? throw new InvalidOperationException("Clinical Knowledge returned an empty Ingestion response.");
     }
 
+    public async Task<ClinicalKnowledgeDocumentView> WaitForCompletedDocumentAsync(
+        string patientId,
+        string sessionId,
+        TimeSpan timeout,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(patientId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(sessionId);
+        return await Eventual.UntilAsync(async token =>
+        {
+            using var response = await _http.GetAsync(
+                $"/patients/{Uri.EscapeDataString(patientId)}/documents",
+                token);
+            EnsureSuccess(response);
+            var documents = await response.Content.ReadFromJsonAsync<List<ClinicalKnowledgeDocumentView>>(token)
+                ?? [];
+            var document = documents.SingleOrDefault(item => item.SessionId == sessionId);
+            if (string.Equals(document?.Status, "Failed", StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException($"Clinical Knowledge document for session {sessionId} failed.");
+            return string.Equals(document?.Status, "Completed", StringComparison.OrdinalIgnoreCase)
+                ? document
+                : null;
+        }, timeout, cancellationToken);
+    }
+
     public void Dispose() => _http.Dispose();
 
     private static void EnsureSuccess(HttpResponseMessage response)
@@ -85,3 +110,13 @@ public sealed record ClinicalKnowledgeIngestionView(
     string? Summary);
 
 internal sealed record IngestionAcceptedView(Guid IngestionId, bool Duplicate);
+
+public sealed record ClinicalKnowledgeDocumentView(
+    string DocumentId,
+    string DocumentType,
+    string? SessionId,
+    int? SequenceNumber,
+    string Status,
+    string? ErrorMessage,
+    string? Summary,
+    Guid IngestionId);

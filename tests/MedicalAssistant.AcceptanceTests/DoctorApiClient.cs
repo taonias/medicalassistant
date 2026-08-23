@@ -34,10 +34,30 @@ public sealed class DoctorApiClient
         return new DoctorApiClient(http);
     }
 
-    public async Task<ConsultationView> CreateConsultationAsync(CancellationToken cancellationToken = default)
+    public async Task<PatientView> CreatePatientAsync(
+        string externalPatientId,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(externalPatientId);
+        using var response = await _http.PostAsJsonAsync("/api/Patient", new
+        {
+            externalPatientId,
+            firstName = "Acceptance",
+            lastName = "Patient",
+            dateOfBirth = "1980-01-01",
+        }, cancellationToken);
+        EnsureSuccess(response);
+        return await response.Content.ReadFromJsonAsync<PatientView>(cancellationToken)
+            ?? throw new InvalidOperationException("The backend returned an empty Patient response.");
+    }
+
+    public async Task<ConsultationView> CreateConsultationAsync(
+        int? patientId = null,
+        CancellationToken cancellationToken = default)
     {
         using var response = await _http.PostAsJsonAsync("/api/Consultation", new
         {
+            patientId,
             consultationDate = DateTime.UtcNow,
             idempotencyKey = Guid.NewGuid().ToString("N"),
         }, cancellationToken);
@@ -78,6 +98,8 @@ public sealed class DoctorApiClient
         {
             using var response = await _http.GetAsync($"/api/Transcript/{consultationId}", token);
             EnsureSuccess(response);
+            if (response.Content.Headers.ContentLength == 0)
+                return null;
             return await response.Content.ReadFromJsonAsync<TranscriptView>(token);
         }, timeout, cancellationToken);
     }
@@ -107,6 +129,8 @@ public sealed record ConsultationView(
     string Status,
     string? AudioBlobUri,
     string? AudioContentType);
+
+public sealed record PatientView(int Id, string ExternalPatientId);
 
 public sealed record TranscriptView(
     int Id,

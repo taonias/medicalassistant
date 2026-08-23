@@ -1,0 +1,29 @@
+services:
+  clinical-knowledge:
+    environment:
+      Ingestion__WorkerCount: "1"
+      OpenAIChat__ApiKey: controlled-provider-key
+      OpenAIChat__Model: controlled-chat
+      OpenAIChat__BaseUrl: http://host.docker.internal:${CONTROLLED_PROVIDER_PORT}/v1
+      OpenAIEmbeddings__ApiKey: controlled-provider-key
+      OpenAIEmbeddings__Model: controlled-embedding
+      OpenAIEmbeddings__BaseUrl: http://host.docker.internal:${CONTROLLED_PROVIDER_PORT}/v1
+      OTEL_EXPORTER_OTLP_ENDPOINT: ""
+    extra_hosts:
+      - host.docker.internal:host-gateway
+
+  transcription-worker:
+    environment:
+      TranscriptionWorker__Provider: OpenAiWhisper
+      TranscriptionWorker__OpenAiWhisper__ApiKey: controlled-provider-key
+      TranscriptionWorker__OpenAiWhisper__Model: controlled-transcription
+      TranscriptionWorker__OpenAiWhisper__BaseUrl: http://host.docker.internal:${CONTROLLED_PROVIDER_PORT}/v1
+      OTEL_EXPORTER_OTLP_ENDPOINT: ""
+    extra_hosts:
+      - host.docker.internal:host-gateway
+
+  backend-api:
+    environment:
+      ConsultationOutboxRelay__PollInterval: 00:00:00.100
+      ConsultationOutboxRelay__FailureBackoff: 00:00:00.100
+      OTEL_EXPORTER_OTLP_ENDPOINT: ""

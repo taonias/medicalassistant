@@ -15,23 +15,25 @@ public sealed class AcceptanceEnvironment : IAsyncDisposable
 {
     private const string RabbitMqUser = "acceptance";
     private const string RabbitMqPassword = "acceptance";
+    private const string AzuriteAccount = "acceptance";
+    private const string AzuriteKey = "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=";
     internal const string ClinicalKnowledgeApiKey = "acceptance-clinical-knowledge-key";
 
     private readonly PostgreSqlContainer _backendDatabase =
-        new PostgreSqlBuilder("postgres:17-alpine")
+        new PostgreSqlBuilder("pgvector/pgvector:pg16")
             .WithDatabase("medical_assistant_acceptance")
             .WithUsername("postgres")
             .WithPassword("postgres")
             .Build();
 
     private readonly PostgreSqlContainer _clinicalKnowledgeDatabase =
-        new PostgreSqlBuilder("pgvector/pgvector:pg17")
+        new PostgreSqlBuilder("pgvector/pgvector:pg16")
             .WithDatabase("clinical_knowledge_acceptance")
             .WithUsername("postgres")
             .WithPassword("postgres")
             .Build();
 
-    private readonly IContainer _rabbitMq = new ContainerBuilder("rabbitmq:4-management-alpine")
+    private readonly IContainer _rabbitMq = new ContainerBuilder("rabbitmq:3.13-management")
         .WithEnvironment("RABBITMQ_DEFAULT_USER", RabbitMqUser)
         .WithEnvironment("RABBITMQ_DEFAULT_PASS", RabbitMqPassword)
         .WithPortBinding(5672, true)
@@ -39,9 +41,23 @@ public sealed class AcceptanceEnvironment : IAsyncDisposable
         .WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(5672))
         .Build();
 
+    private readonly IContainer _azurite = new ContainerBuilder("mcr.microsoft.com/azure-storage/azurite:latest")
+        .WithEnvironment("AZURITE_ACCOUNTS", $"{AzuriteAccount}:{AzuriteKey}")
+        .WithCommand(
+            "azurite",
+            "--blobHost", "0.0.0.0",
+            "--skipApiVersionCheck",
+            "--loose")
+        .WithPortBinding(10000, true)
+        .WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(10000))
+        .Build();
+
     private bool _started;
+    private bool _fullSystem;
+    private bool _azuriteStarted;
     private bool _backendDatabaseMigrated;
     private BackendApiFactory? _backendApi;
+    private readonly ControlledProviderService _providers;
 
     public AcceptanceEnvironment()
     {
@@ -49,6 +65,12 @@ public sealed class AcceptanceEnvironment : IAsyncDisposable
         ClinicalKnowledge = new ClinicalKnowledgeServiceControl(
             () => ClinicalKnowledgeDatabaseConnectionString,
             ClinicalKnowledgeApiKey);
+        _providers = new ControlledProviderService(Speech, Models);
+        Worker = new TranscriptionWorkerServiceControl(
+            () => BackendDatabaseConnectionString,
+            () => RabbitMqUri,
+            () => AzuriteConnectionString,
+            () => _providers.Endpoint);
     }
 
     public BrokerControl Broker { get; }
@@ -59,6 +81,10 @@ public sealed class AcceptanceEnvironment : IAsyncDisposable
 
     public ControlledSpeechAdapter Speech { get; } = new();
 
+    public ControlledModelAdapter Models { get; } = new();
+
+    public TranscriptionWorkerServiceControl Worker { get; }
+
     public string BackendDatabaseConnectionString => RequireStarted(_backendDatabase.GetConnectionString());
 
     public string ClinicalKnowledgeDatabaseConnectionString =>
@@ -66,6 +92,10 @@ public sealed class AcceptanceEnvironment : IAsyncDisposable
 
     public Uri RabbitMqUri => new(
         $"amqp://{RabbitMqUser}:{RabbitMqPassword}@{RequireStarted(_rabbitMq.Hostname)}:{_rabbitMq.GetMappedPublicPort(5672)}");
+
+    public string AzuriteConnectionString =>
+        $"DefaultEndpointsProtocol=http;AccountName={AzuriteAccount};AccountKey={AzuriteKey};" +
+        $"BlobEndpoint=http://{RequireAzuriteStarted(_azurite.Hostname)}:{_azurite.GetMappedPublicPort(10000)}/{AzuriteAccount};";
 
     public async Task StartAsync(CancellationToken cancellationToken = default)
     {
@@ -79,14 +109,80 @@ public sealed class AcceptanceEnvironment : IAsyncDisposable
         _started = true;
     }
 
+    /// <summary>
+    /// Starts the same asynchronous service boundaries as the root Compose
+    /// stack while routing only true provider calls to deterministic adapters.
+    /// </summary>
+    public async Task StartFullSystemAsync(CancellationToken cancellationToken = default)
+    {
+        if (_fullSystem && Worker.IsRunning && ClinicalKnowledge.IsRunning)
+            return;
+
+        await StartAsync(cancellationToken);
+        if (!_azuriteStarted)
+        {
+            await _azurite.StartAsync(cancellationToken);
+            _azuriteStarted = true;
+        }
+        await _providers.StartAsync(cancellationToken);
+        ClinicalKnowledge.UseControlledProviders(() => _providers.Endpoint);
+        _fullSystem = true;
+        await StartApplicationsAsync(cancellationToken);
+    }
+
+    public async Task StopApplicationsAsync(CancellationToken cancellationToken = default)
+    {
+        if (_backendApi is not null)
+        {
+            await _backendApi.DisposeAsync();
+            _backendApi = null;
+        }
+        await Worker.StopAsync(cancellationToken);
+        await ClinicalKnowledge.StopAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Restarts every application and infrastructure container without deleting
+    /// their data, matching a Compose restart against existing named volumes.
+    /// </summary>
+    public async Task RestartFullSystemAsync(CancellationToken cancellationToken = default)
+    {
+        if (!_fullSystem)
+            throw new InvalidOperationException("Start the full system before restarting it.");
+
+        await StopApplicationsAsync(cancellationToken);
+        await Task.WhenAll(
+            _azurite.StopAsync(cancellationToken),
+            _rabbitMq.StopAsync(cancellationToken),
+            _clinicalKnowledgeDatabase.StopAsync(cancellationToken),
+            _backendDatabase.StopAsync(cancellationToken));
+        await Task.WhenAll(
+            _backendDatabase.StartAsync(cancellationToken),
+            _clinicalKnowledgeDatabase.StartAsync(cancellationToken),
+            _rabbitMq.StartAsync(cancellationToken),
+            _azurite.StartAsync(cancellationToken));
+        await StartApplicationsAsync(cancellationToken);
+    }
+
+    public async Task StartApplicationsAsync(CancellationToken cancellationToken = default)
+    {
+        if (!_fullSystem)
+            throw new InvalidOperationException("Start the full system before restarting its applications.");
+
+        await EnsureBackendDatabaseMigratedAsync(cancellationToken);
+        await ClinicalKnowledge.StartAsync(cancellationToken);
+        _backendApi ??= new BackendApiFactory(
+            BackendDatabaseConnectionString,
+            RabbitMqUri,
+            AzuriteConnectionString,
+            ClinicalKnowledge.Endpoint);
+        await Worker.StartAsync(cancellationToken);
+    }
+
     public async Task<DoctorApiClient> CreateDoctorClientAsync(CancellationToken cancellationToken = default)
     {
         _ = RequireStarted(BackendDatabaseConnectionString);
-        if (!_backendDatabaseMigrated)
-        {
-            await BackendDatabaseMigrator.MigrateAsync(BackendDatabaseConnectionString, cancellationToken);
-            _backendDatabaseMigrated = true;
-        }
+        await EnsureBackendDatabaseMigratedAsync(cancellationToken);
         _backendApi ??= new BackendApiFactory(
             BackendDatabaseConnectionString,
             RabbitMqUri,
@@ -117,7 +213,10 @@ public sealed class AcceptanceEnvironment : IAsyncDisposable
             if (_backendApi is not null)
                 await _backendApi.DisposeAsync();
         });
+        await CaptureAsync(async () => await Worker.DisposeAsync());
         await CaptureAsync(async () => await ClinicalKnowledge.DisposeAsync());
+        await CaptureAsync(async () => await _providers.DisposeAsync());
+        await CaptureAsync(async () => await _azurite.DisposeAsync());
         await CaptureAsync(async () => await _rabbitMq.DisposeAsync());
         await CaptureAsync(async () => await _clinicalKnowledgeDatabase.DisposeAsync());
         await CaptureAsync(async () => await _backendDatabase.DisposeAsync());
@@ -143,6 +242,21 @@ public sealed class AcceptanceEnvironment : IAsyncDisposable
         if (!_started)
             throw new InvalidOperationException("Start the acceptance environment before reading its endpoints.");
         return value;
+    }
+
+    private string RequireAzuriteStarted(string value)
+    {
+        if (!_azuriteStarted)
+            throw new InvalidOperationException("Start the full acceptance system before reading Blob storage settings.");
+        return value;
+    }
+
+    private async Task EnsureBackendDatabaseMigratedAsync(CancellationToken cancellationToken)
+    {
+        if (_backendDatabaseMigrated)
+            return;
+        await BackendDatabaseMigrator.MigrateAsync(BackendDatabaseConnectionString, cancellationToken);
+        _backendDatabaseMigrated = true;
     }
 }
 

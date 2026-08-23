@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Net;
+using System.Collections.Concurrent;
 
 namespace MedicalAssistant.AcceptanceTests;
 
@@ -18,6 +19,8 @@ public sealed class ClinicalKnowledgeServiceControl : IServiceLifecycleControl, 
 {
     private readonly Func<string> _connectionString;
     private readonly string _apiKey;
+    private Func<Uri>? _controlledProviderEndpoint;
+    private readonly ConcurrentQueue<string> _recentOutput = new();
     private Process? _process;
 
     internal ClinicalKnowledgeServiceControl(Func<string> connectionString, string apiKey)
@@ -29,6 +32,13 @@ public sealed class ClinicalKnowledgeServiceControl : IServiceLifecycleControl, 
     public Uri Endpoint { get; private set; } = null!;
 
     public bool IsRunning => _process is { HasExited: false };
+
+    internal void UseControlledProviders(Func<Uri> endpoint)
+    {
+        if (IsRunning)
+            throw new InvalidOperationException("Configure Clinical Knowledge providers before starting it.");
+        _controlledProviderEndpoint = endpoint;
+    }
 
     public async Task StartAsync(CancellationToken cancellationToken = default)
     {
@@ -42,6 +52,9 @@ public sealed class ClinicalKnowledgeServiceControl : IServiceLifecycleControl, 
         }
 
         var assemblyPath = LocateClinicalKnowledgeAssembly();
+        while (_recentOutput.TryDequeue(out _))
+        {
+        }
         var endpointReady = new TaskCompletionSource<Uri>(TaskCreationOptions.RunContinuationsAsynchronously);
         var start = new ProcessStartInfo
         {
@@ -56,8 +69,18 @@ public sealed class ClinicalKnowledgeServiceControl : IServiceLifecycleControl, 
         start.ArgumentList.Add("http://127.0.0.1:0");
         start.Environment["ConnectionStrings__Postgres"] = _connectionString();
         start.Environment["Authentication__ApiKeys__0"] = _apiKey;
-        start.Environment["Ingestion__WorkerCount"] = "0";
+        start.Environment["Ingestion__WorkerCount"] = _controlledProviderEndpoint is null ? "0" : "1";
         start.Environment["DOTNET_ENVIRONMENT"] = "Acceptance";
+        if (_controlledProviderEndpoint is not null)
+        {
+            var providerBaseUrl = new Uri(_controlledProviderEndpoint(), "/v1").ToString().TrimEnd('/');
+            start.Environment["OpenAIChat__ApiKey"] = "controlled-provider-key";
+            start.Environment["OpenAIChat__BaseUrl"] = providerBaseUrl;
+            start.Environment["OpenAIChat__Model"] = "controlled-chat";
+            start.Environment["OpenAIEmbeddings__ApiKey"] = "controlled-provider-key";
+            start.Environment["OpenAIEmbeddings__BaseUrl"] = providerBaseUrl;
+            start.Environment["OpenAIEmbeddings__Model"] = "controlled-embedding";
+        }
 
         try
         {
@@ -66,22 +89,26 @@ public sealed class ClinicalKnowledgeServiceControl : IServiceLifecycleControl, 
             _process.EnableRaisingEvents = true;
             _process.OutputDataReceived += (_, args) =>
             {
+                CaptureOutput(args.Data);
                 if (TryReadListeningEndpoint(args.Data, out var endpoint))
                     endpointReady.TrySetResult(endpoint);
             };
-            _process.ErrorDataReceived += (_, _) => { };
+            _process.ErrorDataReceived += (_, args) => CaptureOutput(args.Data);
             _process.Exited += (_, _) => endpointReady.TrySetException(
                 new InvalidOperationException("Clinical Knowledge exited during startup."));
             _process.BeginOutputReadLine();
             _process.BeginErrorReadLine();
 
-            Endpoint = await endpointReady.Task.WaitAsync(TimeSpan.FromSeconds(30), cancellationToken);
+            Endpoint = await endpointReady.Task.WaitAsync(TimeSpan.FromSeconds(60), cancellationToken);
             await WaitUntilReadyAsync(cancellationToken);
         }
-        catch
+        catch (Exception exception)
         {
+            var diagnostics = string.Join(Environment.NewLine, _recentOutput);
             await StopAsync(CancellationToken.None);
-            throw;
+            throw new InvalidOperationException(
+                $"Clinical Knowledge failed to start. Recent process output:{Environment.NewLine}{diagnostics}",
+                exception);
         }
     }
 
@@ -145,6 +172,15 @@ public sealed class ClinicalKnowledgeServiceControl : IServiceLifecycleControl, 
         }
         endpoint = null!;
         return false;
+    }
+
+    private void CaptureOutput(string? line)
+    {
+        if (string.IsNullOrWhiteSpace(line))
+            return;
+        _recentOutput.Enqueue(line);
+        while (_recentOutput.Count > 50)
+            _recentOutput.TryDequeue(out _);
     }
 
     private static string LocateClinicalKnowledgeAssembly()
