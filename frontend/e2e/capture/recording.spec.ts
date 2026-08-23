@@ -11,6 +11,13 @@ const patient = {
   assignedDoctorId: 'doctor-e2e',
 };
 
+function multipartField(body: string, fieldName: string) {
+  const escapedName = fieldName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return body.match(
+    new RegExp(`name="${escapedName}"\\r\\n\\r\\n([^\\r\\n]+)`),
+  )?.[1];
+}
+
 test('recording keeps MIME, soft pause/resume, duration, and autosave order', async ({
   authenticatedPage: page,
 }) => {
@@ -39,8 +46,7 @@ test('recording keeps MIME, soft pause/resume, duration, and autosave order', as
     saveOrder.push('upload');
     const multipart = route.request().postData() ?? '';
     expect(multipart).toContain('audio/webm;codecs=opus');
-    expect(multipart).toContain('durationSeconds');
-    expect(multipart).toContain('2');
+    expect(multipartField(multipart, 'durationSeconds')).toBe('2');
     await route.fulfill({
       json: {
         id: 42,
@@ -106,8 +112,7 @@ test('new consultation recorder keeps its independent capture contract', async (
     saveOrder.push('upload');
     const multipart = route.request().postData() ?? '';
     expect(multipart).toContain('audio/webm;codecs=opus');
-    expect(multipart).toContain('durationSeconds');
-    expect(multipart).toContain('2');
+    expect(multipartField(multipart, 'durationSeconds')).toBe('2');
     await route.fulfill({
       json: {
         id: 45,
