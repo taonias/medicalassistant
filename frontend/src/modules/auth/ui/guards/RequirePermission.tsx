@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { useAuthStore } from '../../features/auth';
+import { useAuthStore } from '../../../../features/auth';
 
 interface Props {
   permission?: string;

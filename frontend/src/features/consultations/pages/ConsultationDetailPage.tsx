@@ -7,11 +7,11 @@ import {
 } from '../../../shared/components/ConsultationStatusStepper';
 import { ErrorMessage } from '../../../shared/components/ErrorMessage';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton';
-import { queryKeys } from '../../../shared/constants/queryKeys';
+import { consultationKeys } from '../queryKeys';
 import { parseStructuredSummary } from '../../../shared/utils/structuredData';
 import { formatDate, formatDuration } from '../../../shared/utils/format';
-import { DownloadIcon, SaveIcon } from '../../../layouts/navigation/NavIcons';
-import { usePatient, usePatientHistory } from '../../patients';
+import { DownloadIcon, SaveIcon } from '../../../app/shell/navigation/NavIcons';
+import { usePatient, usePatientHistory, patientKeys } from '../../patients';
 import {
   useConsultation,
   useConsultationAudio,
@@ -19,10 +19,10 @@ import {
 } from '../hooks/useConsultations';
 import { consultationApi } from '../api/consultationApi';
 import { useTranscript, TranscriptViewer } from '../../transcripts';
-import { useStructuredData } from '../../medical-data';
+import { useStructuredData, structuredDataKeys } from '../../medical-data';
 import { useCreateDoctorNote, useDoctorNotes } from '../../doctor-notes';
 import { RecordingPreviewPlayer } from '../../record';
-import type { DoctorNote } from '../../../shared/types/api';
+import type { DoctorNote } from '../../doctor-notes';
 
 export function ConsultationDetailPage() {
   const { patientId: patientIdParam, consultationId = '0' } = useParams();
@@ -57,7 +57,7 @@ export function ConsultationDetailPage() {
   useEffect(() => {
     return () => {
       const objectUrl = queryClient.getQueryData<string | null>(
-        queryKeys.consultationAudio(consultationIdNum),
+        consultationKeys.consultationAudio(consultationIdNum),
       );
       if (objectUrl) {
         URL.revokeObjectURL(objectUrl);
@@ -73,11 +73,11 @@ export function ConsultationDetailPage() {
       if (hasPatient) {
         void history.refetch();
         void queryClient.invalidateQueries({
-          queryKey: queryKeys.patientHistoryPrefix(resolvedPatientId),
+          queryKey: patientKeys.patientHistoryPrefix(resolvedPatientId),
         });
       }
       void queryClient.invalidateQueries({
-        queryKey: queryKeys.structuredData(consultationIdNum),
+        queryKey: structuredDataKeys.structuredData(consultationIdNum),
       });
     },
   });

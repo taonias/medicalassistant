@@ -1,5 +1,5 @@
 import { httpClient } from '../../../shared/api/httpClient';
-import type { DoctorNote } from '../../../shared/types/api';
+import type { DoctorNote } from '../types';
 
 export interface CreateDoctorNoteRequest {
   consultationId?: number | null;

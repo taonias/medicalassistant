@@ -4,14 +4,15 @@ import { EmptyState } from '../../../shared/components/EmptyState';
 import { ErrorMessage } from '../../../shared/components/ErrorMessage';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton';
 import { formatDate, formatDuration } from '../../../shared/utils/format';
-import type { ConsultationSummary, DashboardAnalytics } from '../../../shared/types/api';
-import { queryKeys } from '../../../shared/constants/queryKeys';
+import type { ConsultationSummary } from '../../consultations';
+import type { DashboardAnalytics } from '../types';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   useAssignConsultationPatient,
   useConsultationAudio,
   useDashboardAnalytics,
   useUnattachedDraftConsultations,
+  consultationKeys,
 } from '../../consultations';
 import { PatientAttachPanel, RecordingPreviewPlayer } from '../../record';
 import {
@@ -183,7 +184,7 @@ function UnattachedRecordingCard({
   useEffect(() => {
     return () => {
       const objectUrl = queryClient.getQueryData<string | null>(
-        queryKeys.consultationAudio(consultation.id),
+        consultationKeys.consultationAudio(consultation.id),
       );
       if (objectUrl) {
         URL.revokeObjectURL(objectUrl);

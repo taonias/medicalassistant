@@ -10,7 +10,7 @@ import type {
   DashboardAnalytics,
   DashboardDailyVolume,
   DashboardStatusCount,
-} from '../../../shared/types/api';
+} from '../types';
 
 function formatShortDay(dateIso: string) {
   const date = new Date(`${dateIso}T00:00:00`);

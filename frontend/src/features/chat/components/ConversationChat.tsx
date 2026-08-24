@@ -1,15 +1,10 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { SendIcon } from '../../../layouts/navigation/NavIcons';
-import { queryKeys } from '../../../shared/constants/queryKeys';
-import {
-  MessageRole,
-  MessageState,
-  type ApiError,
-  type AskChatResponse,
-  type ConversationThread,
-} from '../../../shared/types/api';
+import { SendIcon } from '../../../app/shell/navigation/NavIcons';
+import type { ApiError } from '../../../shared/types/api';
+import { MessageRole, MessageState, type AskChatResponse, type ConversationThread } from '../types';
+import { chatKeys } from '../queryKeys';
 import { formatPatientName } from '../../../shared/utils/format';
 import { usePatient } from '../../patients';
 import { conversationApi } from '../api/conversationApi';
@@ -131,7 +126,7 @@ export function ConversationChat({ patientId, consultationId }: Props) {
       });
       setConversationId(response.conversationId);
       setMessages((current) => [...current, assistantFromResponse(response)]);
-      void queryClient.invalidateQueries({ queryKey: queryKeys.conversations(patientId) });
+      void queryClient.invalidateQueries({ queryKey: chatKeys.conversations(patientId) });
     } catch (error) {
       // A non-200 (validation/auth/network) — no persisted turn to retry.
       setMessages((current) => [

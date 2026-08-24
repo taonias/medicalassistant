@@ -3,9 +3,9 @@ import type {
   Consultation,
   ConsultationSummary,
   CreateConsultationRequest,
-  DashboardAnalytics,
   DraftConsultationGroup,
-} from '../../../shared/types/api';
+} from '../types';
+import type { DashboardAnalytics } from '../../dashboard';
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ?? 'https://localhost:7037/api';

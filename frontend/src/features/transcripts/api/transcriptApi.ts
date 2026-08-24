@@ -1,5 +1,5 @@
 import { httpClient } from '../../../shared/api/httpClient';
-import type { Transcript } from '../../../shared/types/api';
+import type { Transcript } from '../types';
 
 export const transcriptApi = {
   getByConsultation: (consultationId: number) =>

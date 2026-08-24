@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { formatDuration } from '../../../shared/utils/format';
-import { PlayIcon, PauseIcon, StopIcon } from '../../../layouts/navigation/NavIcons';
+import { PlayIcon, PauseIcon, StopIcon } from '../../../app/shell/navigation/NavIcons';
 
 interface Props {
   durationSeconds: number;

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { MessageState, type ChatCitation } from '../../../shared/types/api';
+import { MessageState, type ChatCitation } from '../types';
 import { CitationCards } from './CitationCards';
 import { CitationText } from './CitationText';
 

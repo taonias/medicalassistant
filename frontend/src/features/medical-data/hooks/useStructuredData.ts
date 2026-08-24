@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import { queryKeys } from '../../../shared/constants/queryKeys';
-import type { MedicalStructuredDataDto } from '../../../shared/types/api';
+import { structuredDataKeys } from '../queryKeys';
+import type { MedicalStructuredDataDto } from '../types';
 import { structuredDataApi } from '../api/structuredDataApi';
 
 const STRUCTURED_DATA_STATUSES = new Set([
@@ -16,7 +16,7 @@ export function useStructuredData(consultationId: number, status?: string) {
     STRUCTURED_DATA_STATUSES.has(normalized);
 
   return useQuery<MedicalStructuredDataDto | null>({
-    queryKey: queryKeys.structuredData(consultationId),
+    queryKey: structuredDataKeys.structuredData(consultationId),
     queryFn: async () => (await structuredDataApi.getByConsultation(consultationId)) ?? null,
     enabled,
     retry: (count, error) => {

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { PlusIcon } from '../../../layouts/navigation/NavIcons';
+import { PlusIcon } from '../../../app/shell/navigation/NavIcons';
 import { ErrorMessage } from '../../../shared/components/ErrorMessage';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton';

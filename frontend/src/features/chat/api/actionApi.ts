@@ -1,5 +1,5 @@
 import { httpClient } from '../../../shared/api/httpClient';
-import type { ActionRequest, TriggerActionRequest } from '../../../shared/types/api';
+import type { ActionRequest, TriggerActionRequest } from '../types';
 
 export const actionApi = {
   trigger: (request: TriggerActionRequest) =>

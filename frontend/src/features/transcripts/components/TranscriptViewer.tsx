@@ -4,7 +4,7 @@ import {
   EditIcon,
   ExpandIcon,
   SaveIcon,
-} from '../../../layouts/navigation/NavIcons';
+} from '../../../app/shell/navigation/NavIcons';
 import { useUpdateTranscript } from '../hooks/useTranscript';
 
 const PREVIEW_CHAR_LIMIT = 200;

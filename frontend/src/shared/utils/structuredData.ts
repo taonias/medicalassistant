@@ -2,7 +2,7 @@ import type {
   ParsedStructuredSummary,
   StructuredDataField,
   StructuredDataSection,
-} from '../types/api';
+} from '../../features/medical-data';
 
 function fieldFromEntry(
   key: string,

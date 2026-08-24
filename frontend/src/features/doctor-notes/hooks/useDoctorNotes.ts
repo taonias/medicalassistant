@@ -1,11 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { queryKeys } from '../../../shared/constants/queryKeys';
-import type { DoctorNote } from '../../../shared/types/api';
+import { doctorNotesKeys } from '../queryKeys';
+import type { DoctorNote } from '../types';
 import { doctorNotesApi, type CreateDoctorNoteRequest } from '../api/doctorNotesApi';
+import { patientKeys } from '../../patients';
 
 export function useDoctorNotes(consultationId: number) {
   return useQuery<DoctorNote[]>({
-    queryKey: queryKeys.doctorNotes(consultationId),
+    queryKey: doctorNotesKeys.doctorNotes(consultationId),
     queryFn: () => doctorNotesApi.getByConsultation(consultationId),
     enabled: consultationId > 0,
     retry: (count, error) => {
@@ -18,7 +19,7 @@ export function useDoctorNotes(consultationId: number) {
 
 export function usePatientDoctorNotes(patientId: number) {
   return useQuery<DoctorNote[]>({
-    queryKey: queryKeys.patientDoctorNotes(patientId),
+    queryKey: doctorNotesKeys.patientDoctorNotes(patientId),
     queryFn: () => doctorNotesApi.getPatientLevel(patientId),
     enabled: patientId > 0,
     retry: (count, error) => {
@@ -37,17 +38,17 @@ export function useCreateDoctorNote() {
     onSuccess: (created, variables) => {
       if (variables.consultationId != null && variables.consultationId > 0) {
         void queryClient.invalidateQueries({
-          queryKey: queryKeys.doctorNotes(variables.consultationId),
+          queryKey: doctorNotesKeys.doctorNotes(variables.consultationId),
         });
       }
 
       const patientId = created.patientId || variables.patientId;
       if (patientId != null && patientId > 0 && (variables.consultationId == null || variables.consultationId === 0)) {
         void queryClient.invalidateQueries({
-          queryKey: queryKeys.patientDoctorNotes(patientId),
+          queryKey: doctorNotesKeys.patientDoctorNotes(patientId),
         });
         void queryClient.invalidateQueries({
-          queryKey: queryKeys.patientHistoryPrefix(patientId),
+          queryKey: patientKeys.patientHistoryPrefix(patientId),
         });
       }
     },

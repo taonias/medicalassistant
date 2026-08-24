@@ -1,4 +1,4 @@
-import { SearchIcon } from '../../../layouts/navigation/NavIcons';
+import { SearchIcon } from '../../../app/shell/navigation/NavIcons';
 
 interface Props {
   value: string;

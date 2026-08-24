@@ -7,3 +7,5 @@ export { PatientSearchField } from './components/PatientSearchField';
 export { PatientDetailPage } from './pages/PatientDetailPage';
 export { PatientListPage } from './pages/PatientListPage';
 export { PatientConsultationsTab, PatientOverviewTab } from './pages/PatientTabs';
+export * from './types';
+export { patientKeys } from './queryKeys';

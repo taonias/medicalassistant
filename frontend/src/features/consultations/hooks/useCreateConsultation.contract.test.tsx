@@ -2,7 +2,8 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
 
-import { queryKeys } from '../../../shared/constants/queryKeys';
+import { consultationKeys } from '../queryKeys';
+import { patientKeys } from '../../patients';
 import { createTestQueryClient, queryClientWrapper } from '../../../test/queryClient';
 import { server } from '../../../test/server';
 import { useCreateConsultation } from './useConsultations';
@@ -21,11 +22,11 @@ describe('Consultation creation cache contract', () => {
     );
     const queryClient = createTestQueryClient();
     const affectedKeys = [
-      queryKeys.consultationsByPatient(7),
-      queryKeys.patientHistory(7),
-      queryKeys.draftConsultations,
-      queryKeys.unattachedDraftConsultations,
-      queryKeys.dashboardAnalytics,
+      consultationKeys.consultationsByPatient(7),
+      patientKeys.patientHistory(7),
+      consultationKeys.draftConsultations,
+      consultationKeys.unattachedDraftConsultations,
+      consultationKeys.dashboardAnalytics,
     ] as const;
     for (const key of affectedKeys) {
       queryClient.setQueryData(key, []);
@@ -36,7 +37,7 @@ describe('Consultation creation cache contract', () => {
     result.current.mutate({ request: { patientId: 7 }, idempotencyKey: 'create-42' });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(queryClient.getQueryData(queryKeys.consultation(42))).toEqual(consultation);
+    expect(queryClient.getQueryData(consultationKeys.consultation(42))).toEqual(consultation);
     for (const key of affectedKeys) {
       expect(queryClient.getQueryState(key)?.isInvalidated).toBe(true);
     }

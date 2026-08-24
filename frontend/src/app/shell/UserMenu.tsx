@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { useAuthStore } from "../features/auth/store/authStore";
-import { selectIsRecordingLocked, useRecordSessionStore } from "../features/record/store/recordSessionStore";
-import { formatPatientName } from "../shared/utils/format";
+import { useAuthStore } from "../../features/auth";
+import { selectIsRecordingLocked, useRecordSessionStore } from "../../features/record";
+import { formatPatientName } from "../../shared/utils/format";
 import { UserIcon } from "./navigation/NavIcons";
 
 interface Props {

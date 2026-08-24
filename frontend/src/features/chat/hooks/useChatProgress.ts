@@ -1,7 +1,7 @@
 import { HubConnectionBuilder, HubConnectionState, type HubConnection } from '@microsoft/signalr';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getAuthToken } from '../../../shared/api/httpClient';
-import type { ChatProgressEvent } from '../../../shared/types/api';
+import type { ChatProgressEvent } from '../types';
 
 function hubUrl() {
   const apiBase = import.meta.env.VITE_API_BASE_URL ?? 'https://localhost:7037/api';

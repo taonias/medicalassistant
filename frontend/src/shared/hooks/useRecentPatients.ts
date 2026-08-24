@@ -1,5 +1,5 @@
 import { useCallback, useSyncExternalStore } from 'react';
-import type { Patient } from '../types/api';
+import type { Patient } from '../../features/patients';
 
 const STORAGE_KEY = 'medical-assistant:recent-patients';
 const MAX_RECENT = 10;

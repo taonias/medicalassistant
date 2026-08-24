@@ -11,3 +11,5 @@ export {
   useDeleteConsultation,
 } from './hooks/useConsultations';
 export { ConsultationDetailPage } from './pages/ConsultationDetailPage';
+export * from './types';
+export { consultationKeys } from './queryKeys';

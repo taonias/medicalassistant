@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { queryKeys } from '../../../shared/constants/queryKeys';
-import type { ChatQueryRequest, TriggerActionRequest } from '../../../shared/types/api';
+import { chatKeys } from '../queryKeys';
+import type { ChatQueryRequest, TriggerActionRequest } from '../types';
 import { actionApi } from '../api/actionApi';
 import { chatApi } from '../api/chatApi';
 
@@ -18,7 +18,7 @@ export function useTriggerAction() {
 
 export function useActionStatus(correlationId?: string, enabled = false) {
   return useQuery({
-    queryKey: queryKeys.action(correlationId ?? 'none'),
+    queryKey: chatKeys.action(correlationId ?? 'none'),
     queryFn: () => actionApi.getStatus(correlationId!),
     enabled: Boolean(correlationId) && enabled,
     refetchInterval: enabled ? 3000 : false,

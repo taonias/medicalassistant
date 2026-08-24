@@ -1,4 +1,4 @@
-import type { ChatResponse } from '../../../shared/types/api';
+import type { ChatResponse } from '../types';
 
 export interface ChatMessage {
   id: string;

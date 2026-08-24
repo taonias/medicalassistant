@@ -1,4 +1,4 @@
-import type { ConversationSummary } from '../../../shared/types/api';
+import type { ConversationSummary } from '../types';
 
 interface Props {
   conversations: ConversationSummary[];

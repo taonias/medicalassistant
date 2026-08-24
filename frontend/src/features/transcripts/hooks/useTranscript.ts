@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { queryKeys } from '../../../shared/constants/queryKeys';
-import type { Transcript } from '../../../shared/types/api';
+import { transcriptKeys } from '../queryKeys';
+import type { Transcript } from '../types';
 import { transcriptApi } from '../api/transcriptApi';
 
 function isTranscriptApiError(error: unknown): error is { statusCode?: number } {
@@ -9,7 +9,7 @@ function isTranscriptApiError(error: unknown): error is { statusCode?: number } 
 
 export function useTranscript(consultationId: number, enabled = true) {
   return useQuery({
-    queryKey: queryKeys.transcript(consultationId),
+    queryKey: transcriptKeys.transcript(consultationId),
     queryFn: async (): Promise<Transcript | null> => {
       try {
         return await transcriptApi.getByConsultation(consultationId);
@@ -35,8 +35,8 @@ export function useUpdateTranscript(consultationId: number) {
   return useMutation({
     mutationFn: (transcript: string) => transcriptApi.update(consultationId, transcript),
     onSuccess: (updated) => {
-      queryClient.setQueryData(queryKeys.transcript(consultationId), updated);
-      void queryClient.invalidateQueries({ queryKey: queryKeys.transcript(consultationId) });
+      queryClient.setQueryData(transcriptKeys.transcript(consultationId), updated);
+      void queryClient.invalidateQueries({ queryKey: transcriptKeys.transcript(consultationId) });
     },
   });
 }

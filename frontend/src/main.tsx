@@ -1,9 +1,9 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './app/App';
-import { useAuthStore } from './features/auth/store/authStore';
+import { useAuthStore } from './features/auth';
 import { setAuthToken } from './shared/api/httpClient';
-import { applyThemeToDocument, useThemeStore } from './features/theme/store/themeStore';
+import { applyThemeToDocument, useThemeStore } from './features/theme';
 import './styles/global.css';
 
 applyThemeToDocument(useThemeStore.getState().theme);

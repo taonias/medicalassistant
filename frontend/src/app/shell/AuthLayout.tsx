@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router-dom';
-import { Breadcrumbs } from '../shared/components/Breadcrumbs';
-import { useBreadcrumbItems } from '../shared/hooks/useBreadcrumbItems';
+import { Breadcrumbs } from '../../shared/components/Breadcrumbs';
+import { useBreadcrumbItems } from '../../shared/hooks/useBreadcrumbItems';
 
 export function AuthLayout() {
   const breadcrumbItems = useBreadcrumbItems();

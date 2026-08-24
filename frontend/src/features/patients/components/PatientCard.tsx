@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import type { PatientListItem } from '../../../shared/types/api';
+import type { PatientListItem } from '../types';
 import {
   formatDateOfBirth,
   formatDateTime,

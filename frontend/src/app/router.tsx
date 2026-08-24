@@ -1,5 +1,5 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
-import { ProtectedRoute } from '../shared/components/ProtectedRoute';
+import { ProtectedRoute } from '../modules/auth';
 import { LoginPage } from '../features/auth';
 import { DashboardPage } from '../features/dashboard';
 import { NewConsultationPage } from '../features/audio-capture';
@@ -10,8 +10,8 @@ import {
   PatientConsultationsTab,
   PatientOverviewTab,
 } from '../features/patients';
-import { AppShell } from '../layouts/AppShell';
-import { AuthLayout } from '../layouts/AuthLayout';
+import { AppShell } from './shell/AppShell';
+import { AuthLayout } from './shell/AuthLayout';
 import { ChatPage } from '../features/chat';
 import { RecordPage } from '../features/record';
 import { SettingsPage } from '../features/settings';

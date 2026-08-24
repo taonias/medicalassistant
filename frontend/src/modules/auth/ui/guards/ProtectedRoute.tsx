@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
-import { useAuthStore } from '../../features/auth';
+import { useAuthStore } from '../../../../features/auth';
 
 
 

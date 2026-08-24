@@ -1,4 +1,4 @@
-import type { ChatCitation } from '../../../shared/types/api';
+import type { ChatCitation } from '../types';
 
 interface Props {
   label: string;

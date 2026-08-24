@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { SendIcon } from '../../../layouts/navigation/NavIcons';
+import { SendIcon } from '../../../app/shell/navigation/NavIcons';
 import { useChatQuery } from '../hooks/useChat';
 import { ChatMessageItem, type ChatMessage } from './ChatMessageItem';
 

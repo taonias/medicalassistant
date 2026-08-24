@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { SaveIcon } from '../../../layouts/navigation/NavIcons';
+import { SaveIcon } from '../../../app/shell/navigation/NavIcons';
 import { ErrorMessage } from '../../../shared/components/ErrorMessage';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton';
-import type { DoctorNote } from '../../../shared/types/api';
+import type { DoctorNote } from '../types';
 import { usePatientHistory } from '../../patients';
 import { useCreateDoctorNote } from '../hooks/useDoctorNotes';
 

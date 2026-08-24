@@ -1,12 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { queryKeys } from '../../../shared/constants/queryKeys';
-import type { AskChatRequest } from '../../../shared/types/api';
+import { chatKeys } from '../queryKeys';
+import type { AskChatRequest } from '../types';
 import { chatApi } from '../api/chatApi';
 import { conversationApi } from '../api/conversationApi';
 
 export function useConversations(patientId?: number) {
   return useQuery({
-    queryKey: queryKeys.conversations(patientId ?? 0),
+    queryKey: chatKeys.conversations(patientId ?? 0),
     queryFn: () => conversationApi.listForPatient(patientId!),
     enabled: Boolean(patientId),
   });
@@ -14,7 +14,7 @@ export function useConversations(patientId?: number) {
 
 export function useConversationThread(conversationId?: number) {
   return useQuery({
-    queryKey: queryKeys.conversationThread(conversationId ?? 0),
+    queryKey: chatKeys.conversationThread(conversationId ?? 0),
     queryFn: () => conversationApi.getThread(conversationId!),
     enabled: Boolean(conversationId),
   });
@@ -40,7 +40,7 @@ export function useCreateConversation(patientId?: number) {
       conversationApi.create(vars),
     onSuccess: () => {
       if (patientId) {
-        void queryClient.invalidateQueries({ queryKey: queryKeys.conversations(patientId) });
+        void queryClient.invalidateQueries({ queryKey: chatKeys.conversations(patientId) });
       }
     },
   });
@@ -53,7 +53,7 @@ export function useRenameConversation(patientId?: number) {
       conversationApi.rename(vars.conversationId, vars.title),
     onSuccess: () => {
       if (patientId) {
-        void queryClient.invalidateQueries({ queryKey: queryKeys.conversations(patientId) });
+        void queryClient.invalidateQueries({ queryKey: chatKeys.conversations(patientId) });
       }
     },
   });
@@ -65,7 +65,7 @@ export function useDeleteConversation(patientId?: number) {
     mutationFn: (conversationId: number) => conversationApi.remove(conversationId),
     onSuccess: () => {
       if (patientId) {
-        void queryClient.invalidateQueries({ queryKey: queryKeys.conversations(patientId) });
+        void queryClient.invalidateQueries({ queryKey: chatKeys.conversations(patientId) });
       }
     },
   });

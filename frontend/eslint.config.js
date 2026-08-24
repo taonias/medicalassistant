@@ -3,8 +3,63 @@ import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
-import boundaries from 'eslint-plugin-boundaries'
 import { defineConfig, globalIgnores } from 'eslint/config'
+
+// Every folder directly under src/features is a feature; each one's public
+// surface is its index.ts (R11). Code outside a feature — another feature,
+// the app shell, layouts, or shared — must import it only through that
+// barrel, never by a path that reaches into the feature's internals. A file
+// can then move within its own feature without hunting down every caller.
+const featureNames = [
+  'audio-capture',
+  'auth',
+  'chat',
+  'consultations',
+  'dashboard',
+  'doctor-notes',
+  'medical-data',
+  'patients',
+  'record',
+  'settings',
+  'theme',
+  'transcripts',
+]
+
+// Matches "…/<name>/<anything>" at any relative depth, but not the bare
+// barrel import "…/<name>" itself (no trailing path segment).
+function internalPathPattern(featureName) {
+  return {
+    group: [`**/${featureName}/**`],
+    message: `Import "${featureName}" from its public index (features/${featureName}), not by reaching into its internals.`,
+  }
+}
+
+// ESLint flat config merges same-named rules across matching blocks by full
+// overwrite, not by combining arrays — so each file must match exactly one
+// of these blocks, each carrying the complete pattern set that applies to it
+// (every *other* feature's internals), rather than one block per feature all
+// matching the same files and clobbering each other's patterns.
+const featureBoundaryRules = featureNames.map((ownFeature) => ({
+  files: [`src/features/${ownFeature}/**/*.{ts,tsx}`],
+  rules: {
+    'no-restricted-imports': [
+      'error',
+      {
+        patterns: featureNames
+          .filter((name) => name !== ownFeature)
+          .map(internalPathPattern),
+      },
+    ],
+  },
+}))
+
+const outsideFeaturesBoundaryRule = {
+  files: ['src/**/*.{ts,tsx}'],
+  ignores: ['src/features/**'],
+  rules: {
+    'no-restricted-imports': ['error', { patterns: featureNames.map(internalPathPattern) }],
+  },
+}
 
 export default defineConfig([
   globalIgnores(['dist']),
@@ -20,30 +75,6 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
-  {
-    // Each feature's public surface is its index.ts (R11). A feature may use
-    // its own internals freely; anything outside it must go through the
-    // barrel, so a folder or file can move without hunting down every caller.
-    files: ['src/**/*.{ts,tsx}'],
-    plugins: { boundaries },
-    settings: {
-      'boundaries/elements': [
-        { type: 'feature', pattern: 'src/features/*' },
-        { type: 'app', pattern: 'src/app' },
-        { type: 'layouts', pattern: 'src/layouts' },
-        { type: 'shared', pattern: 'src/shared' },
-      ],
-    },
-    rules: {
-      // entry-point is deprecated in favor of `dependencies` + selectors (v7), but
-      // still supported; revisit at the next plugin major version.
-      'boundaries/entry-point': [
-        'error',
-        {
-          default: 'disallow',
-          policies: [{ target: { element: { type: 'feature' } }, allow: 'index.ts' }],
-        },
-      ],
-    },
-  },
+  ...featureBoundaryRules,
+  outsideFeaturesBoundaryRule,
 ])

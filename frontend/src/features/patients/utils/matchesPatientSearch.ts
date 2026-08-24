@@ -1,4 +1,4 @@
-import type { PatientListItem } from '../../../shared/types/api';
+import type { PatientListItem } from '../types';
 import { formatPatientName } from '../../../shared/utils/format';
 
 export function matchesPatientSearch(patient: PatientListItem, query: string) {

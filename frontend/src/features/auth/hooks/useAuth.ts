@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { queryKeys } from '../../../shared/constants/queryKeys';
+import { authKeys } from '../queryKeys';
 import { authApi } from '../api/authApi';
 import { useAuthStore } from '../store/authStore';
 
@@ -16,7 +16,7 @@ export function useSession() {
   const token = useAuthStore((state) => state.token);
 
   return useQuery({
-    queryKey: queryKeys.session,
+    queryKey: authKeys.session,
     queryFn: authApi.getSession,
     enabled: Boolean(token),
     retry: false,

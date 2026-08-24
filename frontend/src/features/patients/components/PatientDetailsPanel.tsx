@@ -2,9 +2,9 @@ import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CloseIcon, EditIcon, SaveIcon } from '../../../layouts/navigation/NavIcons';
+import { CloseIcon, EditIcon, SaveIcon } from '../../../app/shell/navigation/NavIcons';
 import { ErrorMessage } from '../../../shared/components/ErrorMessage';
-import type { Patient } from '../../../shared/types/api';
+import type { Patient } from '../types';
 import {
   formatDateOfBirth,
   formatPatientName,

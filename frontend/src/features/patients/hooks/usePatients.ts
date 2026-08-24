@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { queryKeys } from '../../../shared/constants/queryKeys';
+import { patientKeys } from '../queryKeys';
 import { useRecentPatients } from '../../../shared/hooks/useRecentPatients';
-import type { CreatePatientRequest, UpdatePatientRequest } from '../../../shared/types/api';
+import type { CreatePatientRequest, UpdatePatientRequest } from '../types';
 import { useAuthStore } from '../../auth';
 import { patientApi, type PatientHistoryQueryParams } from '../api/patientApi';
 
@@ -9,7 +9,7 @@ export function usePatients() {
   const token = useAuthStore((state) => state.token);
 
   return useQuery({
-    queryKey: queryKeys.patients,
+    queryKey: patientKeys.patients,
     queryFn: () => patientApi.list(),
     enabled: Boolean(token),
   });
@@ -19,7 +19,7 @@ export function usePatient(id: number) {
   const { addRecentPatient } = useRecentPatients();
 
   return useQuery({
-    queryKey: queryKeys.patient(id),
+    queryKey: patientKeys.patient(id),
     queryFn: async () => {
       const patient = await patientApi.getById(id);
       addRecentPatient(patient);
@@ -38,7 +38,7 @@ export function usePatientHistory(id: number, params?: PatientHistoryQueryParams
   const includeStructuredData = params?.includeStructuredData;
 
   return useQuery({
-    queryKey: queryKeys.patientHistory(id, fromDate, toDate, page, pageSize, source),
+    queryKey: patientKeys.patientHistory(id, fromDate, toDate, page, pageSize, source),
     queryFn: () =>
       patientApi.getHistory(id, {
         fromDate,
@@ -60,8 +60,8 @@ export function useCreatePatient() {
     mutationFn: (request: CreatePatientRequest) => patientApi.create(request),
     onSuccess: (patient) => {
       addRecentPatient(patient);
-      queryClient.setQueryData(queryKeys.patient(patient.id), patient);
-      queryClient.invalidateQueries({ queryKey: queryKeys.patients });
+      queryClient.setQueryData(patientKeys.patient(patient.id), patient);
+      queryClient.invalidateQueries({ queryKey: patientKeys.patients });
     },
   });
 }
@@ -74,9 +74,9 @@ export function useUpdatePatient() {
     mutationFn: (request: UpdatePatientRequest) => patientApi.update(request),
     onSuccess: (patient) => {
       addRecentPatient(patient);
-      queryClient.setQueryData(queryKeys.patient(patient.id), patient);
-      queryClient.invalidateQueries({ queryKey: queryKeys.patients });
-      queryClient.invalidateQueries({ queryKey: queryKeys.patientHistoryPrefix(patient.id) });
+      queryClient.setQueryData(patientKeys.patient(patient.id), patient);
+      queryClient.invalidateQueries({ queryKey: patientKeys.patients });
+      queryClient.invalidateQueries({ queryKey: patientKeys.patientHistoryPrefix(patient.id) });
     },
   });
 }

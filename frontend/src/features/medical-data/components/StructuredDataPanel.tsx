@@ -1,4 +1,4 @@
-import type { ParsedStructuredSummary } from '../../../shared/types/api';
+import type { ParsedStructuredSummary } from '../types';
 
 interface Props {
   data: ParsedStructuredSummary;

@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { queryKeys } from '../../../shared/constants/queryKeys';
-import type { ChangePasswordRequest, UpdateUserProfileRequest } from '../../../shared/types/api';
-import { authApi, useAuthStore } from '../../auth';
+import type { ChangePasswordRequest, UpdateUserProfileRequest } from '../types';
+import { authApi, useAuthStore, authKeys } from '../../auth';
 
 export function useUpdateProfile() {
   const queryClient = useQueryClient();
@@ -12,7 +11,7 @@ export function useUpdateProfile() {
     mutationFn: (request: UpdateUserProfileRequest) => authApi.updateProfile(request),
     onSuccess: (session) => {
       setSession(session, roles);
-      queryClient.setQueryData(queryKeys.session, session);
+      queryClient.setQueryData(authKeys.session, session);
     },
   });
 }

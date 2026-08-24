@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { queryKeys } from '../../../shared/constants/queryKeys';
+import { structuredDataKeys } from '../queryKeys';
 import { structuredDataApi } from '../api/structuredDataApi';
+import { consultationKeys } from '../../consultations';
 
 export function useApproveStructuredData() {
   const queryClient = useQueryClient();
@@ -10,10 +11,10 @@ export function useApproveStructuredData() {
       structuredDataApi.approve(consultationId),
     onSuccess: (_data, consultationId) => {
       void queryClient.invalidateQueries({
-        queryKey: queryKeys.structuredData(consultationId),
+        queryKey: structuredDataKeys.structuredData(consultationId),
       });
       void queryClient.invalidateQueries({
-        queryKey: queryKeys.consultation(consultationId),
+        queryKey: consultationKeys.consultation(consultationId),
       });
     },
   });

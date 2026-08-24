@@ -5,7 +5,7 @@ import type {
   PatientHistory,
   PatientListItem,
   UpdatePatientRequest,
-} from '../../../shared/types/api';
+} from '../types';
 
 export type PatientHistoryQueryParams = {
   fromDate?: string;

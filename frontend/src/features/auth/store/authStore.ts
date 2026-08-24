@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { setAuthToken } from '../../../shared/api/httpClient';
-import type { AuthResponse, UserSession } from '../../../shared/types/api';
+import type { AuthResponse, UserSession } from '../types';
 
 interface AuthState {
   token: string | null;

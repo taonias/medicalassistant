@@ -1,5 +1,5 @@
 import { httpClient } from '../../../shared/api/httpClient';
-import type { MedicalStructuredDataDto } from '../../../shared/types/api';
+import type { MedicalStructuredDataDto } from '../types';
 
 export const structuredDataApi = {
   getByConsultation: async (consultationId: number) => {

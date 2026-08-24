@@ -4,7 +4,7 @@ import type {
   AskChatResponse,
   ChatQueryRequest,
   ChatResponse,
-} from '../../../shared/types/api';
+} from '../types';
 
 export const chatApi = {
   /** Legacy stateless single-shot query (no history). */

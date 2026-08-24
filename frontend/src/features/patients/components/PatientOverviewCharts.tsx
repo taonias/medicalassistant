@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import type { ConsultationHistoryItem } from '../../../shared/types/api';
+import type { ConsultationHistoryItem } from '../types';
 import { BarChart, DoughnutChart, useChartTheme } from '../../../shared/components/charts';
 import {
   addDaysToDateInput,

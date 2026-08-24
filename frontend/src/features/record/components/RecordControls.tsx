@@ -1,4 +1,4 @@
-import { PauseIcon, PlayIcon, StopIcon } from '../../../layouts/navigation/NavIcons';
+import { PauseIcon, PlayIcon, StopIcon } from '../../../app/shell/navigation/NavIcons';
 
 interface Props {
   isPaused: boolean;

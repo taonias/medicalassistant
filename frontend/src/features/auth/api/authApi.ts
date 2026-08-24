@@ -1,11 +1,6 @@
 import { httpClient } from '../../../shared/api/httpClient';
-import type {
-  AuthRequest,
-  AuthResponse,
-  ChangePasswordRequest,
-  UpdateUserProfileRequest,
-  UserSession,
-} from '../../../shared/types/api';
+import type { AuthRequest, AuthResponse, UserSession } from '../types';
+import type { ChangePasswordRequest, UpdateUserProfileRequest } from '../../settings';
 
 export const authApi = {
   login: (request: AuthRequest) =>

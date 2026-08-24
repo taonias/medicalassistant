@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useOutletContext, useSearchParams } from 'react-router-dom';
-import type { ConsultationHistoryItem } from '../../../shared/types/api';
+import type { ConsultationHistoryItem } from '../types';
 import { ConfirmModal } from '../../../shared/components/ConfirmModal';
 import { ConsultationStatusIcon } from '../../../shared/components/ConsultationStatusIcon';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import { ErrorMessage } from '../../../shared/components/ErrorMessage';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton';
-import { DiscardIcon } from '../../../layouts/navigation/NavIcons';
+import { DiscardIcon } from '../../../app/shell/navigation/NavIcons';
 import { formatDate, formatDuration } from '../../../shared/utils/format';
 import { AudioUploader, isPdfFile, UploadProgress } from '../../audio-capture';
 import {

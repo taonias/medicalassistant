@@ -1,28 +1,34 @@
 import { describe, expect, it } from 'vitest';
 
-import { queryKeys } from './queryKeys';
+import { authKeys } from '../../features/auth';
+import { patientKeys } from '../../features/patients';
+import { consultationKeys } from '../../features/consultations';
+import { transcriptKeys } from '../../features/transcripts';
+import { structuredDataKeys } from '../../features/medical-data';
+import { doctorNotesKeys } from '../../features/doctor-notes';
+import { chatKeys } from '../../features/chat';
 
 describe('React Query key contract', () => {
   it('keeps the complete cache-key catalog stable for feature owners', () => {
     expect({
-      session: queryKeys.session,
-      patient: queryKeys.patient(7),
-      patients: queryKeys.patients,
-      patientHistory: queryKeys.patientHistory(7),
-      patientHistoryPrefix: queryKeys.patientHistoryPrefix(7),
-      consultationsByPatient: queryKeys.consultationsByPatient(7),
-      draftConsultations: queryKeys.draftConsultations,
-      unattachedDraftConsultations: queryKeys.unattachedDraftConsultations,
-      dashboardAnalytics: queryKeys.dashboardAnalytics,
-      consultation: queryKeys.consultation(42),
-      consultationAudio: queryKeys.consultationAudio(42),
-      transcript: queryKeys.transcript(42),
-      structuredData: queryKeys.structuredData(42),
-      doctorNotes: queryKeys.doctorNotes(42),
-      patientDoctorNotes: queryKeys.patientDoctorNotes(7),
-      action: queryKeys.action('correlation-1'),
-      conversations: queryKeys.conversations(7),
-      conversationThread: queryKeys.conversationThread(5),
+      session: authKeys.session,
+      patient: patientKeys.patient(7),
+      patients: patientKeys.patients,
+      patientHistory: patientKeys.patientHistory(7),
+      patientHistoryPrefix: patientKeys.patientHistoryPrefix(7),
+      consultationsByPatient: consultationKeys.consultationsByPatient(7),
+      draftConsultations: consultationKeys.draftConsultations,
+      unattachedDraftConsultations: consultationKeys.unattachedDraftConsultations,
+      dashboardAnalytics: consultationKeys.dashboardAnalytics,
+      consultation: consultationKeys.consultation(42),
+      consultationAudio: consultationKeys.consultationAudio(42),
+      transcript: transcriptKeys.transcript(42),
+      structuredData: structuredDataKeys.structuredData(42),
+      doctorNotes: doctorNotesKeys.doctorNotes(42),
+      patientDoctorNotes: doctorNotesKeys.patientDoctorNotes(7),
+      action: chatKeys.action('correlation-1'),
+      conversations: chatKeys.conversations(7),
+      conversationThread: chatKeys.conversationThread(5),
     }).toEqual({
       session: ['auth', 'session'],
       patient: ['patient', 7],
@@ -46,7 +52,7 @@ describe('React Query key contract', () => {
   });
 
   it('keeps Patient history filters in a stable, explicit cache key', () => {
-    expect(queryKeys.patientHistory(7, '2026-08-01', '2026-08-23', 2, 25, 'Audio')).toEqual([
+    expect(patientKeys.patientHistory(7, '2026-08-01', '2026-08-23', 2, 25, 'Audio')).toEqual([
       'patient',
       7,
       'history',
@@ -56,16 +62,16 @@ describe('React Query key contract', () => {
       25,
       'Audio',
     ]);
-    expect(queryKeys.patientHistoryPrefix(7)).toEqual(['patient', 7, 'history']);
+    expect(patientKeys.patientHistoryPrefix(7)).toEqual(['patient', 7, 'history']);
   });
 
   it('keeps Consultation-owned cache keys distinct by capability', () => {
     expect({
-      consultation: queryKeys.consultation(42),
-      audio: queryKeys.consultationAudio(42),
-      transcript: queryKeys.transcript(42),
-      structuredData: queryKeys.structuredData(42),
-      doctorNotes: queryKeys.doctorNotes(42),
+      consultation: consultationKeys.consultation(42),
+      audio: consultationKeys.consultationAudio(42),
+      transcript: transcriptKeys.transcript(42),
+      structuredData: structuredDataKeys.structuredData(42),
+      doctorNotes: doctorNotesKeys.doctorNotes(42),
     }).toEqual({
       consultation: ['consultation', 42],
       audio: ['consultation', 42, 'audio'],

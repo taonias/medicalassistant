@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { recordApiRequests } from '../../../test/recordApiRequests';
-import { ActionType } from '../../../shared/types/api';
+import { ActionType } from '../types';
 import { actionApi } from './actionApi';
 import { chatApi } from './chatApi';
 import { conversationApi } from './conversationApi';

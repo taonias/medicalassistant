@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { ChatCitation } from '../../../shared/types/api';
+import type { ChatCitation } from '../types';
 import { CitationAnchor } from './CitationAnchor';
 
 interface Props {

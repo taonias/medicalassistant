@@ -3,7 +3,7 @@ import type {
   AskChatResponse,
   ConversationSummary,
   ConversationThread,
-} from '../../../shared/types/api';
+} from '../types';
 
 export const conversationApi = {
   listForPatient: (patientId: number) =>
