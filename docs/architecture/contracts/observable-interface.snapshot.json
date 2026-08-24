@@ -231,27 +231,27 @@
   ],
   "statusAssertions": [
     {
-      "path": "backend/src/MedicalAssistant.Api/Controllers/ConsultationController.cs",
+      "path": "backend/src/MedicalAssistant.Api/Modules/CareWorkflow/Consultations/ConsultationController.cs",
       "contains": ["return Ok(response);", "return CreatedAtAction(", "return NoContent();", "return NotFound();", "return File("]
     },
     {
-      "path": "backend/src/MedicalAssistant.Api/Controllers/ActionController.cs",
+      "path": "backend/src/MedicalAssistant.Api/Modules/Integrations/LegacyAiModule/ActionController.cs",
       "contains": ["return Accepted(response);", "return Ok(response);"]
     },
     {
-      "path": "backend/src/MedicalAssistant.Api/Controllers/AuthController.cs",
+      "path": "backend/src/MedicalAssistant.Api/Modules/CareWorkflow/Identity/AuthController.cs",
       "contains": ["return Ok(response);", "return Unauthorized();", "return NoContent();"]
     },
     {
-      "path": "backend/src/MedicalAssistant.Api/Controllers/PatientController.cs",
+      "path": "backend/src/MedicalAssistant.Api/Modules/CareWorkflow/Patients/PatientController.cs",
       "contains": ["return CreatedAtAction(", "return Ok(response);"]
     },
     {
-      "path": "backend/src/MedicalAssistant.Api/Controllers/ConversationsController.cs",
+      "path": "backend/src/MedicalAssistant.Api/Modules/Assistance/Chat/ConversationsController.cs",
       "contains": ["return Ok(", "return NoContent();"]
     },
     {
-      "path": "backend/src/MedicalAssistant.Api/Controllers/AiCallbackController.cs",
+      "path": "backend/src/MedicalAssistant.Api/Modules/Integrations/LegacyAiModule/AiCallbackController.cs",
       "contains": ["return Unauthorized();", "return Ok();"]
     },
     {
@@ -360,7 +360,7 @@
       "contains": ["app.UseSwagger();", "app.MapHub<IngestionStatusHub>(\"/hubs/ingestion-status\")", "AddScoped<IngestionStore>()", "AddHostedService<IngestionWorker>()", "AddHostedService<IngestionRecoverySweep>()", "AddHostedService<IntegrationEventOutboxRelay>()"]
     },
     {
-      "path": "backend/src/MedicalAssistant.Api/Realtime/ChatHub.cs",
+      "path": "backend/src/MedicalAssistant.Api/Modules/Assistance/Chat/ChatHub.cs",
       "contains": ["public const string ClientMethod = \"ChatProgress\";"]
     },
     {
