@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuthStore } from "../../features/auth";
-import { selectIsRecordingLocked, useRecordSessionStore } from "../../features/record";
+import { selectIsRecordingLocked, useRecordSessionStore } from "../../modules/consultations";
 import { formatPatientName } from "../../shared/utils/format";
 import { UserIcon } from "./navigation/NavIcons";
 

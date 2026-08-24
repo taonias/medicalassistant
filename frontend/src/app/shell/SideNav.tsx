@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { selectIsRecordingLocked, useRecordSessionStore } from '../../features/record';
+import { selectIsRecordingLocked, useRecordSessionStore } from '../../modules/consultations';
 import { useActivePatientContext } from '../../shared/hooks/useActivePatientContext';
 import { desktopNavItems } from './navigation/navItems';
 import { RecordButton } from './RecordButton';

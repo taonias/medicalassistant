@@ -2,11 +2,9 @@ import { describe, expect, it } from 'vitest';
 
 import { authKeys } from '../../features/auth';
 import { patientKeys } from '../../features/patients';
-import { consultationKeys } from '../../features/consultations';
-import { transcriptKeys } from '../../features/transcripts';
-import { structuredDataKeys } from '../../features/medical-data';
-import { doctorNotesKeys } from '../../features/doctor-notes';
-import { chatKeys } from '../../features/chat';
+import { consultationKeys } from '../../modules/consultations';
+import { transcriptKeys, structuredDataKeys, doctorNotesKeys } from '../../modules/clinical-record';
+import { conversationKeys, actionKeys } from '../../modules/chat';
 
 describe('React Query key contract', () => {
   it('keeps the complete cache-key catalog stable for feature owners', () => {
@@ -26,9 +24,9 @@ describe('React Query key contract', () => {
       structuredData: structuredDataKeys.structuredData(42),
       doctorNotes: doctorNotesKeys.doctorNotes(42),
       patientDoctorNotes: doctorNotesKeys.patientDoctorNotes(7),
-      action: chatKeys.action('correlation-1'),
-      conversations: chatKeys.conversations(7),
-      conversationThread: chatKeys.conversationThread(5),
+      action: actionKeys.action('correlation-1'),
+      conversations: conversationKeys.conversations(7),
+      conversationThread: conversationKeys.conversationThread(5),
     }).toEqual({
       session: ['auth', 'session'],
       patient: ['patient', 7],

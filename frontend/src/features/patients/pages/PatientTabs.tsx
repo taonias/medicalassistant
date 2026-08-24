@@ -8,18 +8,20 @@ import { ErrorMessage } from '../../../shared/components/ErrorMessage';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton';
 import { DiscardIcon } from '../../../app/shell/navigation/NavIcons';
 import { formatDate, formatDuration } from '../../../shared/utils/format';
-import { AudioUploader, isPdfFile, UploadProgress } from '../../audio-capture';
 import {
+  AudioUploader,
+  isPdfFile,
+  UploadProgress,
   useCreateConsultation,
   useDeleteConsultation,
   useUploadConsultationAudio,
   useUploadConsultationDocument,
-} from '../../consultations';
+} from '../../../modules/consultations';
 import { HistoryDateRangePicker } from '../components/HistoryDateRangePicker';
 import { ConsultationPager } from '../components/ConsultationPager';
 import { PatientDetailsPanel } from '../components/PatientDetailsPanel';
 import { PatientOverviewCharts } from '../components/PatientOverviewCharts';
-import { PatientDoctorNotesPanel } from '../../doctor-notes';
+import { PatientDoctorNotesPanel } from '../../../modules/clinical-record';
 import { usePatient, usePatientHistory } from '../hooks/usePatients';
 import { addDaysToDateInput, toDateInputValue } from '../utils/historyDateRange';
 

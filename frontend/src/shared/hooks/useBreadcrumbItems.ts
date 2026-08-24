@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useLocation, useParams, useSearchParams } from 'react-router-dom';
-import { useConsultation } from '../../features/consultations';
+import { useConsultation } from '../../modules/consultations';
 import { usePatient, usePatientHistory, addDaysToDateInput, toDateInputValue } from '../../features/patients';
 import { formatPatientName } from '../utils/format';
 

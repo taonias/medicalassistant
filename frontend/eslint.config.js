@@ -5,59 +5,69 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
-// Every folder directly under src/features is a feature; each one's public
-// surface is its index.ts (R11). Code outside a feature — another feature,
-// the app shell, layouts, or shared — must import it only through that
-// barrel, never by a path that reaches into the feature's internals. A file
-// can then move within its own feature without hunting down every caller.
-const featureNames = [
-  'audio-capture',
-  'auth',
-  'chat',
-  'consultations',
-  'dashboard',
-  'doctor-notes',
-  'medical-data',
-  'patients',
-  'record',
-  'settings',
-  'theme',
-  'transcripts',
+// Every business capability's public surface is its index.ts (R11). Code
+// outside a capability — another capability, the app shell, or shared — must
+// import it only through that barrel, never by a path that reaches into its
+// internals. A file can then move within its own capability without hunting
+// down every caller.
+//
+// Most capabilities still live under features/<name> (pre-R19). R19 moved
+// consultations (plus its record/audio-capture sub-areas) and clinical-record
+// (transcripts/doctor-notes/medical-data) to modules/<name> instead; R13
+// split auth's route guards into modules/auth while the rest of auth stays
+// at features/auth until a later wave finishes the features/ -> modules/
+// consolidation. R20 moved chat to modules/chat, split into its own
+// conversations/legacy/legacy-actions sub-areas (same "each sub-area keeps
+// its own internal structure" pattern as consultations/clinical-record) so a
+// stray import can't quietly extend a legacy generation. `roots` names every
+// glob a capability's own files can live under, so self-imports stay exempt
+// regardless of which root they're in — the protection pattern itself is
+// root-agnostic (matches by name only), so a capability split across roots
+// is still protected as one unit.
+const modules = [
+  { name: 'auth', roots: ['src/features/auth/**/*.{ts,tsx}', 'src/modules/auth/**/*.{ts,tsx}'] },
+  { name: 'chat', roots: ['src/modules/chat/**/*.{ts,tsx}'] },
+  { name: 'dashboard', roots: ['src/features/dashboard/**/*.{ts,tsx}'] },
+  { name: 'patients', roots: ['src/features/patients/**/*.{ts,tsx}'] },
+  { name: 'settings', roots: ['src/features/settings/**/*.{ts,tsx}'] },
+  { name: 'theme', roots: ['src/features/theme/**/*.{ts,tsx}'] },
+  { name: 'consultations', roots: ['src/modules/consultations/**/*.{ts,tsx}'] },
+  { name: 'clinical-record', roots: ['src/modules/clinical-record/**/*.{ts,tsx}'] },
 ]
 
 // Matches "…/<name>/<anything>" at any relative depth, but not the bare
 // barrel import "…/<name>" itself (no trailing path segment).
-function internalPathPattern(featureName) {
+function internalPathPattern(name) {
   return {
-    group: [`**/${featureName}/**`],
-    message: `Import "${featureName}" from its public index (features/${featureName}), not by reaching into its internals.`,
+    group: [`**/${name}/**`],
+    message: `Import "${name}" from its public index, not by reaching into its internals.`,
   }
 }
 
 // ESLint flat config merges same-named rules across matching blocks by full
 // overwrite, not by combining arrays — so each file must match exactly one
 // of these blocks, each carrying the complete pattern set that applies to it
-// (every *other* feature's internals), rather than one block per feature all
+// (every *other* module's internals), rather than one block per module all
 // matching the same files and clobbering each other's patterns.
-const featureBoundaryRules = featureNames.map((ownFeature) => ({
-  files: [`src/features/${ownFeature}/**/*.{ts,tsx}`],
+const moduleBoundaryRules = modules.map((ownModule) => ({
+  files: ownModule.roots,
   rules: {
     'no-restricted-imports': [
       'error',
       {
-        patterns: featureNames
-          .filter((name) => name !== ownFeature)
-          .map(internalPathPattern),
+        patterns: modules
+          .filter((m) => m.name !== ownModule.name)
+          .map((m) => internalPathPattern(m.name)),
       },
     ],
   },
 }))
 
-const outsideFeaturesBoundaryRule = {
+const outsideModulesBoundaryRule = {
   files: ['src/**/*.{ts,tsx}'],
-  ignores: ['src/features/**'],
+  ignores: modules.flatMap((m) => m.roots),
   rules: {
-    'no-restricted-imports': ['error', { patterns: featureNames.map(internalPathPattern) }],
+    'no-restricted-imports': ['error', { patterns: modules.map((m) => internalPathPattern(m.name)) }],
   },
 }
 
@@ -75,6 +85,6 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
-  ...featureBoundaryRules,
-  outsideFeaturesBoundaryRule,
+  ...moduleBoundaryRules,
+  outsideModulesBoundaryRule,
 ])

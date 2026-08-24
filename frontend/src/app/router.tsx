@@ -2,8 +2,11 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from '../modules/auth';
 import { LoginPage } from '../features/auth';
 import { DashboardPage } from '../features/dashboard';
-import { NewConsultationPage } from '../features/audio-capture';
-import { ConsultationDetailPage } from '../features/consultations';
+import {
+  NewConsultationPage,
+  ConsultationDetailPage,
+  RecordPage,
+} from '../modules/consultations';
 import {
   PatientDetailPage,
   PatientListPage,
@@ -12,8 +15,7 @@ import {
 } from '../features/patients';
 import { AppShell } from './shell/AppShell';
 import { AuthLayout } from './shell/AuthLayout';
-import { ChatPage } from '../features/chat';
-import { RecordPage } from '../features/record';
+import { ChatPage } from '../modules/chat';
 import { SettingsPage } from '../features/settings';
 import { PatientChatRoute } from './routes/PatientChatRoute';
 

@@ -1,4 +1,4 @@
-import type { DoctorNote } from '../doctor-notes';
+import type { DoctorNote } from '../../modules/clinical-record';
 
 export interface Patient {
   id: number;

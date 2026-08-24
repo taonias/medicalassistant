@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { useLogout, useSession, useAuthStore } from '../../features/auth';
-import { selectIsRecordingLocked, useRecordSessionStore } from '../../features/record';
+import { selectIsRecordingLocked, useRecordSessionStore } from '../../modules/consultations';
 import { AppBreadcrumbs } from '../../shared/components/AppBreadcrumbs';
 import { AppBrand } from '../../shared/components/AppBrand';
 import { FooterNav } from './FooterNav';

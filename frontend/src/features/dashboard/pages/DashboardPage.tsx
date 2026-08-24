@@ -4,17 +4,18 @@ import { EmptyState } from '../../../shared/components/EmptyState';
 import { ErrorMessage } from '../../../shared/components/ErrorMessage';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton';
 import { formatDate, formatDuration } from '../../../shared/utils/format';
-import type { ConsultationSummary } from '../../consultations';
 import type { DashboardAnalytics } from '../types';
 import { useQueryClient } from '@tanstack/react-query';
 import {
+  type ConsultationSummary,
   useAssignConsultationPatient,
   useConsultationAudio,
   useDashboardAnalytics,
   useUnattachedDraftConsultations,
   consultationKeys,
-} from '../../consultations';
-import { PatientAttachPanel, RecordingPreviewPlayer } from '../../record';
+  PatientAttachPanel,
+  RecordingPreviewPlayer,
+} from '../../../modules/consultations';
 import {
   PatientMixChart,
   StatusDonutChart,

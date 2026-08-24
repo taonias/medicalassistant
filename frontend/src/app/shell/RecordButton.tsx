@@ -1,7 +1,7 @@
 import type { MouseEvent } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { RecordIcon } from './navigation/NavIcons';
-import { useRecordSessionStore } from '../../features/record';
+import { useRecordSessionStore } from '../../modules/consultations';
 import { useActivePatientContext } from '../../shared/hooks/useActivePatientContext';
 
 interface Props {

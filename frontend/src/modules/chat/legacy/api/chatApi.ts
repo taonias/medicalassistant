@@ -1,0 +1,11 @@
+import { httpClient } from '../../../../shared/api/httpClient';
+import type { ChatQueryRequest, ChatResponse } from '../types';
+
+export const chatApi = {
+  /** Legacy stateless single-shot query (no history). */
+  query: (request: ChatQueryRequest) =>
+    httpClient<ChatResponse>('/chat/query', {
+      method: 'POST',
+      body: request,
+    }),
+};
