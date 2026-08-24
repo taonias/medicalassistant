@@ -1,0 +1,35 @@
+name: Clinical Knowledge characterization
+
+on:
+  pull_request:
+    paths:
+      - "AI/src/**"
+      - "AI/tests/**"
+      - ".github/workflows/clinical-knowledge-characterization.yml"
+  push:
+    paths:
+      - "AI/src/**"
+      - "AI/tests/**"
+      - ".github/workflows/clinical-knowledge-characterization.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  clinical-knowledge-characterization:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Restore ingestion tests
+        run: >-
+          dotnet restore
+          AI/tests/MedicalAssistance.Ingestion.Api.Tests/MedicalAssistance.Ingestion.Api.Tests.csproj
+      - name: Run Clinical Knowledge characterization gate
+        run: >-
+          dotnet test
+          AI/tests/MedicalAssistance.Ingestion.Api.Tests/MedicalAssistance.Ingestion.Api.Tests.csproj
+          --no-restore
