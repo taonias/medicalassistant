@@ -3,8 +3,8 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ErrorMessage } from '../../../shared/components/ErrorMessage';
-import { ThemeToggle } from '../../theme/components/ThemeToggle';
-import { useAuthStore } from '../../auth/store/authStore';
+import { ThemeToggle } from '../../theme';
+import { useAuthStore } from '../../auth';
 import { useChangePassword, useUpdateProfile } from '../hooks/useSettings';
 
 const profileSchema = z.object({

@@ -1,20 +1,20 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from '../shared/components/ProtectedRoute';
-import { LoginPage } from '../features/auth/pages/LoginPage';
-import { DashboardPage } from '../features/dashboard/pages/DashboardPage';
-import { NewConsultationPage } from '../features/audio-capture/pages/NewConsultationPage';
-import { ConsultationDetailPage } from '../features/consultations/pages/ConsultationDetailPage';
-import { PatientDetailPage } from '../features/patients/pages/PatientDetailPage';
-import { PatientListPage } from '../features/patients/pages/PatientListPage';
+import { LoginPage } from '../features/auth';
+import { DashboardPage } from '../features/dashboard';
+import { NewConsultationPage } from '../features/audio-capture';
+import { ConsultationDetailPage } from '../features/consultations';
 import {
+  PatientDetailPage,
+  PatientListPage,
   PatientConsultationsTab,
   PatientOverviewTab,
-} from '../features/patients/pages/PatientTabs';
+} from '../features/patients';
 import { AppShell } from '../layouts/AppShell';
 import { AuthLayout } from '../layouts/AuthLayout';
-import { ChatPage } from '../features/chat/pages/ChatPage';
-import { RecordPage } from '../features/record/pages/RecordPage';
-import { SettingsPage } from '../features/settings/pages/SettingsPage';
+import { ChatPage } from '../features/chat';
+import { RecordPage } from '../features/record';
+import { SettingsPage } from '../features/settings';
 import { PatientChatRoute } from './routes/PatientChatRoute';
 
 export const router = createBrowserRouter([

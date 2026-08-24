@@ -8,19 +8,18 @@ import { ErrorMessage } from '../../../shared/components/ErrorMessage';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton';
 import { DiscardIcon } from '../../../layouts/navigation/NavIcons';
 import { formatDate, formatDuration } from '../../../shared/utils/format';
-import { AudioUploader, isPdfFile } from '../../audio-capture/components/AudioUploader';
-import { UploadProgress } from '../../audio-capture/components/UploadProgress';
+import { AudioUploader, isPdfFile, UploadProgress } from '../../audio-capture';
 import {
   useCreateConsultation,
   useDeleteConsultation,
   useUploadConsultationAudio,
   useUploadConsultationDocument,
-} from '../../consultations/hooks/useConsultations';
+} from '../../consultations';
 import { HistoryDateRangePicker } from '../components/HistoryDateRangePicker';
 import { ConsultationPager } from '../components/ConsultationPager';
 import { PatientDetailsPanel } from '../components/PatientDetailsPanel';
 import { PatientOverviewCharts } from '../components/PatientOverviewCharts';
-import { PatientDoctorNotesPanel } from '../../doctor-notes/components/PatientDoctorNotesPanel';
+import { PatientDoctorNotesPanel } from '../../doctor-notes';
 import { usePatient, usePatientHistory } from '../hooks/usePatients';
 import { addDaysToDateInput, toDateInputValue } from '../utils/historyDateRange';
 

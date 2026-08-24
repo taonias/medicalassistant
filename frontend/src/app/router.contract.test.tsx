@@ -3,7 +3,7 @@ import { http, HttpResponse } from 'msw';
 import { RouterProvider, type RouteObject } from 'react-router-dom';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { useAuthStore } from '../features/auth/store/authStore';
+import { useAuthStore } from '../features/auth';
 import { server } from '../test/server';
 import { AppProviders } from './providers';
 import { router } from './router';

@@ -1,5 +1,5 @@
 import { Navigate, useParams, useSearchParams } from 'react-router-dom';
-import { ChatPage } from '../../features/chat/pages/ChatPage';
+import { ChatPage } from '../../features/chat';
 
 export function PatientChatRoute() {
   const { patientId = '0' } = useParams();

@@ -1,10 +1,7 @@
 import { useMemo, useState } from 'react';
 import { ErrorMessage } from '../../../shared/components/ErrorMessage';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton';
-import { PatientCard } from '../../patients/components/PatientCard';
-import { PatientSearchField } from '../../patients/components/PatientSearchField';
-import { usePatients } from '../../patients/hooks/usePatients';
-import { matchesPatientSearch } from '../../patients/utils/matchesPatientSearch';
+import { PatientCard, PatientSearchField, usePatients, matchesPatientSearch } from '../../patients';
 
 interface Props {
   durationSeconds: number;

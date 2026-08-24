@@ -9,8 +9,8 @@ import {
   useCreateConsultation,
   useUploadConsultationAudio,
   useUploadConsultationDocument,
-} from '../../consultations/hooks/useConsultations';
-import { usePatient } from '../../patients/hooks/usePatients';
+} from '../../consultations';
+import { usePatient } from '../../patients';
 
 import { CaptureModeTabs, type CaptureMode } from '../../audio-capture/components/CaptureModeTabs';
 

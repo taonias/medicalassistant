@@ -3,7 +3,7 @@ import {
   buildRecordingFile,
   preferredRecordingMimeType,
   setMicrophoneEnabled,
-} from '../../audio-capture/utils/recordingMedia';
+} from '../../audio-capture';
 
 export type RecordPhase = 'idle' | 'recording' | 'attach';
 

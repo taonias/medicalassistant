@@ -3,10 +3,10 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   useCreateConsultation,
   useUploadConsultationAudio,
-} from '../../consultations/hooks/useConsultations';
-import { usePatient } from '../../patients/hooks/usePatients';
+} from '../../consultations';
+import { usePatient } from '../../patients';
 import { formatPatientName } from '../../../shared/utils/format';
-import { getAudioDurationSeconds } from '../../audio-capture/utils/getAudioDuration';
+import { getAudioDurationSeconds } from '../../audio-capture';
 import { AudioVisualizer } from '../components/AudioVisualizer';
 import { RecordControls } from '../components/RecordControls';
 import { useRecordSessionStore } from '../store/recordSessionStore';

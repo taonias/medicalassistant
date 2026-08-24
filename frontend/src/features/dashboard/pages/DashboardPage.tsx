@@ -12,9 +12,8 @@ import {
   useConsultationAudio,
   useDashboardAnalytics,
   useUnattachedDraftConsultations,
-} from '../../consultations/hooks/useConsultations';
-import { PatientAttachPanel } from '../../record/components/PatientAttachPanel';
-import { RecordingPreviewPlayer } from '../../record/components/RecordingPreviewPlayer';
+} from '../../consultations';
+import { PatientAttachPanel, RecordingPreviewPlayer } from '../../record';
 import {
   PatientMixChart,
   StatusDonutChart,

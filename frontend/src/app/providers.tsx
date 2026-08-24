@@ -8,7 +8,7 @@ import {
 
   useThemeStore,
 
-} from '../features/theme/store/themeStore';
+} from '../features/theme';
 
 
 

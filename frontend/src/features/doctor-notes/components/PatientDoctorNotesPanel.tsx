@@ -3,7 +3,7 @@ import { SaveIcon } from '../../../layouts/navigation/NavIcons';
 import { ErrorMessage } from '../../../shared/components/ErrorMessage';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton';
 import type { DoctorNote } from '../../../shared/types/api';
-import { usePatientHistory } from '../../patients/hooks/usePatients';
+import { usePatientHistory } from '../../patients';
 import { useCreateDoctorNote } from '../hooks/useDoctorNotes';
 
 interface Props {

@@ -11,7 +11,7 @@ import {
   type ConversationThread,
 } from '../../../shared/types/api';
 import { formatPatientName } from '../../../shared/utils/format';
-import { usePatient } from '../../patients/hooks/usePatients';
+import { usePatient } from '../../patients';
 import { conversationApi } from '../api/conversationApi';
 import {
   useAskChat,

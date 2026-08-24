@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useLocation, useParams, useSearchParams } from 'react-router-dom';
-import { usePatient } from '../../features/patients/hooks/usePatients';
+import { usePatient } from '../../features/patients';
 import { formatPatientName } from '../utils/format';
 
 /**

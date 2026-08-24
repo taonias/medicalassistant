@@ -1,8 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '../../../shared/constants/queryKeys';
 import type { ChangePasswordRequest, UpdateUserProfileRequest } from '../../../shared/types/api';
-import { authApi } from '../../auth/api/authApi';
-import { useAuthStore } from '../../auth/store/authStore';
+import { authApi, useAuthStore } from '../../auth';
 
 export function useUpdateProfile() {
   const queryClient = useQueryClient();

@@ -1,8 +1,7 @@
 import { useMemo } from 'react';
 import { useLocation, useParams, useSearchParams } from 'react-router-dom';
-import { useConsultation } from '../../features/consultations/hooks/useConsultations';
-import { usePatient, usePatientHistory } from '../../features/patients/hooks/usePatients';
-import { addDaysToDateInput, toDateInputValue } from '../../features/patients/utils/historyDateRange';
+import { useConsultation } from '../../features/consultations';
+import { usePatient, usePatientHistory, addDaysToDateInput, toDateInputValue } from '../../features/patients';
 import { formatPatientName } from '../utils/format';
 
 export type BreadcrumbItem = { label: string; href?: string };

@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '../../../shared/constants/queryKeys';
 import { useRecentPatients } from '../../../shared/hooks/useRecentPatients';
 import type { CreatePatientRequest, UpdatePatientRequest } from '../../../shared/types/api';
-import { useAuthStore } from '../../auth/store/authStore';
+import { useAuthStore } from '../../auth';
 import { patientApi, type PatientHistoryQueryParams } from '../api/patientApi';
 
 export function usePatients() {

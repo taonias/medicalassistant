@@ -11,21 +11,17 @@ import { queryKeys } from '../../../shared/constants/queryKeys';
 import { parseStructuredSummary } from '../../../shared/utils/structuredData';
 import { formatDate, formatDuration } from '../../../shared/utils/format';
 import { DownloadIcon, SaveIcon } from '../../../layouts/navigation/NavIcons';
-import { usePatient, usePatientHistory } from '../../patients/hooks/usePatients';
+import { usePatient, usePatientHistory } from '../../patients';
 import {
   useConsultation,
   useConsultationAudio,
   useRetryConsultationProcessing,
 } from '../hooks/useConsultations';
 import { consultationApi } from '../api/consultationApi';
-import { useTranscript } from '../../transcripts/hooks/useTranscript';
-import { TranscriptViewer } from '../../transcripts/components/TranscriptViewer';
-import { useStructuredData } from '../../medical-data/hooks/useStructuredData';
-import {
-  useCreateDoctorNote,
-  useDoctorNotes,
-} from '../../doctor-notes/hooks/useDoctorNotes';
-import { RecordingPreviewPlayer } from '../../record/components/RecordingPreviewPlayer';
+import { useTranscript, TranscriptViewer } from '../../transcripts';
+import { useStructuredData } from '../../medical-data';
+import { useCreateDoctorNote, useDoctorNotes } from '../../doctor-notes';
+import { RecordingPreviewPlayer } from '../../record';
 import type { DoctorNote } from '../../../shared/types/api';
 
 export function ConsultationDetailPage() {

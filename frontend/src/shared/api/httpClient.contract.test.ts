@@ -1,7 +1,7 @@
 import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { useAuthStore } from '../../features/auth/store/authStore';
+import { useAuthStore } from '../../features/auth';
 import { server } from '../../test/server';
 import { httpClient, setAuthToken } from './httpClient';
 
