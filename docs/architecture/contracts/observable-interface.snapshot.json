@@ -127,6 +127,7 @@
     "backend/test/MedicalAssistant.EventBus.UnitTests/MedicalAssistant.EventBus.UnitTests.csproj",
     "backend/test/MedicalAssistant.EventBusRabbitMQ.UnitTests/MedicalAssistant.EventBusRabbitMQ.UnitTests.csproj",
     "backend/test/MedicalAssistant.Persistence.IntegrationTests/MedicalAssistant.Persistence.IntegrationTests.csproj",
+    "backend/test/MedicalAssistant.Transcription.Worker.Tests/MedicalAssistant.Transcription.Worker.Tests.csproj",
     "tests/MedicalAssistant.AcceptanceTests/MedicalAssistant.AcceptanceTests.csproj"
   ],
   "modelSnapshots": {
@@ -255,19 +256,19 @@
       "contains": ["return Unauthorized();", "return Ok();"]
     },
     {
-      "path": "AI/src/MedicalAssistance.Ingestion.Api/Controllers/IngestionsController.cs",
+      "path": "AI/src/MedicalAssistance.Ingestion.Api/Modules/Ingestion/Intake/IngestionsController.cs",
       "contains": ["StatusCodes.Status202Accepted", "StatusCodes.Status400BadRequest", "StatusCodes.Status404NotFound", "StatusCodes.Status409Conflict"]
     },
     {
-      "path": "AI/src/MedicalAssistance.Ingestion.Api/Controllers/DocumentsController.cs",
+      "path": "AI/src/MedicalAssistance.Ingestion.Api/Modules/DocumentLifecycle/UnIngest/DocumentsController.cs",
       "contains": ["StatusCodes.Status200OK", "StatusCodes.Status400BadRequest", "StatusCodes.Status404NotFound", "StatusCodes.Status409Conflict"]
     },
     {
-      "path": "AI/src/MedicalAssistance.Ingestion.Api/Controllers/PatientsController.cs",
+      "path": "AI/src/MedicalAssistance.Ingestion.Api/Modules/DocumentLifecycle/PatientsController.cs",
       "contains": ["StatusCodes.Status200OK", "StatusCodes.Status400BadRequest", "StatusCodes.Status401Unauthorized", "StatusCodes.Status403Forbidden", "StatusCodes.Status404NotFound"]
     },
     {
-      "path": "AI/src/MedicalAssistance.Ingestion.Api/Controllers/ChatController.cs",
+      "path": "AI/src/MedicalAssistance.Ingestion.Api/Modules/GroundedChat/ChatController.cs",
       "contains": ["StatusCodes.Status200OK", "StatusCodes.Status400BadRequest", "StatusCodes.Status401Unauthorized", "StatusCodes.Status500InternalServerError"]
     }
   ],
@@ -288,42 +289,42 @@
       "contains": ["ConnectionStrings:Postgres", "Ingestion:WorkerCount", "DocumentArchive:LocalRootPath", "OTEL_EXPORTER_OTLP_ENDPOINT"]
     },
     {
-      "path": "AI/src/MedicalAssistance.Ingestion.Api/Ingestions/IngestionWorker.cs",
+      "path": "AI/src/MedicalAssistance.Ingestion.Api/Modules/Ingestion/Processing/IngestionWorker.cs",
       "keys": ["Ingestion:WorkerCount", "Ingestion:MaxAttempts"],
       "contains": ["Ingestion:WorkerCount", "Ingestion:MaxAttempts"]
     },
     {
-      "path": "AI/src/MedicalAssistance.Ingestion.Api/Ingestions/IngestionRecoverySweep.cs",
+      "path": "AI/src/MedicalAssistance.Ingestion.Api/Modules/Ingestion/Processing/IngestionRecoverySweep.cs",
       "keys": ["Ingestion:RecoverySweepInterval"],
       "contains": ["Ingestion:RecoverySweepInterval"]
     },
     {
-      "path": "AI/src/MedicalAssistance.Ingestion.Api/Ingestions/ProseIngestionPipeline.cs",
+      "path": "AI/src/MedicalAssistance.Ingestion.Api/Modules/Ingestion/Processing/ProseIngestionPipeline.cs",
       "keys": ["Chunking:MinTokens", "Chunking:MaxTokens"],
       "contains": ["Chunking:MinTokens", "Chunking:MaxTokens"]
     },
     {
-      "path": "AI/src/MedicalAssistance.Ingestion.Api/Retrieval/RefineRetrievalStep.cs",
+      "path": "AI/src/MedicalAssistance.Ingestion.Api/Modules/Retrieval/Pipeline/RefineRetrievalStep.cs",
       "keys": ["Retrieval:QueryRefinement:Enabled"],
       "contains": ["Retrieval:QueryRefinement:Enabled"]
     },
     {
-      "path": "AI/src/MedicalAssistance.Ingestion.Api/Retrieval/PackageRetrievalStep.cs",
+      "path": "AI/src/MedicalAssistance.Ingestion.Api/Modules/Retrieval/Pipeline/PackageRetrievalStep.cs",
       "keys": ["Retrieval:ConfidenceThreshold"],
       "contains": ["Retrieval:ConfidenceThreshold"]
     },
     {
-      "path": "AI/src/MedicalAssistance.Ingestion.Api/Ingestions/PdfIntake.cs",
+      "path": "AI/src/MedicalAssistance.Ingestion.Api/Modules/Ingestion/Intake/PdfIntake.cs",
       "keys": ["Extraction:MaxPdfBytes"],
       "contains": ["Extraction:MaxPdfBytes"]
     },
     {
-      "path": "AI/src/MedicalAssistance.Ingestion.Api/Ingestions/OpenAiProviders.cs",
+      "path": "AI/src/MedicalAssistance.Ingestion.Api/Adapters/OpenAI/OpenAiProviders.cs",
       "keys": ["OpenAIChat:{ApiKey,BaseUrl,Model}", "OpenAIEmbeddings:{ApiKey,BaseUrl,Model}"],
       "contains": ["OpenAIChat", "OpenAIEmbeddings", "section[\"ApiKey\"]", "section[\"BaseUrl\"]", "section[\"Model\"]"]
     },
     {
-      "path": "AI/src/MedicalAssistance.Ingestion.Api/Ingestions/AzureAi.cs",
+      "path": "AI/src/MedicalAssistance.Ingestion.Api/Adapters/AzureDocumentIntelligence/AzureAi.cs",
       "keys": ["AzureOpenAI:{Endpoint,ApiKey,ChatDeployment,EmbeddingDeployment,Embedding:Dimensions}", "DocumentIntelligence:{Endpoint,ApiKey}"],
       "contains": ["AzureOpenAI", "DocumentIntelligence", "Embedding:Dimensions", "section[\"Endpoint\"]", "section[\"ApiKey\"]", "section[\"ChatDeployment\"]", "section[\"EmbeddingDeployment\"]"]
     }
@@ -364,7 +365,7 @@
       "contains": ["public const string ClientMethod = \"ChatProgress\";"]
     },
     {
-      "path": "AI/src/MedicalAssistance.Ingestion.Api/Realtime/IngestionStatusPublisher.cs",
+      "path": "AI/src/MedicalAssistance.Ingestion.Api/Modules/Ingestion/IngestionStatusPublisher.cs",
       "contains": ["public const string ClientMethod = \"IngestionStatusChanged\";"]
     },
     {
@@ -376,7 +377,7 @@
       "contains": ["consultation.audio-uploaded.v1", "consultation.document-uploaded.v1", "consultation.transcript-ready.v1", "consultation.transcription-failed.v1", "consultation.deleted.v1", "clinicalknowledge.ingestion-failed.v1"]
     },
     {
-      "path": "AI/src/MedicalAssistance.Ingestion.Api/Ingestions/IntegrationEventOutbox.cs",
+      "path": "AI/src/MedicalAssistance.Ingestion.Api/Adapters/RabbitMQ/IntegrationEventOutbox.cs",
       "contains": ["eventId,", "eventType = IngestionFailedEventType", "eventVersion = 1", "occurredAtUtc = DateTime.UtcNow", "producer = Producer", "correlationId = (string?)null", "causationId = (string?)null", "payload = new", "sessionId,", "ingestionId,", "reason"]
     },
     {

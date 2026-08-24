@@ -9,7 +9,7 @@ using MedicalAssistant.Transcription.Worker.Storage;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 
-namespace MedicalAssistant.EventBusRabbitMQ.UnitTests;
+namespace MedicalAssistant.Transcription.Worker.Tests;
 
 public class ConsultationAudioUploadedHandlerTests
 {
@@ -26,8 +26,8 @@ public class ConsultationAudioUploadedHandlerTests
             retriever,
             speech,
             unitOfWork,
-            Options.Create(new RabbitMqTopologyOptions { SubscriberName = "transcription-worker" }),
-            Options.Create(new TranscriptionWorkerOptions { ProcessingLeaseDuration = TimeSpan.FromMinutes(10) }),
+            Microsoft.Extensions.Options.Options.Create(new RabbitMqTopologyOptions { SubscriberName = "transcription-worker" }),
+            Microsoft.Extensions.Options.Options.Create(new TranscriptionWorkerOptions { ProcessingLeaseDuration = TimeSpan.FromMinutes(10) }),
             NullLogger<ConsultationAudioUploadedIntegrationEventHandler>.Instance);
         var envelope = new IntegrationEventEnvelope<ConsultationAudioUploadedV1>(
             Guid.Parse("33333333-3333-3333-3333-333333333333"),
@@ -68,8 +68,8 @@ public class ConsultationAudioUploadedHandlerTests
             retriever,
             speech,
             unitOfWork,
-            Options.Create(new RabbitMqTopologyOptions { SubscriberName = "transcription-worker" }),
-            Options.Create(new TranscriptionWorkerOptions { ProcessingLeaseDuration = TimeSpan.FromMinutes(10) }),
+            Microsoft.Extensions.Options.Options.Create(new RabbitMqTopologyOptions { SubscriberName = "transcription-worker" }),
+            Microsoft.Extensions.Options.Options.Create(new TranscriptionWorkerOptions { ProcessingLeaseDuration = TimeSpan.FromMinutes(10) }),
             NullLogger<ConsultationAudioUploadedIntegrationEventHandler>.Instance);
 
         await handler.HandleAsync(CreateEnvelope(), CancellationToken.None);
@@ -94,8 +94,8 @@ public class ConsultationAudioUploadedHandlerTests
             retriever,
             speech,
             unitOfWork,
-            Options.Create(new RabbitMqTopologyOptions { SubscriberName = "transcription-worker" }),
-            Options.Create(new TranscriptionWorkerOptions { ProcessingLeaseDuration = TimeSpan.FromMinutes(10) }),
+            Microsoft.Extensions.Options.Options.Create(new RabbitMqTopologyOptions { SubscriberName = "transcription-worker" }),
+            Microsoft.Extensions.Options.Options.Create(new TranscriptionWorkerOptions { ProcessingLeaseDuration = TimeSpan.FromMinutes(10) }),
             NullLogger<ConsultationAudioUploadedIntegrationEventHandler>.Instance);
 
         await handler.HandleAsync(CreateEnvelope(), CancellationToken.None);
@@ -122,8 +122,8 @@ public class ConsultationAudioUploadedHandlerTests
             retriever,
             speech,
             unitOfWork,
-            Options.Create(new RabbitMqTopologyOptions { SubscriberName = "transcription-worker" }),
-            Options.Create(new TranscriptionWorkerOptions { ProcessingLeaseDuration = TimeSpan.FromMinutes(10) }),
+            Microsoft.Extensions.Options.Options.Create(new RabbitMqTopologyOptions { SubscriberName = "transcription-worker" }),
+            Microsoft.Extensions.Options.Options.Create(new TranscriptionWorkerOptions { ProcessingLeaseDuration = TimeSpan.FromMinutes(10) }),
             NullLogger<ConsultationAudioUploadedIntegrationEventHandler>.Instance);
 
         await handler.HandleAsync(CreateEnvelope(), CancellationToken.None);

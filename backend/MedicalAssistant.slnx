@@ -16,5 +16,6 @@
     <Project Path="test/MedicalAssistant.EventBus.UnitTests/MedicalAssistant.EventBus.UnitTests.csproj" />
     <Project Path="test/MedicalAssistant.EventBusRabbitMQ.UnitTests/MedicalAssistant.EventBusRabbitMQ.UnitTests.csproj" />
     <Project Path="test/MedicalAssistant.Persistence.IntegrationTests/MedicalAssistant.Persistence.IntegrationTests.csproj" />
+    <Project Path="test/MedicalAssistant.Transcription.Worker.Tests/MedicalAssistant.Transcription.Worker.Tests.csproj" />
   </Folder>
 </Solution>

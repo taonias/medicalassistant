@@ -14,6 +14,7 @@
     <Project Path="backend/test/MedicalAssistant.EventBus.UnitTests/MedicalAssistant.EventBus.UnitTests.csproj" />
     <Project Path="backend/test/MedicalAssistant.EventBusRabbitMQ.UnitTests/MedicalAssistant.EventBusRabbitMQ.UnitTests.csproj" />
     <Project Path="backend/test/MedicalAssistant.Persistence.IntegrationTests/MedicalAssistant.Persistence.IntegrationTests.csproj" />
+    <Project Path="backend/test/MedicalAssistant.Transcription.Worker.Tests/MedicalAssistant.Transcription.Worker.Tests.csproj" />
   </Folder>
   <Folder Name="/clinical-knowledge/">
     <Project Path="AI/src/MedicalAssistance.Ingestion.Api/MedicalAssistance.Ingestion.Api.csproj" />

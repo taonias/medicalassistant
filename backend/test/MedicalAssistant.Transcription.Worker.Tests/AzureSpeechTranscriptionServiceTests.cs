@@ -5,7 +5,7 @@ using MedicalAssistant.Transcription.Worker.Speech;
 using MedicalAssistant.Transcription.Worker.Storage;
 using Microsoft.Extensions.Options;
 
-namespace MedicalAssistant.EventBusRabbitMQ.UnitTests;
+namespace MedicalAssistant.Transcription.Worker.Tests;
 
 public class AzureSpeechTranscriptionServiceTests
 {
@@ -84,7 +84,7 @@ public class AzureSpeechTranscriptionServiceTests
     {
         return new AzureSpeechTranscriptionService(
             new HttpClient(handler),
-            Options.Create(new AzureSpeechTranscriptionOptions
+            Microsoft.Extensions.Options.Options.Create(new AzureSpeechTranscriptionOptions
             {
                 Key = "test-key",
                 Region = "westeurope",

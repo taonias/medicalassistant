@@ -1,7 +1,6 @@
 using AutoMapper;
 using MedicalAssistant.Application.Contracts.Identity;
 using MedicalAssistant.Application.Contracts.Persistence;
-using MedicalAssistant.Application.Features.Consultation.Command.DeleteConsultation;
 using MedicalAssistant.Application.Features.Transcript.Command.UpdateTranscript;
 using MedicalAssistant.Application.MappingProfiles;
 using MedicalAssistant.Domain;
@@ -10,7 +9,7 @@ using Moq;
 
 namespace MedicalAssistant.Application.UnitTests.Features;
 
-public class TranscriptAndDeletionOutboxTests
+public class TranscriptCorrectionOutboxTests
 {
     [Fact]
     public async Task Transcript_correction_increments_revision_and_stages_transcript_ready_outbox()
@@ -61,41 +60,5 @@ public class TranscriptAndDeletionOutboxTests
             message.Payload.Contains("\"transcriptRevision\":2") &&
             !message.Payload.Contains("new text")),
             It.IsAny<CancellationToken>()), Times.Once);
-    }
-
-    [Fact]
-    public async Task Deletion_records_tombstone_cleanup_and_deleted_event_without_queue_draining()
-    {
-        var consultation = new Consultation
-        {
-            Id = 8,
-            DoctorId = "doctor-1",
-            ConsultationDate = DateTime.UtcNow,
-            AudioBlobUri = "private://consultations/8/audio"
-        };
-        var consultationRepository = new Mock<IConsultationRepository>();
-        consultationRepository
-            .Setup(r => r.GetConsultationForDoctorAsync(8, "doctor-1"))
-            .ReturnsAsync(consultation);
-        var userService = new Mock<IUserService>();
-        userService.Setup(s => s.GetCurrentUserIdAsync()).ReturnsAsync("doctor-1");
-        var handler = new DeleteConsultationCommandHandler(
-            consultationRepository.Object,
-            userService.Object);
-
-        await handler.Handle(new DeleteConsultationCommand(8), CancellationToken.None);
-
-        Assert.NotNull(consultation.DeletedAtUtc);
-        consultationRepository.Verify(r => r.RecordDeletionAsync(
-            consultation,
-            It.Is<ConsultationDeletionCleanup>(cleanup =>
-                cleanup.ConsultationId == 8 &&
-                cleanup.BlobCleanupStatus == ConsultationCleanupStatus.Pending &&
-                cleanup.ClinicalKnowledgeCleanupStatus == ConsultationCleanupStatus.Pending),
-            It.Is<ConsultationOutboxMessage>(message =>
-                message.EventType == "consultation.deleted.v1" &&
-                message.Payload.Contains("\"consultationId\":8")),
-            It.IsAny<CancellationToken>()), Times.Once);
-        consultationRepository.Verify(r => r.DeleteForDoctorAsync(It.IsAny<Consultation>()), Times.Never);
     }
 }

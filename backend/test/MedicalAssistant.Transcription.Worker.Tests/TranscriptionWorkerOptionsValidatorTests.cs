@@ -1,6 +1,6 @@
 using MedicalAssistant.Transcription.Worker.Options;
 
-namespace MedicalAssistant.EventBusRabbitMQ.UnitTests;
+namespace MedicalAssistant.Transcription.Worker.Tests;
 
 public class TranscriptionWorkerOptionsValidatorTests
 {

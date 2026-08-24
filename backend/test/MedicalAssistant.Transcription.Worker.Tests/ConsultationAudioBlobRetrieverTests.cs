@@ -2,7 +2,7 @@ using MedicalAssistant.Transcription.Worker.Options;
 using MedicalAssistant.Transcription.Worker.Storage;
 using Microsoft.Extensions.Options;
 
-namespace MedicalAssistant.EventBusRabbitMQ.UnitTests;
+namespace MedicalAssistant.Transcription.Worker.Tests;
 
 public class ConsultationAudioBlobRetrieverTests
 {
@@ -64,7 +64,7 @@ public class ConsultationAudioBlobRetrieverTests
     {
         return new ConsultationAudioBlobRetriever(
             objectClient,
-            Options.Create(new TranscriptionBlobRetrievalOptions
+            Microsoft.Extensions.Options.Options.Create(new TranscriptionBlobRetrievalOptions
             {
                 MaxBytes = maxBytes,
                 AllowedContentTypes = ["audio/wav", "audio/mpeg"]

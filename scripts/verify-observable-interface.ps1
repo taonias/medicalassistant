@@ -155,7 +155,7 @@ $controllerDirectories = @(
     # Controllers now live beside their capability under Modules/<Context>/<Capability>
     # rather than in one flat folder, so this recurses instead of naming one directory.
     (Join-Path $repositoryRoot "backend/src/MedicalAssistant.Api"),
-    (Join-Path $repositoryRoot "AI/src/MedicalAssistance.Ingestion.Api/Controllers")
+    (Join-Path $repositoryRoot "AI/src/MedicalAssistance.Ingestion.Api")
 )
 Assert-EqualSet -Name "HTTP routes" -Expected $snapshot.httpRoutes -Actual @(Get-ControllerRoutes $controllerDirectories)
 Assert-EqualSet -Name "Endpoint status signatures" -Expected $snapshot.endpointStatusSignatures -Actual @(
@@ -180,7 +180,7 @@ Assert-EqualSet -Name "OpenAPI endpoints/security" -Expected $snapshot.openApi -
 $backendHubPath = [regex]::Match($backendProgram, 'MapHub<[^>]*ChatHub>\("([^"]+)"\)').Groups[1].Value
 $clinicalHubPath = [regex]::Match($clinicalProgram, 'MapHub<IngestionStatusHub>\("([^"]+)"\)').Groups[1].Value
 $chatHubSource = Get-Content -Raw -LiteralPath (Join-Path $repositoryRoot "backend/src/MedicalAssistant.Api/Modules/Assistance/Chat/ChatHub.cs")
-$ingestionStatusSource = Get-Content -Raw -LiteralPath (Join-Path $repositoryRoot "AI/src/MedicalAssistance.Ingestion.Api/Realtime/IngestionStatusPublisher.cs")
+$ingestionStatusSource = Get-Content -Raw -LiteralPath (Join-Path $repositoryRoot "AI/src/MedicalAssistance.Ingestion.Api/Modules/Ingestion/IngestionStatusPublisher.cs")
 $chatClientMethod = [regex]::Match($chatHubSource, 'ClientMethod = "([^"]+)"').Groups[1].Value
 $ingestionClientMethod = [regex]::Match($ingestionStatusSource, 'ClientMethod = "([^"]+)"').Groups[1].Value
 Assert-EqualSet -Name "SignalR hubs/client methods" -Expected $snapshot.signalR -Actual @(
