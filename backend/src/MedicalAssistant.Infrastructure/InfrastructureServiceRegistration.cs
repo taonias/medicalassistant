@@ -40,7 +40,14 @@ public static class InfrastructureServiceRegistration
         services.AddScoped<IConsultationBlobCleanupService, ConsultationBlobCleanupService>();
         services.AddScoped<IPdfTextExtractor, PdfPigTextExtractor>();
         services.AddHttpClient<IAiModuleClient, AiModuleHttpClient>();
-        services.AddHttpClient<IClinicalKnowledgeClient, ClinicalKnowledgeHttpClient>();
+        // R27: one HTTP adapter implements four narrow capability gateways, so a
+        // caller depends only on the one it uses. All four resolve through the
+        // same typed-client registration (and its pooled HttpClient) as before.
+        services.AddHttpClient<ClinicalKnowledgeHttpClient>();
+        services.AddTransient<ITranscriptIngestionGateway>(sp => sp.GetRequiredService<ClinicalKnowledgeHttpClient>());
+        services.AddTransient<IClinicalKnowledgeDeletionGateway>(sp => sp.GetRequiredService<ClinicalKnowledgeHttpClient>());
+        services.AddTransient<IGroundedAnswerGateway>(sp => sp.GetRequiredService<ClinicalKnowledgeHttpClient>());
+        services.AddTransient<IConversationSummarizer>(sp => sp.GetRequiredService<ClinicalKnowledgeHttpClient>());
         services.AddScoped<ConsultationOutboxRelay>();
         services.AddHostedService<ConsultationOutboxRelayHostedService>();
         services.AddHostedService<MedicalAssistant.Application.Features.Chat.Common.ConversationSummaryRefreshHostedService>();

@@ -1,6 +1,6 @@
 import { HubConnectionBuilder, HubConnectionState, type HubConnection } from '@microsoft/signalr';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { getAuthToken } from '../../../../shared/api/httpClient';
+import { useAuthStore } from '../../../../features/auth';
 import type { ChatProgressEvent } from '../types';
 
 function hubUrl() {
@@ -21,7 +21,7 @@ export function useChatProgress() {
 
   useEffect(() => {
     const connection = new HubConnectionBuilder()
-      .withUrl(hubUrl(), { accessTokenFactory: () => getAuthToken() ?? '' })
+      .withUrl(hubUrl(), { accessTokenFactory: () => useAuthStore.getState().token ?? '' })
       .withAutomaticReconnect()
       .build();
 

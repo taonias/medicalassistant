@@ -2,8 +2,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { consultationKeys } from '../queryKeys';
 import type { CreateConsultationRequest } from '../types';
 import { consultationApi } from '../api/consultationApi';
-import { patientKeys } from '../../../features/patients';
-import { structuredDataKeys, transcriptKeys } from '../../clinical-record';
+import {
+  invalidateConsultationClinicalRecord,
+  invalidateConsultationLists,
+  invalidatePatientConsultationViews,
+} from '../invalidation';
 
 export function useConsultation(id: number) {
   return useQuery({
@@ -72,16 +75,9 @@ export function useCreateConsultation() {
     }) => consultationApi.create(request, idempotencyKey),
     onSuccess: (consultation) => {
       if (consultation.patientId) {
-        queryClient.invalidateQueries({
-          queryKey: consultationKeys.consultationsByPatient(consultation.patientId),
-        });
-        queryClient.invalidateQueries({
-          queryKey: patientKeys.patientHistoryPrefix(consultation.patientId),
-        });
+        invalidatePatientConsultationViews(queryClient, consultation.patientId);
       }
-      queryClient.invalidateQueries({ queryKey: consultationKeys.draftConsultations });
-      queryClient.invalidateQueries({ queryKey: consultationKeys.unattachedDraftConsultations });
-      queryClient.invalidateQueries({ queryKey: consultationKeys.dashboardAnalytics });
+      invalidateConsultationLists(queryClient);
       queryClient.setQueryData(consultationKeys.consultation(consultation.id), consultation);
     },
   });
@@ -100,16 +96,9 @@ export function useAssignConsultationPatient() {
     }) => consultationApi.assignPatient(consultationId, patientId),
     onSuccess: (consultation) => {
       queryClient.setQueryData(consultationKeys.consultation(consultation.id), consultation);
-      queryClient.invalidateQueries({ queryKey: consultationKeys.draftConsultations });
-      queryClient.invalidateQueries({ queryKey: consultationKeys.unattachedDraftConsultations });
-      queryClient.invalidateQueries({ queryKey: consultationKeys.dashboardAnalytics });
+      invalidateConsultationLists(queryClient);
       if (consultation.patientId) {
-        queryClient.invalidateQueries({
-          queryKey: consultationKeys.consultationsByPatient(consultation.patientId),
-        });
-        queryClient.invalidateQueries({
-          queryKey: patientKeys.patientHistoryPrefix(consultation.patientId),
-        });
+        invalidatePatientConsultationViews(queryClient, consultation.patientId);
       }
     },
   });
@@ -123,16 +112,10 @@ export function useRetryConsultationProcessing() {
       consultationApi.retryProcessing(consultationId),
     onSuccess: (consultation) => {
       queryClient.setQueryData(consultationKeys.consultation(consultation.id), consultation);
-      queryClient.invalidateQueries({ queryKey: transcriptKeys.transcript(consultation.id) });
-      queryClient.invalidateQueries({ queryKey: structuredDataKeys.structuredData(consultation.id) });
+      invalidateConsultationClinicalRecord(queryClient, consultation.id);
       queryClient.invalidateQueries({ queryKey: consultationKeys.dashboardAnalytics });
       if (consultation.patientId) {
-        queryClient.invalidateQueries({
-          queryKey: consultationKeys.consultationsByPatient(consultation.patientId),
-        });
-        queryClient.invalidateQueries({
-          queryKey: patientKeys.patientHistoryPrefix(consultation.patientId),
-        });
+        invalidatePatientConsultationViews(queryClient, consultation.patientId);
       }
     },
   });
@@ -153,16 +136,9 @@ export function useUploadConsultationAudio() {
     }) => consultationApi.uploadAudio(consultationId, audioFile, durationSeconds),
     onSuccess: (consultation) => {
       queryClient.setQueryData(consultationKeys.consultation(consultation.id), consultation);
-      queryClient.invalidateQueries({ queryKey: consultationKeys.draftConsultations });
-      queryClient.invalidateQueries({ queryKey: consultationKeys.unattachedDraftConsultations });
-      queryClient.invalidateQueries({ queryKey: consultationKeys.dashboardAnalytics });
+      invalidateConsultationLists(queryClient);
       if (consultation.patientId) {
-        queryClient.invalidateQueries({
-          queryKey: consultationKeys.consultationsByPatient(consultation.patientId),
-        });
-        queryClient.invalidateQueries({
-          queryKey: patientKeys.patientHistoryPrefix(consultation.patientId),
-        });
+        invalidatePatientConsultationViews(queryClient, consultation.patientId);
       }
     },
   });
@@ -181,22 +157,10 @@ export function useUploadConsultationDocument() {
     }) => consultationApi.uploadDocument(consultationId, documentFile),
     onSuccess: (consultation) => {
       queryClient.setQueryData(consultationKeys.consultation(consultation.id), consultation);
-      queryClient.invalidateQueries({ queryKey: consultationKeys.draftConsultations });
-      queryClient.invalidateQueries({ queryKey: consultationKeys.unattachedDraftConsultations });
-      queryClient.invalidateQueries({ queryKey: consultationKeys.dashboardAnalytics });
+      invalidateConsultationLists(queryClient);
       if (consultation.patientId) {
-        queryClient.invalidateQueries({
-          queryKey: consultationKeys.consultationsByPatient(consultation.patientId),
-        });
-        queryClient.invalidateQueries({
-          queryKey: patientKeys.patientHistoryPrefix(consultation.patientId),
-        });
-        queryClient.invalidateQueries({
-          queryKey: transcriptKeys.transcript(consultation.id),
-        });
-        queryClient.invalidateQueries({
-          queryKey: structuredDataKeys.structuredData(consultation.id),
-        });
+        invalidatePatientConsultationViews(queryClient, consultation.patientId);
+        invalidateConsultationClinicalRecord(queryClient, consultation.id);
       }
     },
   });
@@ -210,15 +174,8 @@ export function useDeleteConsultation() {
       consultationApi.delete(consultationId),
     onSuccess: (_data, variables) => {
       queryClient.removeQueries({ queryKey: consultationKeys.consultation(variables.consultationId) });
-      queryClient.invalidateQueries({ queryKey: consultationKeys.draftConsultations });
-      queryClient.invalidateQueries({ queryKey: consultationKeys.unattachedDraftConsultations });
-      queryClient.invalidateQueries({ queryKey: consultationKeys.dashboardAnalytics });
-      queryClient.invalidateQueries({
-        queryKey: consultationKeys.consultationsByPatient(variables.patientId),
-      });
-      queryClient.invalidateQueries({
-        queryKey: patientKeys.patientHistoryPrefix(variables.patientId),
-      });
+      invalidateConsultationLists(queryClient);
+      invalidatePatientConsultationViews(queryClient, variables.patientId);
     },
   });
 }

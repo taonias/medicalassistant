@@ -9,13 +9,13 @@ namespace MedicalAssistant.Application.Features.Chat.Queries.ChatQuery;
 
 public class ChatQueryHandler : IRequestHandler<ChatQuery, ChatResponseDto>
 {
-    private readonly IClinicalKnowledgeClient _clinicalKnowledge;
+    private readonly IGroundedAnswerGateway _clinicalKnowledge;
     private readonly IUserService _userService;
     private readonly IPatientRepository _patientRepository;
     private readonly IConsultationRepository _consultationRepository;
 
     public ChatQueryHandler(
-        IClinicalKnowledgeClient clinicalKnowledge,
+        IGroundedAnswerGateway clinicalKnowledge,
         IUserService userService,
         IPatientRepository patientRepository,
         IConsultationRepository consultationRepository)

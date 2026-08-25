@@ -42,7 +42,7 @@ public class ArchitecturePrivacyEnforcementTests
             .SelectMany(path => FindMatches(path, [("reflection routing", ReflectionRoutingPattern)]));
         var defaultExchangeMatches = sourceFiles
             .Where(path => !path.EndsWith(
-                Path.Combine("MedicalAssistant.EventBusRabbitMQ", "RabbitMqHostedConsumer.cs"),
+                Path.Combine("MedicalAssistant.EventBusRabbitMQ", "Consuming", "RabbitMqHostedConsumer.cs"),
                 StringComparison.OrdinalIgnoreCase))
             .SelectMany(path => File.ReadLines(path)
                 .Select((line, index) => new { line, index })

@@ -111,7 +111,7 @@ The backend accepts and stores a Consultation Document and can publish Consultat
 - The Transcription Worker is a standalone generic-host process. It registers a readiness health check, but the current host does not expose an HTTP health endpoint.
 - Clinical Knowledge hosts ingestion, recovery, and integration-event relay workers.
 - Root Compose is the local cross-service orchestration contract.
-- Production deployment reads deploy/.env.prod; deploy/.env.prod.example is the template copied to create it. The root .env.example is not the production contract.
+- Production deployment reads ops/deploy/.env.prod; ops/deploy/.env.prod.example is the template copied to create it. The root .env.example is not the production contract.
 - Health endpoints and startup ordering are operational interfaces, not incidental implementation details.
 
 ## Ownership seams for the team

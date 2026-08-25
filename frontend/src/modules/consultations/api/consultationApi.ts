@@ -1,4 +1,5 @@
-import { httpClient, getAuthToken } from '../../../shared/api/httpClient';
+import { httpClient, httpMultipart, httpBlob, httpDownload } from '../../../platform/http';
+import type { ApiError } from '../../../shared/types/api';
 import type {
   Consultation,
   ConsultationSummary,
@@ -6,9 +7,6 @@ import type {
   DraftConsultationGroup,
 } from '../types';
 import type { DashboardAnalytics } from '../../../features/dashboard';
-
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ?? 'https://localhost:7037/api';
 
 export const consultationApi = {
   getById: (id: number) => httpClient<Consultation>(`/consultation/${id}`),
@@ -49,107 +47,53 @@ export const consultationApi = {
       formData.append('durationSeconds', String(durationSeconds));
     }
 
-    return httpClient<Consultation>(`/consultation/${consultationId}/audio`, {
-      method: 'POST',
-      body: formData,
-    });
+    return httpMultipart<Consultation>(`/consultation/${consultationId}/audio`, formData);
   },
 
   uploadDocument: (consultationId: number, documentFile: File) => {
     const formData = new FormData();
     formData.append('documentFile', documentFile);
 
-    return httpClient<Consultation>(`/consultation/${consultationId}/document`, {
-      method: 'POST',
-      body: formData,
-    });
+    return httpMultipart<Consultation>(`/consultation/${consultationId}/document`, formData);
   },
 
   /** Returns an object URL for the consultation audio, or null when no audio exists. */
   getAudioObjectUrl: async (consultationId: number): Promise<string | null> => {
-    const headers = new Headers();
-    const token = getAuthToken();
-    if (token) {
-      headers.set('Authorization', `Bearer ${token}`);
+    try {
+      const { blob, contentType } = await httpBlob(`/consultation/${consultationId}/audio`);
+      const headerType = contentType?.split(';', 1)[0]?.trim();
+      const typedBlob = new Blob([blob], {
+        type: headerType && headerType !== 'application/octet-stream' ? headerType : 'audio/webm',
+      });
+      return URL.createObjectURL(typedBlob);
+    } catch (error) {
+      if ((error as ApiError).statusCode === 404) {
+        return null;
+      }
+      throw error;
     }
-
-    const response = await fetch(`${API_BASE_URL}/consultation/${consultationId}/audio`, {
-      headers,
-    });
-
-    if (response.status === 404) {
-      return null;
-    }
-
-    if (!response.ok) {
-      throw new Error(response.statusText || 'Unable to load consultation audio.');
-    }
-
-    const headerType = response.headers.get('Content-Type')?.split(';', 1)[0]?.trim();
-    const buffer = await response.arrayBuffer();
-    const blob = new Blob([buffer], {
-      type: headerType && headerType !== 'application/octet-stream' ? headerType : 'audio/webm',
-    });
-    return URL.createObjectURL(blob);
   },
 
-  downloadDocument: async (consultationId: number, fileName?: string) => {
-    const headers = new Headers();
-    const token = getAuthToken();
-    if (token) {
-      headers.set('Authorization', `Bearer ${token}`);
-    }
+  downloadDocument: (consultationId: number, fileName?: string) =>
+    httpDownload(`/consultation/${consultationId}/document`, fileName ?? 'consultation.pdf'),
 
-    const response = await fetch(
-      `${API_BASE_URL}/consultation/${consultationId}/document`,
-      { headers },
-    );
-
-    if (!response.ok) {
-      throw new Error(response.statusText || 'Unable to download document.');
-    }
-
-    const blob = await response.blob();
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = fileName ?? 'consultation.pdf';
-    anchor.click();
-    URL.revokeObjectURL(url);
-  },
-
-  downloadAudio: async (consultationId: number, fileName?: string) => {
-    const headers = new Headers();
-    const token = getAuthToken();
-    if (token) {
-      headers.set('Authorization', `Bearer ${token}`);
-    }
-
-    const response = await fetch(`${API_BASE_URL}/consultation/${consultationId}/audio`, {
-      headers,
-    });
-
-    if (!response.ok) {
-      throw new Error(response.statusText || 'Unable to download recording.');
-    }
-
-    const headerType = response.headers.get('Content-Type')?.split(';', 1)[0]?.trim();
-    const extension =
-      headerType === 'audio/mpeg' || headerType === 'audio/mp3'
-        ? 'mp3'
-        : headerType === 'audio/wav'
-          ? 'wav'
-          : headerType === 'audio/ogg'
-            ? 'ogg'
-            : 'webm';
-    const blob = await response.blob();
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = fileName ?? `consultation-${consultationId}.${extension}`;
-    anchor.click();
-    URL.revokeObjectURL(url);
-  },
+  downloadAudio: (consultationId: number, fileName?: string) =>
+    httpDownload(
+      `/consultation/${consultationId}/audio`,
+      fileName ??
+        ((contentType) => {
+          const headerType = contentType?.split(';', 1)[0]?.trim();
+          const extension =
+            headerType === 'audio/mpeg' || headerType === 'audio/mp3'
+              ? 'mp3'
+              : headerType === 'audio/wav'
+                ? 'wav'
+                : headerType === 'audio/ogg'
+                  ? 'ogg'
+                  : 'webm';
+          return `consultation-${consultationId}.${extension}`;
+        }),
+    ),
 
   delete: (id: number) =>
     httpClient<void>(`/consultation/${id}`, {

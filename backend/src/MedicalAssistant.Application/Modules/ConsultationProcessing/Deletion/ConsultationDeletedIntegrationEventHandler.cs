@@ -15,13 +15,13 @@ public sealed class ConsultationDeletedIntegrationEventHandler
 
     private readonly IConsultationDeletionCleanupStore _cleanupStore;
     private readonly IConsultationBlobCleanupService _blobCleanupService;
-    private readonly IClinicalKnowledgeClient _clinicalKnowledgeClient;
+    private readonly IClinicalKnowledgeDeletionGateway _clinicalKnowledgeClient;
     private readonly ILogger<ConsultationDeletedIntegrationEventHandler> _logger;
 
     public ConsultationDeletedIntegrationEventHandler(
         IConsultationDeletionCleanupStore cleanupStore,
         IConsultationBlobCleanupService blobCleanupService,
-        IClinicalKnowledgeClient clinicalKnowledgeClient,
+        IClinicalKnowledgeDeletionGateway clinicalKnowledgeClient,
         ILogger<ConsultationDeletedIntegrationEventHandler> logger)
     {
         _cleanupStore = cleanupStore;

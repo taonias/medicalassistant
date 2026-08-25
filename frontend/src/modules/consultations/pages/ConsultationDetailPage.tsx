@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 import { ConsultationStatusIcon } from '../../../shared/components/ConsultationStatusIcon';
@@ -10,24 +10,23 @@ import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton';
 import { consultationKeys } from '../queryKeys';
 import { parseStructuredSummary } from '../../../shared/utils/structuredData';
 import { formatDate, formatDuration } from '../../../shared/utils/format';
-import { DownloadIcon, SaveIcon } from '../../../app/shell/navigation/NavIcons';
 import { usePatient, usePatientHistory, patientKeys } from '../../../features/patients';
 import {
   useConsultation,
   useConsultationAudio,
   useRetryConsultationProcessing,
 } from '../hooks/useConsultations';
-import { consultationApi } from '../api/consultationApi';
 import {
   useTranscript,
   TranscriptViewer,
   useStructuredData,
   structuredDataKeys,
-  useCreateDoctorNote,
   useDoctorNotes,
-  type DoctorNote,
 } from '../../clinical-record';
-import { RecordingPreviewPlayer } from '../record';
+import { RecordingPanel } from './consultation-detail/RecordingPanel';
+import { DocumentPanel } from './consultation-detail/DocumentPanel';
+import { SummaryPanel } from './consultation-detail/SummaryPanel';
+import { ConsultationDoctorNotesPanel } from './consultation-detail/ConsultationDoctorNotesPanel';
 
 export function ConsultationDetailPage() {
   const { patientId: patientIdParam, consultationId = '0' } = useParams();
@@ -55,9 +54,7 @@ export function ConsultationDetailPage() {
   const structuredDataQuery = useStructuredData(consultationIdNum, consultationStatus);
 
   const notesQuery = useDoctorNotes(consultationIdNum);
-  const createNoteMutation = useCreateDoctorNote();
   const retryMutation = useRetryConsultationProcessing();
-  const [content, setContent] = useState('');
 
   useEffect(() => {
     return () => {
@@ -112,18 +109,6 @@ export function ConsultationDetailPage() {
     consultation.data.status === 'DocumentProcessingPending';
   const documentFileName = consultation.data.documentFileName ?? 'consultation.pdf';
 
-  async function onCreateNote() {
-    const trimmed = content.trim();
-    if (!trimmed) return;
-
-    await createNoteMutation.mutateAsync({
-      consultationId: consultationIdNum,
-      content: trimmed,
-    });
-
-    setContent('');
-  }
-
   return (
     <div className="page">
       <div className="consultation-meta">
@@ -160,65 +145,19 @@ export function ConsultationDetailPage() {
 
       <div className="consultation-grid">
         {canShowPlayer ? (
-          <section className="panel">
-            <div className="panel-heading">
-              <h3>Recording</h3>
-              {hasStoredAudio ? (
-                <button
-                  type="button"
-                  className="icon-button"
-                  aria-label="Download recording"
-                  title="Download recording"
-                  onClick={() => {
-                    void consultationApi
-                      .downloadAudio(consultationIdNum)
-                      .catch((error: Error) => {
-                        window.alert(error.message ?? 'Unable to download recording.');
-                      });
-                  }}
-                >
-                  <DownloadIcon />
-                </button>
-              ) : null}
-            </div>
-            {hasStoredAudio && audioQuery.isLoading ? (
-              <p className="muted">Loading recording…</p>
-            ) : hasStoredAudio && audioQuery.error ? (
-              <ErrorMessage
-                message={(audioQuery.error as Error).message ?? 'Unable to load recording'}
-                onRetry={() => audioQuery.refetch()}
-              />
-            ) : (
-              <RecordingPreviewPlayer
-                durationSeconds={durationSeconds}
-                audioSrc={hasStoredAudio ? audioQuery.data : null}
-              />
-            )}
-          </section>
+          <RecordingPanel
+            consultationId={consultationIdNum}
+            durationSeconds={durationSeconds}
+            hasStoredAudio={hasStoredAudio}
+            audioIsLoading={audioQuery.isLoading}
+            audioError={audioQuery.error}
+            audioSrc={audioQuery.data}
+            onRetryAudio={() => audioQuery.refetch()}
+          />
         ) : null}
 
         {hasStoredDocument ? (
-          <section className="panel">
-            <div className="panel-heading">
-              <h3>Document</h3>
-              <button
-                type="button"
-                className="icon-button"
-                aria-label="Download PDF"
-                title="Download PDF"
-                onClick={() => {
-                  void consultationApi
-                    .downloadDocument(consultationIdNum, documentFileName)
-                    .catch((error: Error) => {
-                      window.alert(error.message ?? 'Unable to download document.');
-                    });
-                }}
-              >
-                <DownloadIcon />
-              </button>
-            </div>
-            <p>{documentFileName}</p>
-          </section>
+          <DocumentPanel consultationId={consultationIdNum} documentFileName={documentFileName} />
         ) : null}
 
         {showTranscript ? (
@@ -230,78 +169,19 @@ export function ConsultationDetailPage() {
           />
         ) : null}
 
-        <section className="panel">
-          <h3>Summary</h3>
-          {structuredDataQuery.isLoading ? (
-            <p className="muted">Loading summary…</p>
-          ) : summaryText ? (
-            <p>{summaryText}</p>
-          ) : (
-            <p className="muted">
-              {uploadedOnly
-                ? 'No summary for this consultation.'
-                : 'The summary is still processing.'}
-            </p>
-          )}
-        </section>
+        <SummaryPanel
+          isLoading={structuredDataQuery.isLoading}
+          summaryText={summaryText}
+          uploadedOnly={uploadedOnly}
+        />
 
         {hasPatient ? (
-          <section className="panel">
-            <h3>Doctor Notes</h3>
-
-            {notesQuery.isLoading ? (
-              <LoadingSkeleton label="Loading notes" />
-            ) : notesQuery.error ? (
-              <ErrorMessage
-                message={(notesQuery.error as Error)?.message ?? 'Failed to load notes'}
-              />
-            ) : notesQuery.data && notesQuery.data.length > 0 ? (
-              <div className="doctor-notes-list">
-                {notesQuery.data.map((n: DoctorNote) => (
-                  <div key={n.id} className="doctor-note">
-                    <p className="muted doctor-note__meta">
-                      {n.dateCreated ? new Date(n.dateCreated).toLocaleString() : null}
-                    </p>
-                    <p className="doctor-note__content">{n.content}</p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="muted">No notes yet.</p>
-            )}
-
-            <div className="doctor-note-form">
-              <label className="field">
-                <span className="field__label">Note</span>
-                <textarea
-                  className="textarea"
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  placeholder="Write a clinical note for this consultation..."
-                  rows={5}
-                />
-              </label>
-
-              <div className="doctor-note-form__actions">
-                <button
-                  type="button"
-                  className="icon-button icon-button--primary"
-                  onClick={() => void onCreateNote()}
-                  disabled={createNoteMutation.isPending || !content.trim()}
-                  aria-label={createNoteMutation.isPending ? 'Saving note' : 'Save note'}
-                  title="Save note"
-                >
-                  <SaveIcon />
-                </button>
-              </div>
-
-              {createNoteMutation.error ? (
-                <ErrorMessage
-                  message={(createNoteMutation.error as Error)?.message ?? 'Failed to save note'}
-                />
-              ) : null}
-            </div>
-          </section>
+          <ConsultationDoctorNotesPanel
+            consultationId={consultationIdNum}
+            notes={notesQuery.data}
+            isLoading={notesQuery.isLoading}
+            error={notesQuery.error}
+          />
         ) : null}
       </div>
     </div>

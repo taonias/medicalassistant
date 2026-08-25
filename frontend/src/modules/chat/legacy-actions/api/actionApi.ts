@@ -1,4 +1,4 @@
-import { httpClient } from '../../../../shared/api/httpClient';
+import { httpClient } from '../../../../platform/http';
 import type { ActionRequest, TriggerActionRequest } from '../types';
 
 export const actionApi = {

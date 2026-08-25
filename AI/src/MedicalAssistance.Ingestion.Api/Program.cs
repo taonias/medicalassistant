@@ -1,22 +1,17 @@
-using System.Threading.Channels;
+using MedicalAssistance.Ingestion.Api;
 using MedicalAssistance.Ingestion.Api.Chat;
 using MedicalAssistance.Ingestion.Api.Ingestions;
-using MedicalAssistance.Ingestion.Api.Realtime;
 using MedicalAssistance.Ingestion.Api.Retrieval;
 using MedicalAssistance.Ingestion.Api.Security;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.AI;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.OpenApi;
 using Npgsql;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using Pgvector.EntityFrameworkCore;
-using Pgvector.Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -66,10 +61,6 @@ if (builder.Configuration.GetValue<int?>(AzureAi.EmbeddingDimensionsConfiguratio
         $"{IngestionDbContext.EmbeddingDimensions}-dimensional (fixed by migration). They must match — changing " +
         "the embedding dimension is a re-embedding migration, not a configuration change.");
 }
-
-var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
-dataSourceBuilder.UseVector();
-var dataSource = dataSourceBuilder.Build();
 
 // Observability (T35): traces, metrics and logs through OpenTelemetry. The
 // service instruments itself and the frameworks it sits on; where the signals go
@@ -179,106 +170,17 @@ builder.Services.AddAuthorization(options =>
         .RequireClaim(ApiKeyAuthentication.AdminClaimType, ApiKeyAuthentication.AdminClaimValue));
 });
 
-builder.Services.AddSingleton(dataSource);
-builder.Services.AddDbContext<IngestionDbContext>(options =>
-    options.UseNpgsql(dataSource, npgsql => npgsql.UseVector()));
-
-builder.Services.TryAddSingleton<IChatClient>(new UnconfiguredChatClient());
-builder.Services.TryAddSingleton<IEmbeddingGenerator<string, Embedding<float>>>(new UnconfiguredEmbeddingGenerator());
-
+// Per-capability composition (R26) — each module registers what it owns; an
+// owner can see everything their capability wires by reading just their own
+// module, without reading the rest of this file. Registration order between
+// modules carries no behavioral meaning (see AdaptersModule's own doc comment
+// for the one constraint that does: placeholder-before-real-provider, which
+// is self-contained within AddAdapters).
+builder.Services.AddAdapters(builder.Configuration, connectionString);
 builder.Services.AddSingleton<AgentInstructionProvider>();
-builder.Services.AddSingleton<IngestionStatusPublisher>();
-builder.Services.AddScoped<IngestionStore>();
-builder.Services.AddScoped<IngestionQueue>();
-
-// The ingestion-strategy registry (ADR-0004). Every strategy is registered as an
-// IIngestionStrategy; the registry keys them by their declared Document Type and
-// is the single authority both routing (the worker) and request validation
-// consult. A new Document Type is one more AddScoped line here — nothing else.
-// The prose strategies (transcript, note) are thin adapters over one shared
-// pipeline; they differ only in text source, chunk kind, and agent instructions.
-builder.Services.AddScoped<DocumentChunkCommitter>();
-builder.Services.AddScoped<PatientSummaryService>();
-builder.Services.AddScoped<ProseIngestionPipeline>();
-builder.Services.AddScoped<IIngestionStrategy, TranscriptIngestionStrategy>();
-builder.Services.AddScoped<IIngestionStrategy, DoctorNoteStrategy>();
-builder.Services.AddScoped<IIngestionStrategy, LabReportStrategy>();
-builder.Services.AddScoped<IIngestionStrategy, ImagingReportStrategy>();
-builder.Services.AddScoped<IngestionStrategyRegistry>();
-
-// The retrieval pipeline (ADR-0010/0011): an ordered-step registry mirroring the
-// strategy registry above. Every stage is registered as an IRetrievalStep; the
-// service sorts them by Order and runs them in sequence, so a new stage (the
-// deferred hybrid-search or structured-analyte steps) is one more AddScoped line.
-// Internal in v1 — the answer path calls SearchAsync directly, no HTTP surface yet.
-// The Scope step (Order 10) sets the mandatory patient_id boundary first; embed and
-// search steps join in T41.
-builder.Services.AddScoped<IRetrievalStep, ScopeRetrievalStep>();
-builder.Services.AddScoped<IRetrievalStep, RefineRetrievalStep>();
-builder.Services.AddScoped<IRetrievalStep, EmbedRetrievalStep>();
-builder.Services.AddScoped<IRetrievalStep, SearchRetrievalStep>();
-builder.Services.AddScoped<IRetrievalStep, PackageRetrievalStep>();
-builder.Services.AddScoped<IRetrievalService, RetrievalService>();
-
-// The grounded-chat answer path (ADR-0010/0012): the stateless orchestration behind
-// POST /patients/{id}/chat/answer — retrieve, generate over the evidence, package
-// citations. Generation is a seam so the DB-seeded agent (T43) and the safety net
-// (refusal T45, verification T46) can land without reshaping the endpoint.
-builder.Services.AddScoped<IGroundedAnswerGenerator, GroundedAnswerGenerator>();
-builder.Services.AddScoped<IGroundedAnswerService, GroundedAnswerService>();
-builder.Services.AddScoped<IConversationSummarizer, ConversationSummarizer>();
-
-// AI → backend chat-progress callback: emits real phase boundaries mid-answer, which the
-// backend relays to the asking doctor over SignalR. Best-effort; short timeout.
-builder.Services.Configure<BackendCallbackOptions>(builder.Configuration.GetSection(BackendCallbackOptions.SectionName));
-builder.Services.AddHttpClient<IChatProgressReporter, ChatProgressReporter>((sp, client) =>
-{
-    var options = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<BackendCallbackOptions>>().Value;
-    if (!string.IsNullOrWhiteSpace(options.BaseUrl))
-        client.BaseAddress = new Uri(options.BaseUrl.TrimEnd('/') + "/");
-    if (!string.IsNullOrWhiteSpace(options.ApiKey))
-        client.DefaultRequestHeaders.Add("X-Api-Key", options.ApiKey);
-    client.Timeout = TimeSpan.FromSeconds(5);
-});
-
-// The extraction seam (ADR-0005): one provider-neutral interface for turning a
-// PDF into text + table cell grids. Unconfigured by default so the app boots with
-// no Azure account and fails loudly only if a PDF is actually processed; a real
-// Azure Document Intelligence adapter replaces it by configuration, a fake by DI.
-builder.Services.TryAddSingleton<IDocumentExtractor>(new UnconfiguredDocumentExtractor());
-
-// Real providers replace the placeholders above when their configuration is present
-// — provider choice is configuration, not architecture. Plain OpenAI (chat +
-// embedding) is registered first, then the Azure providers (chat + embedding;
-// ADR-0005 extraction). Order is deterministic: both beat the placeholder as later
-// registrations, and Azure — added last — wins when both a plain-OpenAI and an Azure
-// section are configured for the same seam.
-builder.Services.AddOpenAiProviders(builder.Configuration);
-builder.Services.AddAzureProviders(builder.Configuration);
-
-// The document archive: a local landing zone that saves each submitted document
-// to a filesystem folder structure before ingestion, active only when a root path
-// is configured (for local testing). Off by default — the database payload is the
-// system of record either way.
-var documentArchiveRoot = builder.Configuration.GetValue<string>("DocumentArchive:LocalRootPath");
-if (!string.IsNullOrWhiteSpace(documentArchiveRoot))
-    builder.Services.AddSingleton<IIngestedDocumentArchive>(sp =>
-        new LocalFileSystemDocumentArchive(
-            documentArchiveRoot, sp.GetRequiredService<ILogger<LocalFileSystemDocumentArchive>>()));
-else
-    builder.Services.AddSingleton<IIngestedDocumentArchive, NullDocumentArchive>();
-
-builder.Services.AddSingleton(Channel.CreateUnbounded<Guid>());
-builder.Services.AddHostedService<IngestionWorker>();
-builder.Services.AddHostedService<IngestionRecoverySweep>();
-
-// Publish integration events (a transcript ingestion failing) to the shared event bus via a
-// transactional outbox, so the backend can reconcile the consultation into a retryable failure.
-// Inert unless RabbitMQ:Host is configured, keeping the service standalone-capable.
-builder.Services.Configure<RabbitMqPublishOptions>(
-    builder.Configuration.GetSection(RabbitMqPublishOptions.SectionName));
-builder.Services.AddSingleton<RabbitMqEventPublisher>();
-builder.Services.AddHostedService<IntegrationEventOutboxRelay>();
+builder.Services.AddIngestion();
+builder.Services.AddRetrieval();
+builder.Services.AddGroundedChat(builder.Configuration);
 
 var app = builder.Build();
 
@@ -322,20 +224,7 @@ await using (var scope = app.Services.CreateAsyncScope())
 // whose first pass runs as this host starts. Recovery is not a startup step:
 // the instance that abandons work is not always the instance that has to notice.
 
-app.UseSwagger();
-app.UseSwaggerUI(options =>
-{
-    options.SwaggerEndpoint("/swagger/v1/swagger.json", "Clinical Document Ingestion API v1");
-});
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapControllers();
-
-// The hub carries no authorization metadata of its own, so the fallback policy
-// applies: the handshake needs the same secret every other endpoint needs.
-app.MapHub<IngestionStatusHub>("/hubs/ingestion-status");
+app.MapIngestionApiEndpoints();
 
 app.Run();
 

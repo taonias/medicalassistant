@@ -10,6 +10,30 @@ export async function getAudioDurationSeconds(file: File): Promise<number | unde
   return readDurationViaAudioElement(file);
 }
 
+/** Prefer a decoded duration; fall back to the timer if it's missing or implausibly short. */
+export function applyDurationFallback(
+  measured: number | undefined,
+  timerSeconds: number,
+): number | undefined {
+  if (measured == null) {
+    return timerSeconds > 0 ? timerSeconds : undefined;
+  }
+  // Guard against the WebM metadata bug that reports ~1s for long recordings.
+  if (measured <= 1 && timerSeconds > 2) {
+    return timerSeconds;
+  }
+  return measured;
+}
+
+/** Prefer decoded file duration; fall back to the timer if metadata is missing/bogus. */
+export async function resolveRecordingDuration(
+  file: File,
+  timerSeconds: number,
+): Promise<number | undefined> {
+  const measured = await getAudioDurationSeconds(file);
+  return applyDurationFallback(measured, timerSeconds);
+}
+
 async function readDurationViaAudioContext(file: File): Promise<number | undefined> {
   const AudioContextCtor =
     window.AudioContext ||

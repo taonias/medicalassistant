@@ -20,7 +20,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_APP_PASSWORD:?set POSTGRES_APP_PASSWORD in .env.prod}
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./db-init:/docker-entrypoint-initdb.d:ro
+      - ./ops/postgres/db-init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U medicalassistant -d MedicalAssistantDb"]
       interval: 10s
@@ -38,8 +38,8 @@ services:
       RABBITMQ_DEFAULT_VHOST: /
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
-      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
-      - ./rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
+      - ./ops/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ./ops/rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
     healthcheck:
       test: ["CMD-SHELL", "rabbitmq-diagnostics -q ping"]
       interval: 10s
@@ -47,9 +47,8 @@ services:
       retries: 10
       start_period: 20s
 
-  # Mirrors the dev provisioner: creates the per-service broker users, their scoped
-  # permissions, and the transcription-failed audit queue. Kept in sync with
-  # docker-compose.yml by hand (it changes rarely).
+  # Runs ops/rabbitmq/provision.sh — the same script docker-compose.yml (dev)
+  # uses, so this and dev can no longer drift apart by hand.
   rabbitmq-provisioner:
     image: curlimages/curl:8.10.1
     restart: "no"
@@ -62,45 +61,9 @@ services:
       RABBITMQ_BACKEND_PASSWORD: ${RABBITMQ_BACKEND_PASSWORD:?set in .env.prod}
       RABBITMQ_WORKER_PASSWORD: ${RABBITMQ_WORKER_PASSWORD:?set in .env.prod}
       RABBITMQ_CLINICAL_PASSWORD: ${RABBITMQ_CLINICAL_PASSWORD:?set in .env.prod}
-    command:
-      - sh
-      - -ec
-      - |
-        api="http://rabbitmq:15672/api"
-        auth="$${RABBITMQ_BOOTSTRAP_USER}:$${RABBITMQ_BOOTSTRAP_PASSWORD}"
-        echo "waiting for rabbitmq management api..."
-        until curl --fail --silent --show-error -u "$$auth" "$$api/overview" >/dev/null 2>&1; do
-          sleep 2
-        done
-        put_user() {
-          curl --fail --silent --show-error -u "$$auth" \
-            -H "content-type: application/json" \
-            -X PUT "$$api/users/$$1" \
-            --data-raw "{\"password\":\"$$2\",\"tags\":\"\"}"
-        }
-        put_permissions() {
-          curl --fail --silent --show-error -u "$$auth" \
-            -H "content-type: application/json" \
-            -X PUT "$$api/permissions/%2F/$$1" \
-            --data-raw "$$2"
-        }
-        put_user backend-clinical-knowledge "$${RABBITMQ_BACKEND_PASSWORD}"
-        put_user backend-outbox-relay "$${RABBITMQ_BACKEND_PASSWORD}"
-        put_user transcription-worker "$${RABBITMQ_WORKER_PASSWORD}"
-        put_user clinical-knowledge "$${RABBITMQ_CLINICAL_PASSWORD}"
-        put_permissions backend-clinical-knowledge '{"configure":"^medicalassistant\\.events$$|^medicalassistant\\.backend\\.transcript-ready(\\.dlq)?$$","write":"^amq\\.default$$|^medicalassistant\\.events$$|^medicalassistant\\.backend\\.transcript-ready(\\.dlq)?$$","read":"^medicalassistant\\.events$$|^medicalassistant\\.backend\\.transcript-ready(\\.dlq)?$$"}'
-        put_permissions backend-outbox-relay '{"configure":"^$$","write":"^medicalassistant\\.events$$","read":"^$$"}'
-        put_permissions clinical-knowledge '{"configure":"^medicalassistant\\.events$$","write":"^medicalassistant\\.events$$","read":"^$$"}'
-        put_permissions transcription-worker '{"configure":"^medicalassistant\\.events$$|^medicalassistant\\.transcription-worker(\\.dlq)?$$","write":"^amq\\.default$$|^medicalassistant\\.events$$|^medicalassistant\\.transcription-worker(\\.dlq)?$$","read":"^medicalassistant\\.events$$|^medicalassistant\\.transcription-worker(\\.dlq)?$$"}'
-        curl --fail --silent --show-error -u "$$auth" -H "content-type: application/json" \
-          -X PUT "$$api/exchanges/%2F/medicalassistant.events" \
-          --data-raw '{"type":"direct","durable":true}'
-        curl --fail --silent --show-error -u "$$auth" -H "content-type: application/json" \
-          -X PUT "$$api/queues/%2F/medicalassistant.transcription-failed" \
-          --data-raw '{"durable":true,"arguments":{"x-max-length":10000,"x-overflow":"drop-head"}}'
-        curl --fail --silent --show-error -u "$$auth" -H "content-type: application/json" \
-          -X POST "$$api/bindings/%2F/e/medicalassistant.events/q/medicalassistant.transcription-failed" \
-          --data-raw '{"routing_key":"consultation.transcription-failed.v1"}'
+    volumes:
+      - ./ops/rabbitmq/provision.sh:/provision.sh:ro
+    command: ["sh", "-e", "/provision.sh"]
 
   azurite:
     image: mcr.microsoft.com/azure-storage/azurite:latest

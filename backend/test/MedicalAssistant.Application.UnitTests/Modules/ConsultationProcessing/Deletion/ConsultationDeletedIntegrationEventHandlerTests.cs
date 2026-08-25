@@ -120,15 +120,10 @@ public class ConsultationDeletedIntegrationEventHandlerTests
         }
     }
 
-    private sealed class RecordingClinicalKnowledgeClient : IClinicalKnowledgeClient
+    private sealed class RecordingClinicalKnowledgeClient : IClinicalKnowledgeDeletionGateway
     {
         public IReadOnlyList<string> UnIngestedDocumentIds { get; private set; } = [];
         public string? RemovedBy { get; private set; }
-
-        public Task<ClinicalKnowledgeIngestionAccepted> SubmitSessionTranscriptAsync(
-            ClinicalKnowledgeSessionTranscriptRequest request,
-            CancellationToken cancellationToken = default) =>
-            Task.FromResult(new ClinicalKnowledgeIngestionAccepted(Guid.NewGuid(), Duplicate: false));
 
         public Task<ClinicalKnowledgeUnIngestResult> UnIngestDocumentAsync(
             string documentId,
@@ -141,16 +136,6 @@ public class ConsultationDeletedIntegrationEventHandlerTests
                 documentId,
                 ClinicalKnowledgeUnIngestStatus.Removed));
         }
-
-        public Task<ClinicalKnowledgeAnswer> GetGroundedAnswerAsync(
-            ClinicalKnowledgeChatRequest request,
-            CancellationToken cancellationToken = default) =>
-            throw new NotImplementedException();
-
-        public Task<string> SummarizeConversationAsync(
-            ClinicalKnowledgeSummarizeRequest request,
-            CancellationToken cancellationToken = default) =>
-            throw new NotImplementedException();
     }
 
     private static IntegrationEventEnvelope<ConsultationDeletedV1> CreateEnvelope()

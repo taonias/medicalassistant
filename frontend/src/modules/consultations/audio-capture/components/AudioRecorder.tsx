@@ -1,10 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { getAudioDurationSeconds } from '../utils/getAudioDuration';
-import {
-  buildRecordingFile,
-  preferredRecordingMimeType,
-  setMicrophoneEnabled,
-} from '../utils/recordingMedia';
+import { startAudioCapture, type AudioCaptureSession } from '../../../../platform/browser-media';
+import { resolveRecordingDuration } from '../utils/getAudioDuration';
 
 interface Props {
   onRecordingComplete: (file: File, durationSeconds?: number) => void;
@@ -29,10 +25,7 @@ export function AudioRecorder({
   const [isPaused, setIsPaused] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const chunksRef = useRef<BlobPart[]>([]);
-  const timerRef = useRef<number | null>(null);
+  const sessionRef = useRef<AudioCaptureSession | null>(null);
   const elapsedRef = useRef(0);
 
   useEffect(() => {
@@ -41,120 +34,54 @@ export function AudioRecorder({
 
   useEffect(() => {
     return () => {
-      if (timerRef.current) window.clearInterval(timerRef.current);
-      const recorder = mediaRecorderRef.current;
-      if (recorder && recorder.state !== 'inactive') {
-        recorder.ondataavailable = null;
-        recorder.onstop = null;
-        try {
-          recorder.stop();
-        } catch {
-          // ignore
-        }
-      }
-      streamRef.current?.getTracks().forEach((track) => track.stop());
+      sessionRef.current?.dispose();
+      sessionRef.current = null;
     };
   }, []);
-
-  function clearTimer() {
-    if (timerRef.current) {
-      window.clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
-  }
-
-  function startTimer() {
-    clearTimer();
-    timerRef.current = window.setInterval(() => {
-      setElapsed((value) => value + 1);
-    }, 1000);
-  }
 
   async function startRecording() {
     setError(null);
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          channelCount: 1,
+      const session = await startAudioCapture({
+        onTick: (value) => {
+          setElapsed(value);
+          elapsedRef.current = value;
         },
       });
-      streamRef.current = stream;
-      chunksRef.current = [];
-
-      const mimeType = preferredRecordingMimeType();
-      const recorder = mimeType
-        ? new MediaRecorder(stream, { mimeType })
-        : new MediaRecorder(stream);
-
-      recorder.ondataavailable = (event) => {
-        if (event.data.size > 0) chunksRef.current.push(event.data);
-      };
-
-      recorder.onstop = () => {
-        void (async () => {
-          const file = buildRecordingFile(
-            chunksRef.current,
-            recorder.mimeType || preferredRecordingMimeType(),
-          );
-          stream.getTracks().forEach((track) => track.stop());
-          streamRef.current = null;
-
-          if (!file) return;
-
-          const measured = await getAudioDurationSeconds(file);
-          const duration =
-            measured == null
-              ? elapsedRef.current > 0
-                ? elapsedRef.current
-                : undefined
-              : measured <= 1 && elapsedRef.current > 2
-                ? elapsedRef.current
-                : measured;
-          onRecordingComplete(file, duration);
-        })();
-      };
-
-      mediaRecorderRef.current = recorder;
-      recorder.start();
+      sessionRef.current = session;
       setIsRecording(true);
       setIsPaused(false);
       setElapsed(0);
       elapsedRef.current = 0;
-      startTimer();
     } catch {
       setError('Microphone access is required to record consultations.');
     }
   }
 
   function pauseRecording() {
-    if (mediaRecorderRef.current?.state !== 'recording') return;
-    setMicrophoneEnabled(streamRef.current, false);
+    if (!sessionRef.current) return;
+    sessionRef.current.pause();
     setIsPaused(true);
-    clearTimer();
   }
 
   function resumeRecording() {
-    if (!isPaused || mediaRecorderRef.current?.state !== 'recording') return;
-    setMicrophoneEnabled(streamRef.current, true);
+    if (!isPaused || !sessionRef.current) return;
+    sessionRef.current.resume();
     setIsPaused(false);
-    startTimer();
   }
 
   function stopRecording() {
-    const recorder = mediaRecorderRef.current;
-    if (!recorder || recorder.state === 'inactive') return;
-    setMicrophoneEnabled(streamRef.current, true);
-    try {
-      recorder.requestData();
-    } catch {
-      // best-effort
-    }
-    recorder.stop();
+    const session = sessionRef.current;
+    if (!session) return;
+    sessionRef.current = null;
     setIsRecording(false);
     setIsPaused(false);
-    clearTimer();
+
+    void session.stop().then(async (file) => {
+      if (!file) return;
+      const duration = await resolveRecordingDuration(file, elapsedRef.current);
+      onRecordingComplete(file, duration);
+    });
   }
 
   const isMinimal = variant === 'minimal';

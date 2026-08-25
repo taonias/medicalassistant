@@ -115,6 +115,7 @@
     "AI/tests/MedicalAssistance.Ingestion.Api.Tests/MedicalAssistance.Ingestion.Api.Tests.csproj",
     "backend/src/MedicalAssistant.Api/MedicalAssistant.Api.csproj",
     "backend/src/MedicalAssistant.Application/MedicalAssistant.Application.csproj",
+    "backend/src/MedicalAssistant.ConsultationProcessing.Contracts/MedicalAssistant.ConsultationProcessing.Contracts.csproj",
     "backend/src/MedicalAssistant.Domain/MedicalAssistant.Domain.csproj",
     "backend/src/MedicalAssistant.EventBus/MedicalAssistant.EventBus.csproj",
     "backend/src/MedicalAssistant.EventBusRabbitMQ/MedicalAssistant.EventBusRabbitMQ.csproj",
@@ -285,8 +286,13 @@
     },
     {
       "path": "AI/src/MedicalAssistance.Ingestion.Api/Program.cs",
-      "keys": ["ConnectionStrings:Postgres", "Ingestion:WorkerCount", "DocumentArchive:LocalRootPath", "OTEL_EXPORTER_OTLP_ENDPOINT"],
-      "contains": ["ConnectionStrings:Postgres", "Ingestion:WorkerCount", "DocumentArchive:LocalRootPath", "OTEL_EXPORTER_OTLP_ENDPOINT"]
+      "keys": ["ConnectionStrings:Postgres", "Ingestion:WorkerCount", "OTEL_EXPORTER_OTLP_ENDPOINT"],
+      "contains": ["ConnectionStrings:Postgres", "Ingestion:WorkerCount", "OTEL_EXPORTER_OTLP_ENDPOINT"]
+    },
+    {
+      "path": "AI/src/MedicalAssistance.Ingestion.Api/Adapters/AdaptersModule.cs",
+      "keys": ["DocumentArchive:LocalRootPath"],
+      "contains": ["DocumentArchive:LocalRootPath"]
     },
     {
       "path": "AI/src/MedicalAssistance.Ingestion.Api/Modules/Ingestion/Processing/IngestionWorker.cs",
@@ -348,7 +354,19 @@
     },
     {
       "path": "AI/src/MedicalAssistance.Ingestion.Api/Program.cs",
-      "contains": ["AddSingleton<AgentInstructionProvider>()", "AddScoped<IngestionStore>()", "AddScoped<IRetrievalService, RetrievalService>()", "AddHostedService<IngestionWorker>()", "AddHostedService<IngestionRecoverySweep>()", "AddHostedService<IntegrationEventOutboxRelay>()"]
+      "contains": ["AddSingleton<AgentInstructionProvider>()"]
+    },
+    {
+      "path": "AI/src/MedicalAssistance.Ingestion.Api/Modules/Ingestion/IngestionModule.cs",
+      "contains": ["AddScoped<IngestionStore>()", "AddHostedService<IngestionWorker>()", "AddHostedService<IngestionRecoverySweep>()"]
+    },
+    {
+      "path": "AI/src/MedicalAssistance.Ingestion.Api/Modules/Retrieval/RetrievalModule.cs",
+      "contains": ["AddScoped<IRetrievalService, RetrievalService>()"]
+    },
+    {
+      "path": "AI/src/MedicalAssistance.Ingestion.Api/Adapters/AdaptersModule.cs",
+      "contains": ["AddHostedService<IntegrationEventOutboxRelay>()"]
     }
   ],
   "sourceAssertions": [
@@ -357,8 +375,16 @@
       "contains": ["app.UseSwagger();", "c.AddSecurityDefinition(\"Bearer\"", "app.MapHealthChecks(\"/health/live\"", "app.MapHealthChecks(\"/health/ready\"", "app.MapHub<MedicalAssistant.Api.Realtime.ChatHub>(\"/hubs/chat\")", "AddSingleton<Microsoft.AspNetCore.SignalR.IUserIdProvider", "AddScoped<MedicalAssistant.Application.Features.Chat.Common.IChatProgressNotifier"]
     },
     {
-      "path": "AI/src/MedicalAssistance.Ingestion.Api/Program.cs",
-      "contains": ["app.UseSwagger();", "app.MapHub<IngestionStatusHub>(\"/hubs/ingestion-status\")", "AddScoped<IngestionStore>()", "AddHostedService<IngestionWorker>()", "AddHostedService<IngestionRecoverySweep>()", "AddHostedService<IntegrationEventOutboxRelay>()"]
+      "path": "AI/src/MedicalAssistance.Ingestion.Api/HostEndpoints.cs",
+      "contains": ["app.UseSwagger();", "app.MapHub<IngestionStatusHub>(\"/hubs/ingestion-status\")"]
+    },
+    {
+      "path": "AI/src/MedicalAssistance.Ingestion.Api/Modules/Ingestion/IngestionModule.cs",
+      "contains": ["AddScoped<IngestionStore>()", "AddHostedService<IngestionWorker>()", "AddHostedService<IngestionRecoverySweep>()"]
+    },
+    {
+      "path": "AI/src/MedicalAssistance.Ingestion.Api/Adapters/AdaptersModule.cs",
+      "contains": ["AddHostedService<IntegrationEventOutboxRelay>()"]
     },
     {
       "path": "backend/src/MedicalAssistant.Api/Modules/Assistance/Chat/ChatHub.cs",
@@ -373,7 +399,7 @@
       "contains": ["public const string HeaderName = \"X-Api-Key\";", "public const string KeysConfigurationPath = \"Authentication:ApiKeys\";", "public const string AdminKeysConfigurationPath = \"Authentication:AdminApiKeys\";"]
     },
     {
-      "path": "backend/src/MedicalAssistant.EventBus/Contracts/ConsultationIntegrationEvents.cs",
+      "path": "backend/src/MedicalAssistant.ConsultationProcessing.Contracts/ConsultationIntegrationEvents.cs",
       "contains": ["consultation.audio-uploaded.v1", "consultation.document-uploaded.v1", "consultation.transcript-ready.v1", "consultation.transcription-failed.v1", "consultation.deleted.v1", "clinicalknowledge.ingestion-failed.v1"]
     },
     {

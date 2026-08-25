@@ -97,7 +97,7 @@ The backend also contains an older `AiModuleHttpClient` and Python-module API do
 
 ## Current local infrastructure
 
-[`rabbitmq/docker-compose.yml`](../../rabbitmq/docker-compose.yml) starts only RabbitMQ 3.13 with management UI, durable volume, configuration/plugins, environment credentials, and a health check. There is no root application Compose or Aspire AppHost.
+[`ops/rabbitmq/docker-compose.yml`](../../ops/rabbitmq/docker-compose.yml) starts only RabbitMQ 3.13 with management UI, durable volume, configuration/plugins, environment credentials, and a health check. There is no root application Compose or Aspire AppHost.
 
 Target response: keep the broker configuration as input but create one root container orchestration model for the complete clean environment. Aspire stays optional.
 

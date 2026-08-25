@@ -9,11 +9,11 @@ namespace MedicalAssistant.Application.Features.Consultation.Command.DeleteConsu
 
 public class DeleteConsultationCommandHandler : IRequestHandler<DeleteConsultationCommand, Unit>
 {
-    private readonly IConsultationRepository _consultationRepository;
+    private readonly IConsultationDeletion _consultationRepository;
     private readonly IUserService _userService;
 
     public DeleteConsultationCommandHandler(
-        IConsultationRepository consultationRepository,
+        IConsultationDeletion consultationRepository,
         IUserService userService)
     {
         _consultationRepository = consultationRepository;

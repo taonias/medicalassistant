@@ -19,20 +19,20 @@ public class DeleteConsultationOutboxTests
             ConsultationDate = DateTime.UtcNow,
             AudioBlobUri = "private://consultations/8/audio"
         };
-        var consultationRepository = new Mock<IConsultationRepository>();
-        consultationRepository
+        var consultationDeletion = new Mock<IConsultationDeletion>();
+        consultationDeletion
             .Setup(r => r.GetConsultationForDoctorAsync(8, "doctor-1"))
             .ReturnsAsync(consultation);
         var userService = new Mock<IUserService>();
         userService.Setup(s => s.GetCurrentUserIdAsync()).ReturnsAsync("doctor-1");
         var handler = new DeleteConsultationCommandHandler(
-            consultationRepository.Object,
+            consultationDeletion.Object,
             userService.Object);
 
         await handler.Handle(new DeleteConsultationCommand(8), CancellationToken.None);
 
         Assert.NotNull(consultation.DeletedAtUtc);
-        consultationRepository.Verify(r => r.RecordDeletionAsync(
+        consultationDeletion.Verify(r => r.RecordDeletionAsync(
             consultation,
             It.Is<ConsultationDeletionCleanup>(cleanup =>
                 cleanup.ConsultationId == 8 &&
@@ -42,6 +42,5 @@ public class DeleteConsultationOutboxTests
                 message.EventType == "consultation.deleted.v1" &&
                 message.Payload.Contains("\"consultationId\":8")),
             It.IsAny<CancellationToken>()), Times.Once);
-        consultationRepository.Verify(r => r.DeleteForDoctorAsync(It.IsAny<Consultation>()), Times.Never);
     }
 }

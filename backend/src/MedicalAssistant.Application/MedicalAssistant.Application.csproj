@@ -26,6 +26,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MedicalAssistant.EventBus\MedicalAssistant.EventBus.csproj" />
+    <ProjectReference Include="..\MedicalAssistant.ConsultationProcessing.Contracts\MedicalAssistant.ConsultationProcessing.Contracts.csproj" />
     <ProjectReference Include="..\MedicalAssistant.Domain\MedicalAssistant.Domain.csproj" />
   </ItemGroup>
 

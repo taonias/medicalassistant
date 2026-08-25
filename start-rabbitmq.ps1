@@ -4,8 +4,8 @@
   Starts the local Medical Assistant RabbitMQ Docker container.
 
 .DESCRIPTION
-  Uses rabbitmq/docker-compose.yml. On first run, copies .env.example to .env
-  if .env is missing. Safe to re-run (starts or recreates as needed).
+  Uses ops/rabbitmq/docker-compose.yml. On first run, copies .env.example to
+  .env if .env is missing. Safe to re-run (starts or recreates as needed).
 
 .EXAMPLE
   .\start-rabbitmq.ps1
@@ -14,7 +14,7 @@
 $ErrorActionPreference = "Stop"
 
 $repoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
-$rabbitMqDir = Join-Path $repoRoot "rabbitmq"
+$rabbitMqDir = Join-Path $repoRoot "ops" "rabbitmq"
 $composeFile = Join-Path $rabbitMqDir "docker-compose.yml"
 $envFile = Join-Path $rabbitMqDir ".env"
 $envExample = Join-Path $rabbitMqDir ".env.example"

@@ -1,9 +1,5 @@
 import { create } from 'zustand';
-import {
-  buildRecordingFile,
-  preferredRecordingMimeType,
-  setMicrophoneEnabled,
-} from '../../audio-capture/utils/recordingMedia';
+import { startAudioCapture, type AudioCaptureSession } from '../../../../platform/browser-media';
 
 export type RecordPhase = 'idle' | 'recording' | 'attach';
 
@@ -26,28 +22,11 @@ interface RecordSessionState {
   clearTimer: () => void;
 }
 
-let timerId: number | null = null;
-let mediaRecorder: MediaRecorder | null = null;
-let mediaStream: MediaStream | null = null;
-let chunks: BlobPart[] = [];
+let session: AudioCaptureSession | null = null;
 
-function clearTimerInterval() {
-  if (timerId !== null) {
-    window.clearInterval(timerId);
-    timerId = null;
-  }
-}
-
-function startTimerInterval(tick: () => void) {
-  clearTimerInterval();
-  timerId = window.setInterval(tick, 1000);
-}
-
-function stopMediaTracks() {
-  mediaStream?.getTracks().forEach((track) => track.stop());
-  mediaStream = null;
-  mediaRecorder = null;
-  chunks = [];
+function disposeSession() {
+  session?.dispose();
+  session = null;
 }
 
 export const useRecordSessionStore = create<RecordSessionState>((set, get) => ({
@@ -59,24 +38,11 @@ export const useRecordSessionStore = create<RecordSessionState>((set, get) => ({
   micError: null,
 
   clearTimer: () => {
-    clearTimerInterval();
+    disposeSession();
   },
 
   resetToIdle: () => {
     get().clearTimer();
-    if (mediaRecorder) {
-      mediaRecorder.ondataavailable = null;
-      mediaRecorder.onerror = null;
-      mediaRecorder.onstop = null;
-      if (mediaRecorder.state !== 'inactive') {
-        try {
-          mediaRecorder.stop();
-        } catch {
-          // ignore teardown errors
-        }
-      }
-    }
-    stopMediaTracks();
     set({
       phase: 'idle',
       elapsed: 0,
@@ -89,7 +55,6 @@ export const useRecordSessionStore = create<RecordSessionState>((set, get) => ({
 
   startNewRecording: async () => {
     get().clearTimer();
-    stopMediaTracks();
     set({
       phase: 'idle',
       elapsed: 0,
@@ -107,44 +72,20 @@ export const useRecordSessionStore = create<RecordSessionState>((set, get) => ({
     }
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          channelCount: 1,
+      session = await startAudioCapture({
+        onTick: (elapsed) => set({ elapsed }),
+        onError: () => {
+          session = null;
+          set({
+            phase: 'idle',
+            isPaused: false,
+            micError: 'Recording failed. Check your microphone and try again.',
+          });
         },
       });
-      mediaStream = stream;
-      chunks = [];
-
-      const mimeType = preferredRecordingMimeType();
-      const recorder = mimeType
-        ? new MediaRecorder(stream, { mimeType })
-        : new MediaRecorder(stream);
-
-      recorder.ondataavailable = (event) => {
-        if (event.data.size > 0) chunks.push(event.data);
-      };
-
-      recorder.onerror = () => {
-        get().clearTimer();
-        stopMediaTracks();
-        set({
-          phase: 'idle',
-          isPaused: false,
-          micError: 'Recording failed. Check your microphone and try again.',
-        });
-      };
-
-      mediaRecorder = recorder;
-      // No timeslice — a single blob on stop is far more reliably playable than chunked WebM.
-      recorder.start();
       set({ phase: 'recording', elapsed: 0, isPaused: false, micError: null });
-      startTimerInterval(() => {
-        set((state) => ({ elapsed: state.elapsed + 1 }));
-      });
     } catch {
-      stopMediaTracks();
+      session = null;
       set({
         phase: 'idle',
         micError: 'Microphone access is required to record consultations.',
@@ -154,59 +95,32 @@ export const useRecordSessionStore = create<RecordSessionState>((set, get) => ({
 
   pause: () => {
     const { phase, isPaused } = get();
-    if (phase !== 'recording' || isPaused) return;
-    // Soft-pause: keep MediaRecorder running so the WebM container stays valid.
-    setMicrophoneEnabled(mediaStream, false);
-    get().clearTimer();
+    if (phase !== 'recording' || isPaused || !session) return;
+    session.pause();
     set({ isPaused: true });
   },
 
   resume: () => {
     const { phase, isPaused } = get();
-    if (phase !== 'recording' || !isPaused) return;
-    setMicrophoneEnabled(mediaStream, true);
+    if (phase !== 'recording' || !isPaused || !session) return;
+    session.resume();
     set({ isPaused: false });
-    startTimerInterval(() => {
-      set((state) => ({ elapsed: state.elapsed + 1 }));
-    });
   },
 
   stop: () => {
     const { phase, elapsed } = get();
-    if (phase !== 'recording') return;
+    if (phase !== 'recording' || !session) return;
 
-    get().clearTimer();
-    setMicrophoneEnabled(mediaStream, true);
-    const recorder = mediaRecorder;
+    const current = session;
+    session = null;
 
-    const finishWithFile = (file: File | null) => {
-      stopMediaTracks();
+    void current.stop().then((file) => {
       set({
         phase: 'attach',
         savedDuration: elapsed,
         isPaused: false,
         audioFile: file,
       });
-    };
-
-    if (!recorder || recorder.state === 'inactive') {
-      finishWithFile(null);
-      return;
-    }
-
-    recorder.onstop = () => {
-      const file = buildRecordingFile(chunks, recorder.mimeType || preferredRecordingMimeType());
-      finishWithFile(file);
-    };
-
-    try {
-      if (recorder.state === 'recording' || recorder.state === 'paused') {
-        recorder.requestData();
-      }
-    } catch {
-      // requestData is best-effort; stop still finalizes the blob.
-    }
-
-    recorder.stop();
+    });
   },
 }));

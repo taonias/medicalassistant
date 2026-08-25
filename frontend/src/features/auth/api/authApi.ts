@@ -1,4 +1,4 @@
-import { httpClient } from '../../../shared/api/httpClient';
+import { httpClient } from '../../../platform/http';
 import type { AuthRequest, AuthResponse, UserSession } from '../types';
 import type { ChangePasswordRequest, UpdateUserProfileRequest } from '../../settings';
 

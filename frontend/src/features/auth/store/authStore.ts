@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { setAuthToken } from '../../../shared/api/httpClient';
 import type { AuthResponse, UserSession } from '../types';
 
 interface AuthState {
@@ -19,7 +18,6 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       roles: [],
       setAuth: (response) => {
-        setAuthToken(response.token);
         set({
           token: response.token,
           roles: response.roles,
@@ -37,7 +35,6 @@ export const useAuthStore = create<AuthState>()(
         set({ user: session, roles });
       },
       logout: () => {
-        setAuthToken(null);
         set({ token: null, user: null, roles: [] });
       },
     }),
@@ -48,11 +45,6 @@ export const useAuthStore = create<AuthState>()(
         user: state.user,
         roles: state.roles,
       }),
-      onRehydrateStorage: () => (state) => {
-        if (state?.token) {
-          setAuthToken(state.token);
-        }
-      },
     },
   ),
 );

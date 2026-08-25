@@ -122,8 +122,7 @@ public class IntegrationEventWireExampleTests
         RepositoryRoot(),
         "backend",
         "src",
-        "MedicalAssistant.EventBus",
-        "Contracts",
+        "MedicalAssistant.ConsultationProcessing.Contracts",
         "Examples");
 
     private static string RepositoryRoot()

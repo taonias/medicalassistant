@@ -6,26 +6,13 @@ import {
 } from '../../hooks/useConsultations';
 import { usePatient } from '../../../../features/patients';
 import { formatPatientName } from '../../../../shared/utils/format';
-import { getAudioDurationSeconds } from '../../audio-capture/utils/getAudioDuration';
+import { resolveRecordingDuration } from '../../audio-capture/utils/getAudioDuration';
 import { AudioVisualizer } from '../components/AudioVisualizer';
 import { RecordControls } from '../components/RecordControls';
 import { useRecordSessionStore } from '../store/recordSessionStore';
 
 function createIdempotencyKey() {
   return crypto.randomUUID();
-}
-
-/** Prefer decoded file duration; fall back to timer if metadata is missing/bogus. */
-async function resolveRecordingDuration(file: File, timerSeconds: number) {
-  const measured = await getAudioDurationSeconds(file);
-  if (measured == null) {
-    return timerSeconds > 0 ? timerSeconds : undefined;
-  }
-  // Guard against the WebM metadata bug that reports ~1s for long recordings.
-  if (measured <= 1 && timerSeconds > 2) {
-    return timerSeconds;
-  }
-  return measured;
 }
 
 function formatDuration(totalSeconds: number) {

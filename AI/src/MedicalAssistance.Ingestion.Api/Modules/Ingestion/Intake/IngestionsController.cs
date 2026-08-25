@@ -15,7 +15,7 @@ public sealed class IngestionsController(
     IngestionStore store,
     IngestionQueue queue,
     IngestionStrategyRegistry strategies,
-    IIngestedDocumentArchive archive,
+    IngestionSubmissionService submissionService,
     IConfiguration configuration) : ControllerBase
 {
     /// <summary>Submits a clinical Document for ingestion.</summary>
@@ -67,64 +67,17 @@ public sealed class IngestionsController(
         if (errors.Count > 0)
             return ValidationProblem(new ValidationProblemDetails(errors));
 
-        // Nothing can be decided about a document that has not landed yet, and
-        // two workers on one document would race to write its chunk set — so a
-        // submission that is still in flight blocks its own resubmission.
-        if (await store.FindInFlightAsync(request, ct) is { } inFlightId)
-            return AlreadyInFlight(inFlightId);
-
-        // Re-posting content that is already ingested is never new knowledge.
-        // After success it is a no-op; after failure it is a retry of the very
-        // same ingestion, so the id the caller already holds stays valid and a
-        // poison document cannot multiply rows.
-        // (While one is still Queued or Processing, T15 turns this into a 409.)
-        switch (await store.FindIdenticalAsync(request, ct))
+        var result = await submissionService.SubmitAsync(request, ct);
+        return result.Outcome switch
         {
-            case { Succeeded: true } completed:
-                return Accepted(LocationOf(completed.Id), new IngestionAccepted
-                {
-                    IngestionId = completed.Id,
-                    Duplicate = true,
-                });
-
-            case { Failed: true } failed:
-                // Identical content after a failure is a retry — the same rerun
-                // the retry endpoint performs, asked for a different way.
-                var (outcome, _) = await store.TryRetryAsync(failed.Id, ct);
-
-                // Unless a correction landed while that one was broken. Sending
-                // the original again is then a deliberate return to it, not the
-                // recovery of a stale run, so it is ingested as new work below
-                // and gets its own ingestion id.
-                if (outcome == RetryOutcome.Overtaken)
-                    break;
-
-                if (outcome == RetryOutcome.Requeued)
-                    await queue.EnqueueAsync(failed.Id, ct);
-                return Accepted(LocationOf(failed.Id), new IngestionAccepted { IngestionId = failed.Id });
-        }
-
-        // The same content can also arrive re-filed under a different session or
-        // sequence number. It is still the same knowledge about the same
-        // patient, so it is skipped too, and the caller is pointed at the
-        // ingestion that already holds it.
-        if (await store.FindSameContentElsewhereAsync(request, ct) is { } alreadyIngested)
-        {
-            return Accepted(LocationOf(alreadyIngested.Id), new IngestionAccepted
+            IngestionSubmissionOutcome.AlreadyInFlight => AlreadyInFlight(result.IngestionId),
+            IngestionSubmissionOutcome.Duplicate => Accepted(LocationOf(result.IngestionId), new IngestionAccepted
             {
-                IngestionId = alreadyIngested.Id,
+                IngestionId = result.IngestionId,
                 Duplicate = true,
-            });
-        }
-
-        var ingestionId = await store.CreateQueuedAsync(request, ct);
-
-        // Archived before it is handed to a worker, so the landing-zone copy exists
-        // before ingestion. Best-effort by contract — it never fails the upload.
-        await archive.ArchiveAsync(ingestionId, request, ct);
-
-        await queue.EnqueueAsync(ingestionId, ct);
-        return Accepted(LocationOf(ingestionId), new IngestionAccepted { IngestionId = ingestionId });
+            }),
+            _ => Accepted(LocationOf(result.IngestionId), new IngestionAccepted { IngestionId = result.IngestionId }),
+        };
     }
 
     /// <summary>Lists a doctor's Ingestions — by default the ones still running.</summary>

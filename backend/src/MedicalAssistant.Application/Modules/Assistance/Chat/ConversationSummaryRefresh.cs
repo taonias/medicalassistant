@@ -73,13 +73,13 @@ public sealed class ConversationSummaryRefresher
 
     private readonly IConversationRepository _conversations;
     private readonly IPatientRepository _patients;
-    private readonly IClinicalKnowledgeClient _clinicalKnowledge;
+    private readonly IConversationSummarizer _clinicalKnowledge;
     private readonly ILogger<ConversationSummaryRefresher> _logger;
 
     public ConversationSummaryRefresher(
         IConversationRepository conversations,
         IPatientRepository patients,
-        IClinicalKnowledgeClient clinicalKnowledge,
+        IConversationSummarizer clinicalKnowledge,
         ILogger<ConversationSummaryRefresher> logger)
     {
         _conversations = conversations;

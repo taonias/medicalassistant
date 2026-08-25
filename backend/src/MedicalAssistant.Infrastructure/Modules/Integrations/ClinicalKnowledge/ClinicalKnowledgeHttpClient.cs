@@ -7,7 +7,8 @@ using Microsoft.Extensions.Options;
 
 namespace MedicalAssistant.Infrastructure.ClinicalKnowledge;
 
-public sealed class ClinicalKnowledgeHttpClient : IClinicalKnowledgeClient
+public sealed class ClinicalKnowledgeHttpClient :
+    ITranscriptIngestionGateway, IClinicalKnowledgeDeletionGateway, IGroundedAnswerGateway, IConversationSummarizer
 {
     private const string ApiKeyHeaderName = "X-Api-Key";
 

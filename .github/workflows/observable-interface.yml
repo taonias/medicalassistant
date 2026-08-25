@@ -14,4 +14,4 @@ jobs:
       - uses: actions/checkout@v4
       - name: Verify routes, solution, Compose, schema, events, SignalR, and host registrations
         shell: pwsh
-        run: ./scripts/verify-observable-interface.ps1
+        run: ./scripts/dev/verify-observable-interface.ps1

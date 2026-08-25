@@ -32,12 +32,12 @@ public sealed class ChatTurnRunner : IChatTurnRunner
         "The answer could not be generated. Please retry.";
 
     private readonly IConversationRepository _conversations;
-    private readonly IClinicalKnowledgeClient _clinicalKnowledge;
+    private readonly IGroundedAnswerGateway _clinicalKnowledge;
     private readonly ILogger<ChatTurnRunner> _logger;
 
     public ChatTurnRunner(
         IConversationRepository conversations,
-        IClinicalKnowledgeClient clinicalKnowledge,
+        IGroundedAnswerGateway clinicalKnowledge,
         ILogger<ChatTurnRunner> logger)
     {
         _conversations = conversations;

@@ -37,12 +37,12 @@ public class LegacyRemovalCompletionTests
         var repositoryRoot = FindRepositoryRoot();
         var requiredRelativePaths = new[]
         {
-            "backend/src/MedicalAssistant.Transcription.Worker/Speech/AzureSpeechTranscriptionService.cs",
-            "backend/src/MedicalAssistant.Transcription.Worker/Speech/ISpeechTranscriptionService.cs",
-            "backend/src/MedicalAssistant.Transcription.Worker/Storage/ConsultationAudioBlobRetriever.cs",
-            "backend/src/MedicalAssistant.Transcription.Worker/Storage/IConsultationAudioBlobRetriever.cs",
-            "backend/src/MedicalAssistant.Transcription.Worker/Storage/AzurePrivateBlobObjectClient.cs",
-            "backend/src/MedicalAssistant.Transcription.Worker/Handlers/ConsultationAudioUploadedIntegrationEventHandler.cs"
+            "backend/src/MedicalAssistant.Transcription.Worker/Infrastructure/Speech/AzureSpeechTranscriptionService.cs",
+            "backend/src/MedicalAssistant.Transcription.Worker/Infrastructure/Speech/ISpeechTranscriptionService.cs",
+            "backend/src/MedicalAssistant.Transcription.Worker/Infrastructure/Blob/ConsultationAudioBlobRetriever.cs",
+            "backend/src/MedicalAssistant.Transcription.Worker/Infrastructure/Blob/IConsultationAudioBlobRetriever.cs",
+            "backend/src/MedicalAssistant.Transcription.Worker/Infrastructure/Blob/AzurePrivateBlobObjectClient.cs",
+            "backend/src/MedicalAssistant.Transcription.Worker/Host/ConsultationAudioUploadedIntegrationEventHandler.cs"
         };
 
         var missing = requiredRelativePaths

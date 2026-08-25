@@ -2,6 +2,7 @@
   <Folder Name="/src/">
     <Project Path="src/MedicalAssistant.Api/MedicalAssistant.Api.csproj" />
     <Project Path="src/MedicalAssistant.Application/MedicalAssistant.Application.csproj" />
+    <Project Path="src/MedicalAssistant.ConsultationProcessing.Contracts/MedicalAssistant.ConsultationProcessing.Contracts.csproj" />
     <Project Path="src/MedicalAssistant.Domain/MedicalAssistant.Domain.csproj" />
     <Project Path="src/MedicalAssistant.EventBus/MedicalAssistant.EventBus.csproj" />
     <Project Path="src/MedicalAssistant.EventBusRabbitMQ/MedicalAssistant.EventBusRabbitMQ.csproj" />

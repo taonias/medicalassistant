@@ -8,7 +8,7 @@ Baseline date: 23 August 2026
 
 This inventory records behavior that folder and namespace refactors must not accidentally change. A deliberate contract change requires its own issue, tests, migration/compatibility plan, and release note.
 
-The machine-readable [observable-interface snapshot](contracts/observable-interface.snapshot.json) is checked by [verify-observable-interface.ps1](../../scripts/verify-observable-interface.ps1) in pull requests. It freezes controller routes and endpoint-specific status signatures, root-solution membership, Compose services/volumes, EF model hashes, migration filenames, Integration Event envelope/payload JSON and routing keys, SignalR names, configuration paths, DI lifetimes, and critical host registrations.
+The machine-readable [observable-interface snapshot](contracts/observable-interface.snapshot.json) is checked by [verify-observable-interface.ps1](../../scripts/dev/verify-observable-interface.ps1) in pull requests. It freezes controller routes and endpoint-specific status signatures, root-solution membership, Compose services/volumes, EF model hashes, migration filenames, Integration Event envelope/payload JSON and routing keys, SignalR names, configuration paths, DI lifetimes, and critical host registrations.
 
 ## Change protocol
 
@@ -230,7 +230,7 @@ Refactors must preserve service names, networks, volumes, health checks, depende
 
 Run from the repository root:
 
-- pwsh -NoProfile -File scripts/verify-observable-interface.ps1
+- pwsh -NoProfile -File scripts/dev/verify-observable-interface.ps1
 - dotnet build MedicalAssistant.slnx
 - dotnet test backend/MedicalAssistant.slnx
 - dotnet test AI/MedicalAssistance.Ingestion.slnx

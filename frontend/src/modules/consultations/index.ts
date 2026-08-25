@@ -13,5 +13,10 @@ export {
 export { ConsultationDetailPage } from './pages/ConsultationDetailPage';
 export * from './types';
 export { consultationKeys } from './queryKeys';
+export {
+  invalidateConsultationLists,
+  invalidatePatientConsultationViews,
+  invalidateConsultationClinicalRecord,
+} from './invalidation';
 export * from './record';
 export * from './audio-capture';

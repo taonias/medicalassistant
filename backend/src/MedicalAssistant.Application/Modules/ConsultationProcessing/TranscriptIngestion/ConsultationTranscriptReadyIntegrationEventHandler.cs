@@ -11,12 +11,12 @@ public sealed class ConsultationTranscriptReadyIntegrationEventHandler
 {
     public const string ConsumerName = "backend-clinical-knowledge";
 
-    private readonly IClinicalKnowledgeClient _clinicalKnowledgeClient;
+    private readonly ITranscriptIngestionGateway _clinicalKnowledgeClient;
     private readonly ITranscriptReadyPreparationStore _preparationStore;
     private readonly ILogger<ConsultationTranscriptReadyIntegrationEventHandler> _logger;
 
     public ConsultationTranscriptReadyIntegrationEventHandler(
-        IClinicalKnowledgeClient clinicalKnowledgeClient,
+        ITranscriptIngestionGateway clinicalKnowledgeClient,
         ITranscriptReadyPreparationStore preparationStore,
         ILogger<ConsultationTranscriptReadyIntegrationEventHandler> logger)
     {

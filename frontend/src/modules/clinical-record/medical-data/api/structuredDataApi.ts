@@ -1,4 +1,4 @@
-import { httpClient } from '../../../../shared/api/httpClient';
+import { httpClient } from '../../../../platform/http';
 import type { MedicalStructuredDataDto } from '../types';
 
 export const structuredDataApi = {

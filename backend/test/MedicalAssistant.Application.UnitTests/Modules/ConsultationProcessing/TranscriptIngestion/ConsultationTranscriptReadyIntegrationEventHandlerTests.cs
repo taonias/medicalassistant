@@ -151,7 +151,7 @@ public class ConsultationTranscriptReadyIntegrationEventHandlerTests
             Task.CompletedTask;
     }
 
-    private sealed class RecordingClinicalKnowledgeClient : IClinicalKnowledgeClient
+    private sealed class RecordingClinicalKnowledgeClient : ITranscriptIngestionGateway
     {
         private readonly bool _throwOnSubmit;
 
@@ -176,24 +176,6 @@ public class ConsultationTranscriptReadyIntegrationEventHandlerTests
                 Guid.Parse("aaaaaaaa-1111-1111-1111-aaaaaaaaaaaa"),
                 Duplicate: false));
         }
-
-        public Task<ClinicalKnowledgeUnIngestResult> UnIngestDocumentAsync(
-            string documentId,
-            string removedBy,
-            CancellationToken cancellationToken = default) =>
-            Task.FromResult(new ClinicalKnowledgeUnIngestResult(
-                documentId,
-                ClinicalKnowledgeUnIngestStatus.Removed));
-
-        public Task<ClinicalKnowledgeAnswer> GetGroundedAnswerAsync(
-            ClinicalKnowledgeChatRequest request,
-            CancellationToken cancellationToken = default) =>
-            throw new NotImplementedException();
-
-        public Task<string> SummarizeConversationAsync(
-            ClinicalKnowledgeSummarizeRequest request,
-            CancellationToken cancellationToken = default) =>
-            throw new NotImplementedException();
     }
 
     private static IntegrationEventEnvelope<ConsultationTranscriptReadyV1> CreateEnvelope()

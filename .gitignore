@@ -132,5 +132,6 @@ frontend/.env
 **/helping_documents_to_ignore/
 
 # Production deployment: release bundle (image tars) and real secrets stay local/on-VM only.
-release/
+# Anchored to the repo root — an unanchored "release/" also matched scripts/release/ (source).
+/release/
 **/.env.prod

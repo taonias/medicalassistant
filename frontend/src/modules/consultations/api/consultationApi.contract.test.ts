@@ -1,14 +1,19 @@
 import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { setAuthToken } from '../../../shared/api/httpClient';
+import { configureHttpAuth } from '../../../platform/http';
 import { recordApiRequests } from '../../../test/recordApiRequests';
 import { server } from '../../../test/server';
 import { consultationApi } from './consultationApi';
 
 const apiBaseUrl = 'https://backend.test/api';
 
-beforeEach(() => setAuthToken(null));
+let token: string | null = null;
+
+beforeEach(() => {
+  token = null;
+  configureHttpAuth({ getToken: () => token, onUnauthorized: () => {} });
+});
 
 describe('Consultation upload contract', () => {
   it('keeps every Consultation method and URL unchanged', async () => {
@@ -70,7 +75,7 @@ describe('Consultation upload contract', () => {
         return HttpResponse.json({ id: 42 });
       }),
     );
-    setAuthToken('doctor-token');
+    token = 'doctor-token';
 
     await consultationApi.uploadAudio(
       42,
