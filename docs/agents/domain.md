@@ -4,15 +4,15 @@ This is a multi-context repository. Before changing code, read the root `CONTEXT
 
 ## Canonical context documents
 
-- **Care Workflow**: `project-docs/operations/contexts/care-workflow/CONTEXT.md`
-- **Consultation Processing**: `project-docs/event bus implementations/CONTEXT.md`
-- **Clinical Knowledge**: `AI/CONTEXT.md`
+- **Care Workflow**: `docs/contexts/care-workflow/CONTEXT.md`
+- **Consultation Processing**: `docs/contexts/consultation-processing/CONTEXT.md`
+- **Clinical Knowledge**: `docs/contexts/clinical-knowledge/CONTEXT.md` (see also `AI/CONTEXT.md`, the Clinical Knowledge service's own fuller local glossary)
 
 ## Architectural decisions
 
-- Consultation Processing/event-bus decisions: `project-docs/event bus implementations/adr/`
+- Care Workflow/Consultation Processing decisions: `docs/adr/`
 - Clinical Knowledge decisions: `AI/docs/adr/`
-- The numbered documents under `project-docs/event bus implementations/` form the implementation specification for replacing the Azure Function transcriber.
+- The numbered documents under `project-docs/event bus implementations/` are the historical implementation specification for replacing the Azure Function transcriber — superseded as canonical context/ADR source by the paths above, still useful as design history.
 - The documents under `project-docs/operations/` provide the system-wide operational and product overview.
 
 Read decisions from every context touched by a cross-context integration. If proposed work conflicts with an accepted ADR, surface the conflict explicitly instead of silently overriding it.

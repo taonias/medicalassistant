@@ -20,13 +20,13 @@ public class ConsultationDocumentResult
 public class GetConsultationDocumentQueryHandler
     : IRequestHandler<GetConsultationDocumentQuery, ConsultationDocumentResult?>
 {
-    private readonly IConsultationRepository _consultationRepository;
+    private readonly IConsultationAccess _consultationRepository;
     private readonly IBlobStorageService _blobStorageService;
     private readonly IUserService _userService;
     private readonly BlobStorageSettings _blobSettings;
 
     public GetConsultationDocumentQueryHandler(
-        IConsultationRepository consultationRepository,
+        IConsultationAccess consultationRepository,
         IBlobStorageService blobStorageService,
         IUserService userService,
         IOptions<BlobStorageSettings> blobSettings)

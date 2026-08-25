@@ -15,14 +15,14 @@ namespace MedicalAssistant.Application.Features.Consultation.Command.UploadConsu
 public class UploadConsultationDocumentCommandHandler
     : IRequestHandler<UploadConsultationDocumentCommand, ConsultationDto>
 {
-    private readonly IConsultationRepository _consultationRepository;
+    private readonly IConsultationFileRegistration _consultationRepository;
     private readonly IBlobStorageService _blobStorageService;
     private readonly IUserService _userService;
     private readonly IMapper _mapper;
     private readonly BlobStorageSettings _blobSettings;
 
     public UploadConsultationDocumentCommandHandler(
-        IConsultationRepository consultationRepository,
+        IConsultationFileRegistration consultationRepository,
         IBlobStorageService blobStorageService,
         IUserService userService,
         IMapper mapper,

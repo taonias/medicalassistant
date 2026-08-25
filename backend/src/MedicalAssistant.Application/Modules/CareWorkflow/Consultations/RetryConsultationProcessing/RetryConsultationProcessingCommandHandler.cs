@@ -11,13 +11,13 @@ public sealed class RetryConsultationProcessingCommandHandler
     : IRequestHandler<RetryConsultationProcessingCommand, ConsultationDto>
 {
     private readonly IConsultationRetryStore _retryStore;
-    private readonly IConsultationRepository _consultationRepository;
+    private readonly IConsultationAccess _consultationRepository;
     private readonly IUserService _userService;
     private readonly IMapper _mapper;
 
     public RetryConsultationProcessingCommandHandler(
         IConsultationRetryStore retryStore,
-        IConsultationRepository consultationRepository,
+        IConsultationAccess consultationRepository,
         IUserService userService,
         IMapper mapper)
     {

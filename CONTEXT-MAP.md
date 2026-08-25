@@ -6,9 +6,9 @@ Medical Assistant contains three related domain contexts. Each owns different la
 
 ## Contexts
 
-- [Care Workflow](project-docs/operations/contexts/care-workflow/CONTEXT.md) — supports Doctors in managing Patients, Consultations, Recordings, Consultation Documents, Transcripts, notes, structured data, and clinician-facing actions.
-- [Consultation Processing](project-docs/event%20bus%20implementations/CONTEXT.md) — turns stored Consultation audio into a Transcript and announces processing outcomes through durable integration events.
-- [Clinical Knowledge](AI/CONTEXT.md) — ingests declared clinical Documents into searchable evidence and produces patient-scoped Grounded Answers.
+- [Care Workflow](docs/contexts/care-workflow/CONTEXT.md) — supports Doctors in managing Patients, Consultations, Recordings, Consultation Documents, Transcripts, notes, structured data, and clinician-facing actions.
+- [Consultation Processing](docs/contexts/consultation-processing/CONTEXT.md) — turns stored Consultation audio into a Transcript and announces processing outcomes through durable integration events.
+- [Clinical Knowledge](docs/contexts/clinical-knowledge/CONTEXT.md) — ingests declared clinical Documents into searchable evidence and produces patient-scoped Grounded Answers. See also [AI/CONTEXT.md](AI/CONTEXT.md), the Clinical Knowledge service's own fuller local glossary.
 
 ## Relationships
 
@@ -27,5 +27,5 @@ Medical Assistant contains three related domain contexts. Each owns different la
 
 ## ADR locations
 
-- [Consultation Processing and event-bus ADRs](project-docs/event%20bus%20implementations/adr/)
+- [Care Workflow and Consultation Processing ADRs](docs/adr/)
 - [Clinical Knowledge ADRs](AI/docs/adr/)

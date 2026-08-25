@@ -8,12 +8,12 @@ namespace MedicalAssistant.Application.Features.MedicalStructuredData.Command.Pr
 public class ProcessStructuredDataCallbackCommandHandler : IRequestHandler<ProcessStructuredDataCallbackCommand, Unit>
 {
     private readonly IMedicalStructuredDataRepository _structuredDataRepository;
-    private readonly IConsultationRepository _consultationRepository;
+    private readonly IStructuredDataCompletion _consultationRepository;
     private readonly IMediator _mediator;
 
     public ProcessStructuredDataCallbackCommandHandler(
         IMedicalStructuredDataRepository structuredDataRepository,
-        IConsultationRepository consultationRepository,
+        IStructuredDataCompletion consultationRepository,
         IMediator mediator)
     {
         _structuredDataRepository = structuredDataRepository;

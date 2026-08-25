@@ -24,7 +24,7 @@ public class CreateDoctorNoteCommand : IRequest<DoctorNote>, IAuditableRequest<D
 public class CreateDoctorNoteCommandHandler : IRequestHandler<CreateDoctorNoteCommand, DoctorNote>
 {
     private readonly IDoctorNoteRepository _doctorNoteRepository;
-    private readonly IConsultationRepository _consultationRepository;
+    private readonly IConsultationAccess _consultationRepository;
     private readonly IPatientRepository _patientRepository;
     private readonly IUserService _userService;
     private readonly IAiModuleClient _aiModuleClient;
@@ -32,7 +32,7 @@ public class CreateDoctorNoteCommandHandler : IRequestHandler<CreateDoctorNoteCo
 
     public CreateDoctorNoteCommandHandler(
         IDoctorNoteRepository doctorNoteRepository,
-        IConsultationRepository consultationRepository,
+        IConsultationAccess consultationRepository,
         IPatientRepository patientRepository,
         IUserService userService,
         IAiModuleClient aiModuleClient,

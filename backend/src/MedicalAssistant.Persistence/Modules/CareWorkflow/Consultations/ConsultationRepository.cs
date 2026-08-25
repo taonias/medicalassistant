@@ -7,7 +7,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MedicalAssistant.Persistence.Repositories;
 
-public class ConsultationRepository : GenericRepository<Consultation>, IConsultationRepository, IConsultationDeletion
+public class ConsultationRepository :
+    GenericRepository<Consultation>, IConsultationRepository, IConsultationDeletion,
+    IConsultationFileRegistration, ITranscriptionCompletion, IConsultationAccess,
+    IConsultationListing, IConsultationCreation, IConsultationPatientAssignment,
+    IConsultationStructuredDataApproval, IStructuredDataCompletion
 {
     public ConsultationRepository(MedicalAssistantDatabaseContext context, IHttpContextAccessor httpContextAccessor)
         : base(context, httpContextAccessor)

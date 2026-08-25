@@ -8,11 +8,11 @@ namespace MedicalAssistant.Application.Features.Transcript.Command.ProcessTransc
 public class ProcessTranscriptionCallbackCommandHandler : IRequestHandler<ProcessTranscriptionCallbackCommand, Unit>
 {
     private readonly ITranscriptRepository _transcriptRepository;
-    private readonly IConsultationRepository _consultationRepository;
+    private readonly ITranscriptionCompletion _consultationRepository;
 
     public ProcessTranscriptionCallbackCommandHandler(
         ITranscriptRepository transcriptRepository,
-        IConsultationRepository consultationRepository)
+        ITranscriptionCompletion consultationRepository)
     {
         _transcriptRepository = transcriptRepository;
         _consultationRepository = consultationRepository;

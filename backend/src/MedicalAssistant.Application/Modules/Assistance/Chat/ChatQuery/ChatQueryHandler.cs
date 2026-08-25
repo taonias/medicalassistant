@@ -12,13 +12,13 @@ public class ChatQueryHandler : IRequestHandler<ChatQuery, ChatResponseDto>
     private readonly IGroundedAnswerGateway _clinicalKnowledge;
     private readonly IUserService _userService;
     private readonly IPatientRepository _patientRepository;
-    private readonly IConsultationRepository _consultationRepository;
+    private readonly IConsultationAccess _consultationRepository;
 
     public ChatQueryHandler(
         IGroundedAnswerGateway clinicalKnowledge,
         IUserService userService,
         IPatientRepository patientRepository,
-        IConsultationRepository consultationRepository)
+        IConsultationAccess consultationRepository)
     {
         _clinicalKnowledge = clinicalKnowledge;
         _userService = userService;

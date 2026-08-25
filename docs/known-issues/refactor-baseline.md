@@ -48,7 +48,7 @@ Every item has a stable ID and a related refactor row. “Related” means the r
 | K23 | Medium | Runbooks and generated graph output describe removed architecture. | Keep canonical docs current and regenerate/archive derived material. | R01, R36, R39 |
 | K24 | Medium | Swagger appears enabled without a production environment guard. | Confirm intent and secure/disable it in a separate deployment change. | R04, R07 |
 | K25 | Medium | Frontend lint has 9 errors and the production bundle is approximately 789 KB. | Create explicit lint-baseline and performance work. | R04, R08, R09 |
-| K26 | High | Erasure and un-ingest can leave stale PatientSummary persistence records (current code term; glossary gap). | Add lifecycle regression tests and correct regeneration/removal separately. | R04, R10 |
+| K26 | High | Erasure and un-ingest can leave stale PatientSummary persistence records (code term; glossary term is now **Patient Summary**, see [docs/contexts/clinical-knowledge/CONTEXT.md](../contexts/clinical-knowledge/CONTEXT.md) — R36). | Add lifecycle regression tests and correct regeneration/removal separately. | R04, R10 |
 | K27 | High | Default embedding model dimensions may not match the fixed vector schema. | Validate every provider/model dimension at startup. | R04, R10 |
 | K28 | High | Citation verification permits a generated answer with no citations. | Make a Clinical Safety/product decision and change with focused tests. | R04, R10 |
 | K29 | High | Production retrieval confidence threshold defaults to 0.0 and appears uncalibrated. | Calibrate and govern using evaluation data. | R04, R10 |

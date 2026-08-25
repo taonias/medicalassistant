@@ -17,12 +17,12 @@ public record ApproveStructuredDataCommand(int ConsultationId)
 public class ApproveStructuredDataCommandHandler : IRequestHandler<ApproveStructuredDataCommand, Unit>
 {
     private readonly IUserService _userService;
-    private readonly IConsultationRepository _consultationRepository;
+    private readonly IConsultationStructuredDataApproval _consultationRepository;
     private readonly IMedicalStructuredDataRepository _structuredDataRepository;
 
     public ApproveStructuredDataCommandHandler(
         IUserService userService,
-        IConsultationRepository consultationRepository,
+        IConsultationStructuredDataApproval consultationRepository,
         IMedicalStructuredDataRepository structuredDataRepository)
     {
         _userService = userService;

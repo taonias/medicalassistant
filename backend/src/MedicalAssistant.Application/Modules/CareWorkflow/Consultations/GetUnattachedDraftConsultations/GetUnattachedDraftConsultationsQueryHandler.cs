@@ -9,11 +9,11 @@ namespace MedicalAssistant.Application.Features.Consultation.Queries.GetUnattach
 public class GetUnattachedDraftConsultationsQueryHandler
     : IRequestHandler<GetUnattachedDraftConsultationsQuery, List<ConsultationSummaryDto>>
 {
-    private readonly IConsultationRepository _consultationRepository;
+    private readonly IConsultationListing _consultationRepository;
     private readonly IUserService _userService;
 
     public GetUnattachedDraftConsultationsQueryHandler(
-        IConsultationRepository consultationRepository,
+        IConsultationListing consultationRepository,
         IUserService userService)
     {
         _consultationRepository = consultationRepository;

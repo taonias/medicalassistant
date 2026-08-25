@@ -33,7 +33,7 @@ public class TranscriptCorrectionOutboxTests
         transcriptRepository
             .Setup(r => r.GetByConsultationIdAsync(7))
             .ReturnsAsync(transcript);
-        var consultationRepository = new Mock<IConsultationRepository>();
+        var consultationRepository = new Mock<IConsultationAccess>();
         consultationRepository
             .Setup(r => r.GetConsultationForDoctorAsync(7, "doctor-1"))
             .ReturnsAsync(consultation);

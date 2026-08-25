@@ -16,7 +16,7 @@ namespace MedicalAssistant.Application.Features.ActionRequest.Command.TriggerAiA
 public class TriggerAiActionCommandHandler : IRequestHandler<TriggerAiActionCommand, ActionRequestDto>
 {
     private readonly IActionRequestRepository _actionRequestRepository;
-    private readonly IConsultationRepository _consultationRepository;
+    private readonly IConsultationAccess _consultationRepository;
     private readonly IPatientRepository _patientRepository;
     private readonly IAiModuleClient _aiModuleClient;
     private readonly IUserService _userService;
@@ -25,7 +25,7 @@ public class TriggerAiActionCommandHandler : IRequestHandler<TriggerAiActionComm
 
     public TriggerAiActionCommandHandler(
         IActionRequestRepository actionRequestRepository,
-        IConsultationRepository consultationRepository,
+        IConsultationAccess consultationRepository,
         IPatientRepository patientRepository,
         IAiModuleClient aiModuleClient,
         IUserService userService,

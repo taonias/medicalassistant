@@ -8,12 +8,12 @@ namespace MedicalAssistant.Application.Features.Consultation.Queries.GetConsulta
 
 public class GetConsultationDetailsQueryHandler : IRequestHandler<GetConsultationDetailsQuery, ConsultationDto>
 {
-    private readonly IConsultationRepository _consultationRepository;
+    private readonly IConsultationAccess _consultationRepository;
     private readonly IUserService _userService;
     private readonly IMapper _mapper;
 
     public GetConsultationDetailsQueryHandler(
-        IConsultationRepository consultationRepository,
+        IConsultationAccess consultationRepository,
         IUserService userService,
         IMapper mapper)
     {

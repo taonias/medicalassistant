@@ -10,12 +10,12 @@ public record GetDoctorNotesByConsultationQuery(int ConsultationId) : IRequest<I
 
 public class GetDoctorNotesByConsultationQueryHandler : IRequestHandler<GetDoctorNotesByConsultationQuery, IReadOnlyList<DoctorNote>>
 {
-    private readonly IConsultationRepository _consultationRepository;
+    private readonly IConsultationAccess _consultationRepository;
     private readonly IUserService _userService;
     private readonly IDoctorNoteRepository _doctorNoteRepository;
 
     public GetDoctorNotesByConsultationQueryHandler(
-        IConsultationRepository consultationRepository,
+        IConsultationAccess consultationRepository,
         IUserService userService,
         IDoctorNoteRepository doctorNoteRepository)
     {

@@ -10,13 +10,13 @@ namespace MedicalAssistant.Application.Features.Consultation.Command.CreateConsu
 
 public class CreateConsultationCommandHandler : IRequestHandler<CreateConsultationCommand, ConsultationDto>
 {
-    private readonly IConsultationRepository _consultationRepository;
+    private readonly IConsultationCreation _consultationRepository;
     private readonly IPatientRepository _patientRepository;
     private readonly IUserService _userService;
     private readonly IMapper _mapper;
 
     public CreateConsultationCommandHandler(
-        IConsultationRepository consultationRepository,
+        IConsultationCreation consultationRepository,
         IPatientRepository patientRepository,
         IUserService userService,
         IMapper mapper)

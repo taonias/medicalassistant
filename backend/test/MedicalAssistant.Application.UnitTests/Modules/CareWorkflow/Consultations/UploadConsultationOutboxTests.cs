@@ -27,7 +27,7 @@ public class UploadConsultationOutboxTests
             ConsultationDate = DateTime.UtcNow,
             Status = ConsultationStatus.Draft
         };
-        var repository = new Mock<IConsultationRepository>();
+        var repository = new Mock<IConsultationFileRegistration>();
         repository
             .Setup(r => r.GetConsultationForDoctorAsync(42, "doctor-1"))
             .ReturnsAsync(consultation);
@@ -71,7 +71,9 @@ public class UploadConsultationOutboxTests
                 !message.Payload.Contains("patientId") &&
                 !message.Payload.Contains("recording.wav")),
             It.IsAny<CancellationToken>()), Times.Once);
-        repository.Verify(r => r.UpdateAsync(It.IsAny<Consultation>()), Times.Never);
+        // R28: IConsultationFileRegistration has no UpdateAsync member at all, so the
+        // handler calling it instead of UpdateWithOutboxAsync is now a compile error,
+        // not something this test needs to verify at runtime.
         mediator.Verify(m => m.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -86,7 +88,7 @@ public class UploadConsultationOutboxTests
             ConsultationDate = DateTime.UtcNow,
             Status = ConsultationStatus.Draft
         };
-        var repository = new Mock<IConsultationRepository>();
+        var repository = new Mock<IConsultationFileRegistration>();
         repository
             .Setup(r => r.GetConsultationForDoctorAsync(43, "doctor-1"))
             .ReturnsAsync(consultation);
@@ -131,7 +133,9 @@ public class UploadConsultationOutboxTests
                 !message.Payload.Contains("patientId") &&
                 !message.Payload.Contains("patient-smith-referral.pdf")),
             It.IsAny<CancellationToken>()), Times.Once);
-        repository.Verify(r => r.UpdateAsync(It.IsAny<Consultation>()), Times.Never);
+        // R28: IConsultationFileRegistration has no UpdateAsync member at all, so the
+        // handler calling it instead of UpdateWithOutboxAsync is now a compile error,
+        // not something this test needs to verify at runtime.
     }
 
     private static IFormFile FormFile(string fileName, string contentType)

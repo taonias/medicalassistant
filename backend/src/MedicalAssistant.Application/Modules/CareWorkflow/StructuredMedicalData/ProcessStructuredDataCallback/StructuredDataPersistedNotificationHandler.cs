@@ -10,14 +10,14 @@ namespace MedicalAssistant.Application.Notifications;
 public class StructuredDataPersistedNotificationHandler : INotificationHandler<StructuredDataPersistedNotification>
 {
     private readonly IAiModuleClient _aiModuleClient;
-    private readonly IConsultationRepository _consultationRepository;
+    private readonly IStructuredDataCompletion _consultationRepository;
     private readonly ITranscriptRepository _transcriptRepository;
     private readonly IMedicalStructuredDataRepository _structuredDataRepository;
     private readonly ILogger<StructuredDataPersistedNotificationHandler> _logger;
 
     public StructuredDataPersistedNotificationHandler(
         IAiModuleClient aiModuleClient,
-        IConsultationRepository consultationRepository,
+        IStructuredDataCompletion consultationRepository,
         ITranscriptRepository transcriptRepository,
         IMedicalStructuredDataRepository structuredDataRepository,
         ILogger<StructuredDataPersistedNotificationHandler> logger)

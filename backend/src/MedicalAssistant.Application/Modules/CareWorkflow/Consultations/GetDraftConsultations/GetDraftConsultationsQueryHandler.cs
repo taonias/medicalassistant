@@ -9,11 +9,11 @@ namespace MedicalAssistant.Application.Features.Consultation.Queries.GetDraftCon
 public class GetDraftConsultationsQueryHandler
     : IRequestHandler<GetDraftConsultationsQuery, List<DraftConsultationGroupDto>>
 {
-    private readonly IConsultationRepository _consultationRepository;
+    private readonly IConsultationListing _consultationRepository;
     private readonly IUserService _userService;
 
     public GetDraftConsultationsQueryHandler(
-        IConsultationRepository consultationRepository,
+        IConsultationListing consultationRepository,
         IUserService userService)
     {
         _consultationRepository = consultationRepository;

@@ -5,9 +5,9 @@ namespace MedicalAssistant.Application.Notifications;
 
 public class TranscriptionCompletedNotificationHandler : INotificationHandler<TranscriptionCompletedNotification>
 {
-    private readonly IConsultationRepository _consultationRepository;
+    private readonly ITranscriptionCompletion _consultationRepository;
 
-    public TranscriptionCompletedNotificationHandler(IConsultationRepository consultationRepository)
+    public TranscriptionCompletedNotificationHandler(ITranscriptionCompletion consultationRepository)
     {
         _consultationRepository = consultationRepository;
     }

@@ -10,13 +10,13 @@ namespace MedicalAssistant.Application.Features.Consultation.Command.AssignConsu
 public class AssignConsultationPatientCommandHandler
     : IRequestHandler<AssignConsultationPatientCommand, ConsultationDto>
 {
-    private readonly IConsultationRepository _consultationRepository;
+    private readonly IConsultationPatientAssignment _consultationRepository;
     private readonly IPatientRepository _patientRepository;
     private readonly IUserService _userService;
     private readonly IMapper _mapper;
 
     public AssignConsultationPatientCommandHandler(
-        IConsultationRepository consultationRepository,
+        IConsultationPatientAssignment consultationRepository,
         IPatientRepository patientRepository,
         IUserService userService,
         IMapper mapper)

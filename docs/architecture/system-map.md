@@ -125,9 +125,9 @@ Assign ownership vertically by bounded context and capability:
 
 Within a context, prefer folders shaped as context → capability → use case. Keep HTTP, persistence, and messaging adapters at the capability boundary so a developer can understand a workflow without crossing unrelated technical-layer folders.
 
-## Domain-modeling gap
+## Domain-modeling gap (resolved by R36)
 
-The Clinical Knowledge code and database use PatientSummary/PatientSummaries for a derived rolling overview. No bounded-context glossary currently defines a canonical business term for that concept. This map retains the recognizable code term only to describe current behavior; R36 must resolve and document the term before module naming or ownership is finalized.
+The Clinical Knowledge code and database use PatientSummary/PatientSummaries for a derived rolling overview. The canonical business term is **Patient Summary** — "a rolling overview derived from the current Document Summaries for one Patient" — defined in [docs/contexts/clinical-knowledge/CONTEXT.md](../contexts/clinical-knowledge/CONTEXT.md) and cross-referenced from [AI/CONTEXT.md](../../AI/CONTEXT.md). The code identifier (PatientSummary/PatientSummaries) is unchanged; this closes the glossary gap, not a rename.
 
 ## Refactoring guardrails
 

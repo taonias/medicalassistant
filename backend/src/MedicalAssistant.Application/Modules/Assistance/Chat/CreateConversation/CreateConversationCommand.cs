@@ -26,13 +26,13 @@ public sealed class CreateConversationCommandHandler
 
     private readonly IConversationRepository _conversations;
     private readonly IPatientRepository _patients;
-    private readonly IConsultationRepository _consultationRepository;
+    private readonly IConsultationAccess _consultationRepository;
     private readonly IUserService _userService;
 
     public CreateConversationCommandHandler(
         IConversationRepository conversations,
         IPatientRepository patients,
-        IConsultationRepository consultationRepository,
+        IConsultationAccess consultationRepository,
         IUserService userService)
     {
         _conversations = conversations;

@@ -18,12 +18,12 @@ public class GetDashboardAnalyticsQueryHandler
         ConsultationStatus.StructuredDataPending,
     ];
 
-    private readonly IConsultationRepository _consultationRepository;
+    private readonly IConsultationListing _consultationRepository;
     private readonly IPatientRepository _patientRepository;
     private readonly IUserService _userService;
 
     public GetDashboardAnalyticsQueryHandler(
-        IConsultationRepository consultationRepository,
+        IConsultationListing consultationRepository,
         IPatientRepository patientRepository,
         IUserService userService)
     {

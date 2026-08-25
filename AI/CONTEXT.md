@@ -27,6 +27,10 @@ _Avoid_: Upload, import, job
 A semantically coherent span of text derived from a Document. The unit of embedding and retrieval. Every Chunk carries the shared metadata spine (patient, doctor, document type/id, clinical date).
 _Avoid_: Segment, passage, split
 
+**Patient Summary**:
+A rolling overview derived from the current Document Summaries for one Patient, regenerated as Documents are ingested, corrected, un-ingested, or erased. The canonical cross-context definition lives in [docs/contexts/clinical-knowledge/CONTEXT.md](../docs/contexts/clinical-knowledge/CONTEXT.md); `PatientSummary`/`PatientSummaries` is this concept's code and schema identifier (R36).
+_Avoid_: Conversation summary, Patient Record, Document Summary (a Document Summary is per-Document; a Patient Summary is per-Patient)
+
 **Correction**:
 A re-POST of an existing Document identity with different content. Supersedes the prior Document: its old Chunks (and any derived rows) are deleted before the new content is ingested. An identical re-POST (same content hash) is a no-op only when the prior Ingestion succeeded; after a failure it is a retry.
 _Avoid_: Update, re-upload

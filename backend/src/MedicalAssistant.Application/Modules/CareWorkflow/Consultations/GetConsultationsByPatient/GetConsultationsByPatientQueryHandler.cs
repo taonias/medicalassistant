@@ -7,12 +7,12 @@ namespace MedicalAssistant.Application.Features.Consultation.Queries.GetConsulta
 
 public class GetConsultationsByPatientQueryHandler : IRequestHandler<GetConsultationsByPatientQuery, List<ConsultationSummaryDto>>
 {
-    private readonly IConsultationRepository _consultationRepository;
+    private readonly IConsultationListing _consultationRepository;
     private readonly IPatientRepository _patientRepository;
     private readonly IUserService _userService;
 
     public GetConsultationsByPatientQueryHandler(
-        IConsultationRepository consultationRepository,
+        IConsultationListing consultationRepository,
         IPatientRepository patientRepository,
         IUserService userService)
     {

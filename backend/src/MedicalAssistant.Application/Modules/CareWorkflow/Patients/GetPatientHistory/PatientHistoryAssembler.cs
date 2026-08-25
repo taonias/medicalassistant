@@ -14,7 +14,7 @@ public class PatientHistoryAssembler
     private const int MaxPageSize = 50;
 
     private readonly IPatientRepository _patientRepository;
-    private readonly IConsultationRepository _consultationRepository;
+    private readonly IConsultationListing _consultationRepository;
     private readonly ITranscriptRepository _transcriptRepository;
     private readonly IMedicalStructuredDataRepository _structuredDataRepository;
     private readonly IDoctorNoteRepository _doctorNoteRepository;
@@ -22,7 +22,7 @@ public class PatientHistoryAssembler
 
     public PatientHistoryAssembler(
         IPatientRepository patientRepository,
-        IConsultationRepository consultationRepository,
+        IConsultationListing consultationRepository,
         ITranscriptRepository transcriptRepository,
         IMedicalStructuredDataRepository structuredDataRepository,
         IDoctorNoteRepository doctorNoteRepository,

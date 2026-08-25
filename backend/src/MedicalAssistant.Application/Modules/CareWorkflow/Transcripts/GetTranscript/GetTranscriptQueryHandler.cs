@@ -9,13 +9,13 @@ namespace MedicalAssistant.Application.Features.Transcript.Queries.GetTranscript
 public class GetTranscriptQueryHandler : IRequestHandler<GetTranscriptQuery, TranscriptDto?>
 {
     private readonly ITranscriptRepository _transcriptRepository;
-    private readonly IConsultationRepository _consultationRepository;
+    private readonly IConsultationAccess _consultationRepository;
     private readonly IUserService _userService;
     private readonly IMapper _mapper;
 
     public GetTranscriptQueryHandler(
         ITranscriptRepository transcriptRepository,
-        IConsultationRepository consultationRepository,
+        IConsultationAccess consultationRepository,
         IUserService userService,
         IMapper mapper)
     {

@@ -9,13 +9,13 @@ namespace MedicalAssistant.Application.Features.MedicalStructuredData.Queries.Ge
 public class GetStructuredDataQueryHandler : IRequestHandler<GetStructuredDataQuery, MedicalStructuredDataDto?>
 {
     private readonly IMedicalStructuredDataRepository _structuredDataRepository;
-    private readonly IConsultationRepository _consultationRepository;
+    private readonly IConsultationAccess _consultationRepository;
     private readonly IUserService _userService;
     private readonly IMapper _mapper;
 
     public GetStructuredDataQueryHandler(
         IMedicalStructuredDataRepository structuredDataRepository,
-        IConsultationRepository consultationRepository,
+        IConsultationAccess consultationRepository,
         IUserService userService,
         IMapper mapper)
     {

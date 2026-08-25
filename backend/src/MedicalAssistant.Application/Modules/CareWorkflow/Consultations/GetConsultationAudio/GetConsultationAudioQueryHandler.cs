@@ -11,13 +11,13 @@ namespace MedicalAssistant.Application.Features.Consultation.Queries.GetConsulta
 public class GetConsultationAudioQueryHandler
     : IRequestHandler<GetConsultationAudioQuery, ConsultationAudioResult?>
 {
-    private readonly IConsultationRepository _consultationRepository;
+    private readonly IConsultationAccess _consultationRepository;
     private readonly IBlobStorageService _blobStorageService;
     private readonly IUserService _userService;
     private readonly BlobStorageSettings _blobSettings;
 
     public GetConsultationAudioQueryHandler(
-        IConsultationRepository consultationRepository,
+        IConsultationAccess consultationRepository,
         IBlobStorageService blobStorageService,
         IUserService userService,
         IOptions<BlobStorageSettings> blobSettings)

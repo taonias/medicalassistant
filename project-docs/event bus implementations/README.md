@@ -30,7 +30,7 @@ For the engineering team, it removes Azure Functions as a second hosting/deploym
 - [Delivery reliability specification](08-delivery-reliability.md)
 - [Testing and verification strategy](09-testing-and-verification.md)
 - [Security, privacy, and clinical-data controls](10-security-and-privacy.md)
-- [Operations and recovery runbook](11-operations-runbook.md)
+- [Operations and recovery runbook](../../docs/runbooks/messaging-and-recovery.md) (promoted to `docs/runbooks/` — R36)
 - [Clean-environment release gate](14-clean-environment-release-gate.md)
 - [Consultation Processing glossary](CONTEXT.md)
 - [ADR 0001: standalone Transcription Worker](adr/0001-standalone-transcription-worker.md)

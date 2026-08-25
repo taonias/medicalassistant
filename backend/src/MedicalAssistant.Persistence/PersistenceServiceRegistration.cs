@@ -44,9 +44,17 @@ public static class PersistenceServiceRegistration
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
         services.AddScoped<IPatientRepository, PatientRepository>();
         services.AddScoped<IConsultationRepository, ConsultationRepository>();
-        // R28: first narrow persistence port carved out of IConsultationRepository —
-        // same EF-backed implementation, exposed through a use-case-scoped interface.
+        // R28: narrow persistence ports carved out of IConsultationRepository —
+        // same EF-backed implementation, each exposed through a use-case-scoped interface.
         services.AddScoped<IConsultationDeletion, ConsultationRepository>();
+        services.AddScoped<IConsultationFileRegistration, ConsultationRepository>();
+        services.AddScoped<ITranscriptionCompletion, ConsultationRepository>();
+        services.AddScoped<IConsultationAccess, ConsultationRepository>();
+        services.AddScoped<IConsultationListing, ConsultationRepository>();
+        services.AddScoped<IConsultationCreation, ConsultationRepository>();
+        services.AddScoped<IConsultationPatientAssignment, ConsultationRepository>();
+        services.AddScoped<IConsultationStructuredDataApproval, ConsultationRepository>();
+        services.AddScoped<IStructuredDataCompletion, ConsultationRepository>();
         services.AddScoped<ITranscriptRepository, TranscriptRepository>();
         services.AddScoped<ITranscriptionInboxStore, TranscriptionInboxStore>();
         services.AddScoped<ITranscriptionCompletionUnitOfWork, TranscriptionCompletionUnitOfWork>();

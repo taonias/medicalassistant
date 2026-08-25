@@ -14,14 +14,14 @@ namespace MedicalAssistant.Application.Features.Consultation.Command.UploadConsu
 
 public class UploadConsultationAudioCommandHandler : IRequestHandler<UploadConsultationAudioCommand, ConsultationDto>
 {
-    private readonly IConsultationRepository _consultationRepository;
+    private readonly IConsultationFileRegistration _consultationRepository;
     private readonly IBlobStorageService _blobStorageService;
     private readonly IUserService _userService;
     private readonly IMapper _mapper;
     private readonly BlobStorageSettings _blobSettings;
 
     public UploadConsultationAudioCommandHandler(
-        IConsultationRepository consultationRepository,
+        IConsultationFileRegistration consultationRepository,
         IBlobStorageService blobStorageService,
         IUserService userService,
         IMapper mapper,
