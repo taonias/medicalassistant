@@ -1,9 +1,9 @@
 using MediatR;
 using MedicalAssistant.Application.Contracts.Logging;
-using MedicalAssistant.Application.Features.Consultation.Queries.GetConsultationDetails;
+using MedicalAssistant.Application.Modules.CareWorkflow.Consultations.GetConsultationDetails;
 using Microsoft.AspNetCore.Http;
 
-namespace MedicalAssistant.Application.Features.Consultation.Command.UploadConsultationDocument;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.Consultations.UploadConsultationDocument;
 
 public class UploadConsultationDocumentCommand
     : IRequest<ConsultationDto>, IAuditableRequest<ConsultationDto>

@@ -1,7 +1,7 @@
 using FluentValidation.TestHelper;
 using MedicalAssistant.Application.Contracts.Identity;
 using MedicalAssistant.Application.Contracts.Persistence;
-using MedicalAssistant.Application.Features.Consultation.Command.CreateConsultation;
+using MedicalAssistant.Application.Modules.CareWorkflow.Consultations.CreateConsultation;
 using MedicalAssistant.Domain;
 using Moq;
 

@@ -1,7 +1,7 @@
-using MedicalAssistant.Application.Features.ActionRequest.Command.ProcessActionCallback;
-using MedicalAssistant.Application.Features.Chat.Common;
-using MedicalAssistant.Application.Features.MedicalStructuredData.Command.ProcessStructuredDataCallback;
-using MedicalAssistant.Application.Features.Transcript.Command.ProcessTranscriptionCallback;
+using MedicalAssistant.Application.Modules.Integrations.LegacyAiModule.ProcessActionCallback;
+using MedicalAssistant.Application.Modules.Assistance.Chat;
+using MedicalAssistant.Application.Modules.CareWorkflow.StructuredMedicalData.ProcessStructuredDataCallback;
+using MedicalAssistant.Application.Modules.CareWorkflow.Transcripts.ProcessTranscriptionCallback;
 using MedicalAssistant.Application.Models;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;

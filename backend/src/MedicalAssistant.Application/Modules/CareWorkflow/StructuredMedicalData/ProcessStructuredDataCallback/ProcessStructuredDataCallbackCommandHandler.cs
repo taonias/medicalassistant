@@ -3,7 +3,7 @@ using MedicalAssistant.Application.Notifications;
 using MedicalAssistant.Domain;
 using MediatR;
 
-namespace MedicalAssistant.Application.Features.MedicalStructuredData.Command.ProcessStructuredDataCallback;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.StructuredMedicalData.ProcessStructuredDataCallback;
 
 public class ProcessStructuredDataCallbackCommandHandler : IRequestHandler<ProcessStructuredDataCallbackCommand, Unit>
 {

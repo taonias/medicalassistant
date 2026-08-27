@@ -1,6 +1,6 @@
 using MediatR;
-using MedicalAssistant.Application.Features.Consultation.Queries.GetConsultationsByPatient;
+using MedicalAssistant.Application.Modules.CareWorkflow.Consultations.GetConsultationsByPatient;
 
-namespace MedicalAssistant.Application.Features.Consultation.Queries.GetUnattachedDraftConsultations;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.Consultations.GetUnattachedDraftConsultations;
 
 public record GetUnattachedDraftConsultationsQuery : IRequest<List<ConsultationSummaryDto>>;

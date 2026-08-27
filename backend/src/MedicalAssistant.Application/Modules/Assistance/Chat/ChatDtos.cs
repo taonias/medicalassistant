@@ -1,7 +1,7 @@
 using MedicalAssistant.Domain;
 using MedicalAssistant.Domain.Enums;
 
-namespace MedicalAssistant.Application.Features.Chat.Common;
+namespace MedicalAssistant.Application.Modules.Assistance.Chat;
 
 /// <summary>The result of asking a turn: the assistant message, delivered whole (never streamed).</summary>
 public sealed class AskChatResponse

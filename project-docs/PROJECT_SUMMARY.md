@@ -60,7 +60,7 @@ For each message on `consultation.processing`, it:
 
 The function shares the main backend's `MedicalAssistant.Domain` project and includes repository, blob-retrieval, speech, audit, transcript, and RabbitMQ publisher abstractions. Application Insights provides deployed telemetry.
 
-## 4. AI ingestion, retrieval, and grounded chat (`AI/`)
+## 4. AI ingestion, retrieval, and grounded chat (`clinical-knowledge/`)
 
 A separate .NET 10 ASP.NET Core service for patient-scoped clinical document ingestion and retrieval-augmented generation (RAG). Despite the `AI` folder name, this implementation is not Python.
 
@@ -88,7 +88,7 @@ Storage, security, and operations:
 - Supports OpenAI or Azure OpenAI providers, OpenTelemetry export, an optional local document archive, and Swagger.
 - Has a substantial integration-test suite (46 test source files) using xUnit and Testcontainers PostgreSQL/pgvector.
 
-The `AI/docs` directory contains PRDs, architecture decision records, design documents, and task spreadsheets. `AI/docs/helping_documents_out_of_repo` is reference/archive material from another project and is not part of the active runtime described here.
+The `clinical-knowledge/docs` directory contains PRDs, architecture decision records, design documents, and task spreadsheets. `clinical-knowledge/docs/helping_documents_out_of_repo` is reference/archive material from another project and is not part of the active runtime described here.
 
 ## 5. RabbitMQ infrastructure (`rabbitmq/`)
 

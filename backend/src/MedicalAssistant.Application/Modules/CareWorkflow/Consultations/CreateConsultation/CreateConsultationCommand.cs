@@ -1,8 +1,8 @@
 using MediatR;
 using MedicalAssistant.Application.Contracts.Logging;
-using MedicalAssistant.Application.Features.Consultation.Queries.GetConsultationDetails;
+using MedicalAssistant.Application.Modules.CareWorkflow.Consultations.GetConsultationDetails;
 
-namespace MedicalAssistant.Application.Features.Consultation.Command.CreateConsultation;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.Consultations.CreateConsultation;
 
 public class CreateConsultationCommand
     : IRequest<ConsultationDto>, IAuditableRequest<ConsultationDto>

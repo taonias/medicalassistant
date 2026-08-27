@@ -1,7 +1,7 @@
 using AutoMapper;
 using MedicalAssistant.Application.Contracts.Identity;
 using MedicalAssistant.Application.Contracts.Persistence;
-using MedicalAssistant.Application.Features.Transcript.Command.UpdateTranscript;
+using MedicalAssistant.Application.Modules.CareWorkflow.Transcripts.UpdateTranscript;
 using MedicalAssistant.Application.MappingProfiles;
 using MedicalAssistant.Domain;
 using MedicalAssistant.Domain.Enums;

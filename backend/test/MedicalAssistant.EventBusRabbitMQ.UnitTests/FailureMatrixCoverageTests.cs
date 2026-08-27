@@ -28,7 +28,7 @@ public class FailureMatrixCoverageTests
             "CompleteAsync_treats_completed_inbox_event_as_duplicate_noop",
             "HandleAsync_skips_blob_and_speech_when_inbox_event_is_already_completed"
         ]),
-        new("E2E-05", "Speech transient outage, five retries, DLQ, repair, controlled replay",
+        new("E2E-05", "Speech transient outage, retry/DLQ, repair, controlled replay",
         [
             "Handler_failure_returns_retry_outcome",
             "Retry_queues_dead_letter_back_to_the_exchange_with_the_original_routing_key",

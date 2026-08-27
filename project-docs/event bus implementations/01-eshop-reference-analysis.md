@@ -98,8 +98,8 @@ eShop publishes pending events after the transaction and records failures. Medic
 | `EventBusRabbitMQ` project | `MedicalAssistant.EventBusRabbitMQ` transport/topology |
 | `IntegrationEventLogEF` | Main-backend transactional outbox |
 | `PaymentProcessor` | Standalone `MedicalAssistant.Transcription.Worker` |
-| `OrderStatusChanged...IntegrationEvent` | `ConsultationAudioUploadedIntegrationEvent` |
-| Handler publishes result event | Worker publishes `TranscriptReadyIntegrationEvent` or `TranscriptionFailedIntegrationEvent` |
+| `OrderStatusChanged...IntegrationEvent` | `ConsultationAudioUploadedV1` |
+| Handler publishes result event | Worker publishes `ConsultationTranscriptReadyV1` or `ConsultationTranscriptionFailedV1` |
 | AppHost RabbitMQ reference | Root deployment/orchestration definition for broker and worker |
 
 ## Conclusion

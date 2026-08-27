@@ -2,7 +2,7 @@ using MedicalAssistant.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace MedicalAssistant.Persistence.Configurations;
+namespace MedicalAssistant.Persistence.Modules.Shared;
 
 public class AuditLogConfiguration : IEntityTypeConfiguration<AuditLog>
 {

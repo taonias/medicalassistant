@@ -4,7 +4,7 @@ using MedicalAssistant.Application.Contracts.Persistence;
 using MedicalAssistant.Application.Exceptions;
 using MediatR;
 
-namespace MedicalAssistant.Application.Features.Transcript.Queries.GetTranscript;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.Transcripts.GetTranscript;
 
 public class GetTranscriptQueryHandler : IRequestHandler<GetTranscriptQuery, TranscriptDto?>
 {

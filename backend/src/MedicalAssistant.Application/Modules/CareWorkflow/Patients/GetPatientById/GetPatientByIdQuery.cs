@@ -1,6 +1,6 @@
 using MediatR;
 
-namespace MedicalAssistant.Application.Features.Patient.Queries.GetPatientById;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.Patients.GetPatientById;
 
 public record GetPatientByIdQuery(int Id) : IRequest<PatientDto>;
 

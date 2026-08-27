@@ -4,7 +4,7 @@ using MedicalAssistant.Application.Contracts.Persistence;
 using MedicalAssistant.Application.Exceptions;
 using MediatR;
 
-namespace MedicalAssistant.Application.Features.ActionRequest.Queries.GetActionRequestStatus;
+namespace MedicalAssistant.Application.Modules.Integrations.LegacyAiModule.GetActionRequestStatus;
 
 public class GetActionRequestStatusQueryHandler : IRequestHandler<GetActionRequestStatusQuery, ActionRequestDto>
 {

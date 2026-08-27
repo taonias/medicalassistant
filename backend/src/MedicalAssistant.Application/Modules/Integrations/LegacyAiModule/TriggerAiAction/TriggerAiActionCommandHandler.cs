@@ -3,7 +3,7 @@ using MedicalAssistant.Application.Contracts.AiModule;
 using MedicalAssistant.Application.Contracts.Identity;
 using MedicalAssistant.Application.Contracts.Persistence;
 using MedicalAssistant.Application.Exceptions;
-using MedicalAssistant.Application.Features.ActionRequest.Queries.GetActionRequestStatus;
+using MedicalAssistant.Application.Modules.Integrations.LegacyAiModule.GetActionRequestStatus;
 using MedicalAssistant.Application.Models;
 using MedicalAssistant.Application.Models.AiModule;
 using MedicalAssistant.Domain;
@@ -11,7 +11,7 @@ using MedicalAssistant.Domain.Enums;
 using MediatR;
 using Microsoft.Extensions.Options;
 
-namespace MedicalAssistant.Application.Features.ActionRequest.Command.TriggerAiAction;
+namespace MedicalAssistant.Application.Modules.Integrations.LegacyAiModule.TriggerAiAction;
 
 public class TriggerAiActionCommandHandler : IRequestHandler<TriggerAiActionCommand, ActionRequestDto>
 {

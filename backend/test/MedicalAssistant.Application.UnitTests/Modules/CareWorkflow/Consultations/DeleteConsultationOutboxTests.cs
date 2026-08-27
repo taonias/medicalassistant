@@ -1,6 +1,6 @@
 using MedicalAssistant.Application.Contracts.Identity;
 using MedicalAssistant.Application.Contracts.Persistence;
-using MedicalAssistant.Application.Features.Consultation.Command.DeleteConsultation;
+using MedicalAssistant.Application.Modules.CareWorkflow.Consultations.DeleteConsultation;
 using MedicalAssistant.Domain;
 using MedicalAssistant.Domain.Enums;
 using Moq;

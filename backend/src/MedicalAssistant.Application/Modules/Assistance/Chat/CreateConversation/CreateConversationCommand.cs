@@ -2,12 +2,12 @@ using MedicalAssistant.Application.Contracts.Identity;
 using MedicalAssistant.Application.Contracts.Logging;
 using MedicalAssistant.Application.Contracts.Persistence;
 using MedicalAssistant.Application.Exceptions;
-using MedicalAssistant.Application.Features.Chat.Common;
+using MedicalAssistant.Application.Modules.Assistance.Chat;
 using MedicalAssistant.Domain;
 using MedicalAssistant.Domain.Enums;
 using MediatR;
 
-namespace MedicalAssistant.Application.Features.Chat.Command.CreateConversation;
+namespace MedicalAssistant.Application.Modules.Assistance.Chat.CreateConversation;
 
 /// <summary>Explicitly starts a new conversation. The first question renames it (auto-title).</summary>
 public sealed class CreateConversationCommand : IRequest<ConversationSummaryDto>, IAuditableRequest<ConversationSummaryDto>

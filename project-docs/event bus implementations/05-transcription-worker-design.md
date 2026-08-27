@@ -12,13 +12,13 @@ The Transcription Worker turns an eligible private audio Consultation File into 
 4. If already completed, acknowledge as a duplicate.
 5. Load the Consultation and verify that its current state/revision remains processable.
 6. Record processing started without logging payload content, then commit before the external speech call if product status must be visible.
-7. Retrieve the private blob using an opaque object reference and workload identity/secret-store credentials.
+7. Retrieve the private blob using an opaque object reference and a configured storage connection string.
 8. Transcribe eligible audio through Azure Speech with bounded timeout and cancellation.
 9. Begin the completion transaction and recheck Consultation deletion/revision state.
 10. Store the Transcript, advance Consultation status, write content-free audit metadata, mark the inbox completed, and add either Transcript Ready or Transcription Failed to the outbox.
 11. Commit and acknowledge the RabbitMQ delivery.
 
-Transient exceptions before the completion commit follow the five-retry policy. A valid audio file that Azure Speech definitively cannot process is committed as `Transcription Failed` and acknowledged. A process crash can repeat the Azure Speech call, but the completion transaction remains idempotent.
+Transient exceptions before the completion commit currently dead-letter immediately — the delayed-retry mechanism exists in code but ships disabled (`RabbitMQ:Topology:RetryDelays` is empty; tracked as [K07](../../docs/known-issues/refactor-baseline.md)). A valid audio file that Azure Speech definitively cannot process is committed as `Transcription Failed` and acknowledged. A process crash can repeat the Azure Speech call, but the completion transaction remains idempotent.
 
 ## Migration of current code
 

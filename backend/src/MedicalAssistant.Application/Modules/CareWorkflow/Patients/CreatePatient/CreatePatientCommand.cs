@@ -1,8 +1,8 @@
 using MediatR;
 using MedicalAssistant.Application.Contracts.Logging;
-using MedicalAssistant.Application.Features.Patient.Queries.GetPatientById;
+using MedicalAssistant.Application.Modules.CareWorkflow.Patients.GetPatientById;
 
-namespace MedicalAssistant.Application.Features.Patient.Command.CreatePatient;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.Patients.CreatePatient;
 
 public class CreatePatientCommand : IRequest<PatientDto>, IAuditableRequest<PatientDto>
 {

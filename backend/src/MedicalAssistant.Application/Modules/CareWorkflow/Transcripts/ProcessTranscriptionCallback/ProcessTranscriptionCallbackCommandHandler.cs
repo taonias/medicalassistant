@@ -3,7 +3,7 @@ using MedicalAssistant.Domain;
 using MedicalAssistant.Domain.Enums;
 using MediatR;
 
-namespace MedicalAssistant.Application.Features.Transcript.Command.ProcessTranscriptionCallback;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.Transcripts.ProcessTranscriptionCallback;
 
 public class ProcessTranscriptionCallbackCommandHandler : IRequestHandler<ProcessTranscriptionCallbackCommand, Unit>
 {

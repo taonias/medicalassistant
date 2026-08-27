@@ -1,10 +1,10 @@
-using MedicalAssistant.Application.Features.Chat.Command.CreateConversation;
-using MedicalAssistant.Application.Features.Chat.Command.DeleteConversation;
-using MedicalAssistant.Application.Features.Chat.Command.RenameConversation;
-using MedicalAssistant.Application.Features.Chat.Command.RetryChatTurn;
-using MedicalAssistant.Application.Features.Chat.Common;
-using MedicalAssistant.Application.Features.Chat.Query.GetConversationMessages;
-using MedicalAssistant.Application.Features.Chat.Query.ListConversations;
+using MedicalAssistant.Application.Modules.Assistance.Chat.CreateConversation;
+using MedicalAssistant.Application.Modules.Assistance.Chat.DeleteConversation;
+using MedicalAssistant.Application.Modules.Assistance.Chat.RenameConversation;
+using MedicalAssistant.Application.Modules.Assistance.Chat.RetryChatTurn;
+using MedicalAssistant.Application.Modules.Assistance.Chat;
+using MedicalAssistant.Application.Modules.Assistance.Chat.GetConversationMessages;
+using MedicalAssistant.Application.Modules.Assistance.Chat.ListConversations;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

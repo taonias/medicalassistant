@@ -88,7 +88,7 @@ For a PDF message, the transcriber does not parse the PDF. It stores a placehold
 
 ## AI ingestion, retrieval, and grounded chat
 
-**Path:** `AI/`  
+**Path:** `clinical-knowledge/`  
 **Runtime:** ASP.NET Core .NET 10  
 **Default URLs:** `https://localhost:7095`, `http://localhost:5293`
 
@@ -131,9 +131,9 @@ Docker Compose starts RabbitMQ 3.13 with the management plugin, persistent volum
 ## Tests and documentation
 
 - `backend/test`: 2 source files with 9 `[Fact]` tests; one persistence file is still a placeholder.
-- `AI/tests`: 53 C# source files with 166 `[Fact]` and 2 `[Theory]` declarations, using xUnit, WebApplicationFactory, Testcontainers, fake model providers, and real pgvector behavior.
+- `clinical-knowledge/tests`: 53 C# source files with 166 `[Fact]` and 2 `[Theory]` declarations, using xUnit, WebApplicationFactory, Testcontainers, fake model providers, and real pgvector behavior.
 - No frontend or transcriber test files were found.
-- `AI/docs`: the most detailed design area, containing two PRDs, two design records, twelve ADRs, task spreadsheets, and the original AI glossary.
+- `clinical-knowledge/docs`: the most detailed design area, containing two PRDs, two design records, twelve ADRs, task spreadsheets, and the original AI glossary.
 
 Counts are a static source inventory, not a statement that the tests passed during this documentation review.
 

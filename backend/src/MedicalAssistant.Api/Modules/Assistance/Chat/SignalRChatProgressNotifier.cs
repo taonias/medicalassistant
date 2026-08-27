@@ -1,4 +1,4 @@
-using MedicalAssistant.Application.Features.Chat.Common;
+using MedicalAssistant.Application.Modules.Assistance.Chat;
 using Microsoft.AspNetCore.SignalR;
 
 namespace MedicalAssistant.Api.Realtime;

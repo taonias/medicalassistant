@@ -2,10 +2,10 @@ using AutoMapper;
 using MedicalAssistant.Application.Contracts.Identity;
 using MedicalAssistant.Application.Contracts.Persistence;
 using MedicalAssistant.Application.Exceptions;
-using MedicalAssistant.Application.Features.Consultation.Queries.GetConsultationDetails;
+using MedicalAssistant.Application.Modules.CareWorkflow.Consultations.GetConsultationDetails;
 using MediatR;
 
-namespace MedicalAssistant.Application.Features.Consultation.Command.RetryConsultationProcessing;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.Consultations.RetryConsultationProcessing;
 
 public sealed class RetryConsultationProcessingCommandHandler
     : IRequestHandler<RetryConsultationProcessingCommand, ConsultationDto>

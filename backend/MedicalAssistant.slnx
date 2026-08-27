@@ -14,6 +14,7 @@
   </Folder>
   <Folder Name="/test/">
     <Project Path="test/MedicalAssistant.Application.UnitTests/MedicalAssistant.Application.UnitTests.csproj" />
+    <Project Path="test/MedicalAssistant.Architecture.Tests/MedicalAssistant.Architecture.Tests.csproj" />
     <Project Path="test/MedicalAssistant.EventBus.UnitTests/MedicalAssistant.EventBus.UnitTests.csproj" />
     <Project Path="test/MedicalAssistant.EventBusRabbitMQ.UnitTests/MedicalAssistant.EventBusRabbitMQ.UnitTests.csproj" />
     <Project Path="test/MedicalAssistant.Persistence.IntegrationTests/MedicalAssistant.Persistence.IntegrationTests.csproj" />

@@ -127,7 +127,7 @@ Within a context, prefer folders shaped as context → capability → use case. 
 
 ## Domain-modeling gap (resolved by R36)
 
-The Clinical Knowledge code and database use PatientSummary/PatientSummaries for a derived rolling overview. The canonical business term is **Patient Summary** — "a rolling overview derived from the current Document Summaries for one Patient" — defined in [docs/contexts/clinical-knowledge/CONTEXT.md](../contexts/clinical-knowledge/CONTEXT.md) and cross-referenced from [AI/CONTEXT.md](../../AI/CONTEXT.md). The code identifier (PatientSummary/PatientSummaries) is unchanged; this closes the glossary gap, not a rename.
+The Clinical Knowledge code and database use PatientSummary/PatientSummaries for a derived rolling overview. The canonical business term is **Patient Summary** — "a rolling overview derived from the current Document Summaries for one Patient" — defined in [docs/contexts/clinical-knowledge/CONTEXT.md](../contexts/clinical-knowledge/CONTEXT.md) and cross-referenced from [clinical-knowledge/CONTEXT.md](../../clinical-knowledge/CONTEXT.md). The code identifier (PatientSummary/PatientSummaries) is unchanged; this closes the glossary gap, not a rename.
 
 ## Refactoring guardrails
 

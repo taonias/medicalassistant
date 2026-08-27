@@ -38,8 +38,7 @@ Stop release immediately if any of these are discovered:
 
 5. Confirm these root Compose deployment units are present and healthy or complete:
 
-   - `postgres-app`
-   - `postgres-clinical`
+   - `postgres` (single pgvector-enabled server hosting both `MedicalAssistantDb` and `ai_med`)
    - `rabbitmq`
    - `azurite`
    - `backend-migrations`
@@ -77,7 +76,7 @@ These prove the active source/config rejects Azure Functions artifacts, legacy d
 Run a no-Functions scan over active source/config:
 
 ```powershell
-rg -n "Microsoft\.Azure\.Functions|ConfigureFunctionsWorkerDefaults|\[Function(?:Name)?\]|\[RabbitMQTrigger\]|AzureWebJobs|FUNCTIONS_WORKER_RUNTIME|consultation\.(processing|transcript)" backend/src AI/src docker-compose.yml compose.env.example
+rg -n "Microsoft\.Azure\.Functions|ConfigureFunctionsWorkerDefaults|\[Function(?:Name)?\]|\[RabbitMQTrigger\]|AzureWebJobs|FUNCTIONS_WORKER_RUNTIME|consultation\.(processing|transcript)" backend/src clinical-knowledge/src docker-compose.yml compose.env.example
 ```
 
 Expected result: no active source/config matches. Historical project documentation may still mention Functions or legacy queues as rejected design context.

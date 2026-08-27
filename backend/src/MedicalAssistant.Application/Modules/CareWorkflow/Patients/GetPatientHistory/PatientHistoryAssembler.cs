@@ -1,8 +1,8 @@
 using AutoMapper;
 using MedicalAssistant.Application.Contracts.Persistence;
 using MedicalAssistant.Application.Exceptions;
-using MedicalAssistant.Application.Features.Patient.Queries.GetPatientById;
-using MedicalAssistant.Application.Features.Patient.Queries.GetPatientHistory;
+using MedicalAssistant.Application.Modules.CareWorkflow.Patients.GetPatientById;
+using MedicalAssistant.Application.Modules.CareWorkflow.Patients.GetPatientHistory;
 using MedicalAssistant.Domain.Enums;
 using System.Text.Json;
 

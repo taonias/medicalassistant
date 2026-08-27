@@ -21,7 +21,7 @@ sequenceDiagram
     API-->>Client: Upload accepted
     Relay->>MQ: consultation.audio-uploaded.v1
     MQ->>TW: Deliver from worker-owned queue
-    TW->>Blob: Read audio with workload identity
+    TW->>Blob: Read audio using the configured storage connection string
     TW->>TW: Azure Speech transcription
     TW->>DB: Commit Transcript + status + inbox + outbox
     TW->>MQ: consultation.transcript-ready.v1
@@ -33,7 +33,7 @@ sequenceDiagram
     API->>MQ: Acknowledge delivery
 ```
 
-The diagram omits retry queues and dead-letter queues for readability. Both consumers follow ADR 0003.
+The diagram omits retry queues and dead-letter queues for readability. Both consumers follow ADR 0003's at-least-once/dead-letter design, but not its "five delayed retries" detail — the shipped configuration disables delayed retries entirely (empty `RabbitMQ:Topology:RetryDelays`), so a transient failure dead-letters immediately (tracked as [K07](../../docs/known-issues/refactor-baseline.md)).
 
 ## Component responsibilities
 

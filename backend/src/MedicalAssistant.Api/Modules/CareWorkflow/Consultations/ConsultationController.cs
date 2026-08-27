@@ -1,16 +1,16 @@
-using MedicalAssistant.Application.Features.Consultation.Command.AssignConsultationPatient;
-using MedicalAssistant.Application.Features.Consultation.Command.CreateConsultation;
-using MedicalAssistant.Application.Features.Consultation.Command.DeleteConsultation;
-using MedicalAssistant.Application.Features.Consultation.Command.RetryConsultationProcessing;
-using MedicalAssistant.Application.Features.Consultation.Command.UploadConsultationAudio;
-using MedicalAssistant.Application.Features.Consultation.Command.UploadConsultationDocument;
-using MedicalAssistant.Application.Features.Consultation.Queries.GetConsultationAudio;
-using MedicalAssistant.Application.Features.Consultation.Queries.GetConsultationDetails;
-using MedicalAssistant.Application.Features.Consultation.Queries.GetConsultationDocument;
-using MedicalAssistant.Application.Features.Consultation.Queries.GetConsultationsByPatient;
-using MedicalAssistant.Application.Features.Consultation.Queries.GetDashboardAnalytics;
-using MedicalAssistant.Application.Features.Consultation.Queries.GetDraftConsultations;
-using MedicalAssistant.Application.Features.Consultation.Queries.GetUnattachedDraftConsultations;
+using MedicalAssistant.Application.Modules.CareWorkflow.Consultations.AssignConsultationPatient;
+using MedicalAssistant.Application.Modules.CareWorkflow.Consultations.CreateConsultation;
+using MedicalAssistant.Application.Modules.CareWorkflow.Consultations.DeleteConsultation;
+using MedicalAssistant.Application.Modules.CareWorkflow.Consultations.RetryConsultationProcessing;
+using MedicalAssistant.Application.Modules.CareWorkflow.Consultations.UploadConsultationAudio;
+using MedicalAssistant.Application.Modules.CareWorkflow.Consultations.UploadConsultationDocument;
+using MedicalAssistant.Application.Modules.CareWorkflow.Consultations.GetConsultationAudio;
+using MedicalAssistant.Application.Modules.CareWorkflow.Consultations.GetConsultationDetails;
+using MedicalAssistant.Application.Modules.CareWorkflow.Consultations.GetConsultationDocument;
+using MedicalAssistant.Application.Modules.CareWorkflow.Consultations.GetConsultationsByPatient;
+using MedicalAssistant.Application.Modules.CareWorkflow.Consultations.GetDashboardAnalytics;
+using MedicalAssistant.Application.Modules.CareWorkflow.Consultations.GetDraftConsultations;
+using MedicalAssistant.Application.Modules.CareWorkflow.Consultations.GetUnattachedDraftConsultations;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -166,11 +166,11 @@ public class ConsultationController : ControllerBase
 
     [HttpGet("{id}/structured-data")]
     public async Task<ActionResult<
-        MedicalAssistant.Application.Features.MedicalStructuredData.Queries.GetStructuredData.MedicalStructuredDataDto?>>
+        MedicalAssistant.Application.Modules.CareWorkflow.StructuredMedicalData.GetStructuredData.MedicalStructuredDataDto?>>
         GetStructuredData(int id)
     {
         var data = await _mediator.Send(
-            new MedicalAssistant.Application.Features.MedicalStructuredData.Queries.GetStructuredData.GetStructuredDataQuery(id));
+            new MedicalAssistant.Application.Modules.CareWorkflow.StructuredMedicalData.GetStructuredData.GetStructuredDataQuery(id));
         return Ok(data);
     }
 
@@ -178,7 +178,7 @@ public class ConsultationController : ControllerBase
     public async Task<IActionResult> ApproveStructuredData(int id)
     {
         await _mediator.Send(
-            new MedicalAssistant.Application.Features.MedicalStructuredData.Command.ApproveStructuredData.ApproveStructuredDataCommand(id));
+            new MedicalAssistant.Application.Modules.CareWorkflow.StructuredMedicalData.ApproveStructuredData.ApproveStructuredDataCommand(id));
 
         return NoContent();
     }

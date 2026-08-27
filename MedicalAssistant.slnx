@@ -12,14 +12,15 @@
     <Project Path="backend/src/MedicalAssistant.Persistence/MedicalAssistant.Persistence.csproj" />
     <Project Path="backend/src/MedicalAssistant.Transcription.Worker/MedicalAssistant.Transcription.Worker.csproj" />
     <Project Path="backend/test/MedicalAssistant.Application.UnitTests/MedicalAssistant.Application.UnitTests.csproj" />
+    <Project Path="backend/test/MedicalAssistant.Architecture.Tests/MedicalAssistant.Architecture.Tests.csproj" />
     <Project Path="backend/test/MedicalAssistant.EventBus.UnitTests/MedicalAssistant.EventBus.UnitTests.csproj" />
     <Project Path="backend/test/MedicalAssistant.EventBusRabbitMQ.UnitTests/MedicalAssistant.EventBusRabbitMQ.UnitTests.csproj" />
     <Project Path="backend/test/MedicalAssistant.Persistence.IntegrationTests/MedicalAssistant.Persistence.IntegrationTests.csproj" />
     <Project Path="backend/test/MedicalAssistant.Transcription.Worker.Tests/MedicalAssistant.Transcription.Worker.Tests.csproj" />
   </Folder>
   <Folder Name="/clinical-knowledge/">
-    <Project Path="AI/src/MedicalAssistance.Ingestion.Api/MedicalAssistance.Ingestion.Api.csproj" />
-    <Project Path="AI/tests/MedicalAssistance.Ingestion.Api.Tests/MedicalAssistance.Ingestion.Api.Tests.csproj" />
+    <Project Path="clinical-knowledge/src/MedicalAssistance.Ingestion.Api/MedicalAssistance.Ingestion.Api.csproj" />
+    <Project Path="clinical-knowledge/tests/MedicalAssistance.Ingestion.Api.Tests/MedicalAssistance.Ingestion.Api.Tests.csproj" />
   </Folder>
   <Folder Name="/acceptance/">
     <Project Path="tests/MedicalAssistant.AcceptanceTests/MedicalAssistant.AcceptanceTests.csproj" />

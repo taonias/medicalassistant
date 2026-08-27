@@ -3,11 +3,11 @@ using MedicalAssistant.Application.Contracts.Identity;
 using MedicalAssistant.Application.Contracts.Logging;
 using MedicalAssistant.Application.Contracts.Persistence;
 using MedicalAssistant.Application.Exceptions;
-using MedicalAssistant.Application.Features.Chat.Common;
+using MedicalAssistant.Application.Modules.Assistance.Chat;
 using MedicalAssistant.Domain;
 using MediatR;
 
-namespace MedicalAssistant.Application.Features.Chat.Command.RenameConversation;
+namespace MedicalAssistant.Application.Modules.Assistance.Chat.RenameConversation;
 
 public sealed class RenameConversationCommand : IRequest<ConversationSummaryDto>, IAuditableRequest<ConversationSummaryDto>
 {

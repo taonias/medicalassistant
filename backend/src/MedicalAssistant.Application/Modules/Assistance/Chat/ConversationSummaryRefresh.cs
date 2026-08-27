@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace MedicalAssistant.Application.Features.Chat.Common;
+namespace MedicalAssistant.Application.Modules.Assistance.Chat;
 
 /// <summary>
 /// In-process hand-off of conversations that may need their rolling summary refreshed.

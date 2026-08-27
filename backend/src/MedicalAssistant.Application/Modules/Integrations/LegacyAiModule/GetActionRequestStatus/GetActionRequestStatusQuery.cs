@@ -1,6 +1,6 @@
 using MediatR;
 
-namespace MedicalAssistant.Application.Features.ActionRequest.Queries.GetActionRequestStatus;
+namespace MedicalAssistant.Application.Modules.Integrations.LegacyAiModule.GetActionRequestStatus;
 
 public record GetActionRequestStatusQuery(string CorrelationId) : IRequest<ActionRequestDto>;
 

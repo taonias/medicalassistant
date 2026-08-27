@@ -1,5 +1,5 @@
-using MedicalAssistant.Application.Features.Transcript.Command.UpdateTranscript;
-using MedicalAssistant.Application.Features.Transcript.Queries.GetTranscript;
+using MedicalAssistant.Application.Modules.CareWorkflow.Transcripts.UpdateTranscript;
+using MedicalAssistant.Application.Modules.CareWorkflow.Transcripts.GetTranscript;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

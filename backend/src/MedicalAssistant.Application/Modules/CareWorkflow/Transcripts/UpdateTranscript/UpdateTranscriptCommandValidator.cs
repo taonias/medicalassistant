@@ -1,6 +1,6 @@
 using FluentValidation;
 
-namespace MedicalAssistant.Application.Features.Transcript.Command.UpdateTranscript;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.Transcripts.UpdateTranscript;
 
 public class UpdateTranscriptCommandValidator : AbstractValidator<UpdateTranscriptCommand>
 {

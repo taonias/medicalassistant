@@ -91,7 +91,7 @@ Local RabbitMQ/PostgreSQL volumes used during development should be recreated or
 - Transcript text reaches Clinical Knowledge through the backend API boundary and never appears in RabbitMQ payloads or normal telemetry.
 - Documents do not enter the Transcription Worker and do not create placeholder Transcripts.
 - Deleted Consultations cannot be transcribed or re-ingested by delayed events.
-- Five transient retries lead to the subscriber DLQ and alert; controlled replay succeeds after repair.
+- A transient failure reaches the subscriber DLQ and alert (immediately today — delayed retries are implemented but ship disabled, [K07](../../docs/known-issues/refactor-baseline.md)); controlled replay succeeds after repair.
 - Root Compose starts a clean end-to-end environment without Azure Functions tooling.
 - Repository search finds no Functions SDK/trigger/host artifacts or legacy queue configuration in active code.
 - All unit, contract, database integration, RabbitMQ integration, failure-injection, security-log, and end-to-end tests pass.

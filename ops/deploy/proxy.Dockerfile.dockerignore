@@ -19,7 +19,7 @@ tests/
 transcriber/
 # Backend/AI source isn't needed to build the SPA — exclude to keep the context small.
 backend/
-AI/
+clinical-knowledge/
 # Never bake dev env files into the SPA build.
 frontend/.env
 frontend/.env.*

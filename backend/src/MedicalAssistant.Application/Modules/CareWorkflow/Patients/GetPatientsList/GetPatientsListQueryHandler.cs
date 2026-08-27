@@ -4,7 +4,7 @@ using MedicalAssistant.Application.Exceptions;
 using MedicalAssistant.Application.Models.Patients;
 using MediatR;
 
-namespace MedicalAssistant.Application.Features.Patient.Queries.GetPatientsList;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.Patients.GetPatientsList;
 
 public class GetPatientsListQueryHandler : IRequestHandler<GetPatientsListQuery, IReadOnlyList<PatientListItem>>
 {

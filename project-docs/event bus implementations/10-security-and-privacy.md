@@ -25,8 +25,8 @@ Use separate non-human identities:
 
 - **Backend**: publish consultation events; consume its Transcript Ready/deletion cleanup queues; access authorized application data/outbox/inbox; call Clinical Knowledge.
 - **Transcription Worker**: consume only its audio/retry queues; publish permitted result events; read private consultation audio; access only required Consultation Processing tables.
-- **Clinical Knowledge**: accept authenticated backend calls; it does not receive RabbitMQ or backend database credentials under the accepted design.
-- **Operations/replay**: separate audited role with read/diagnose and narrowly scoped replay permissions; application identities cannot use management administration APIs.
+- **Clinical Knowledge**: accept authenticated backend calls; does not receive backend database credentials. It does now hold its own RabbitMQ identity to publish terminal ingestion-failure events onto the shared exchange (see identity map below) — the "no RabbitMQ credentials" half of the design accepted here did not hold once that publisher was added.
+- **Operations/replay**: not yet implemented as a separate identity or role. The replay mechanism (service, safety checks, publisher) exists in code and is unit-tested, but has no operator-facing entry point (API/CLI) and no caller outside its own tests; if invoked today it would publish under the backend's existing `backend-clinical-knowledge` credential, not a distinct audited role.
 
 RabbitMQ permissions restrict configure/write/read separately by exchange/queue naming patterns and virtual host. PostgreSQL grants should be verified with negative integration tests, not assumed from connection-string separation.
 
@@ -36,9 +36,10 @@ The checked-in configuration names the workload identity expected by each Rabbit
 
 | Workload | Example identity | Allowed broker action |
 | --- | --- | --- |
-| Backend Clinical Knowledge consumer | `backend-clinical-knowledge` | Read/configure only the backend-owned Transcript Ready/deletion subscriber queue and retry/DLQ topology; no access to transcription-worker queues. |
-| Backend outbox relay / legacy publisher compatibility | `backend-outbox-relay` | Publish consultation integration events to `medicalassistant.events`; no subscriber-queue read permission. |
+| Backend (consumer and outbox publisher) | `backend-clinical-knowledge` | Read/configure the backend-owned Transcript Ready/deletion subscriber queue and retry/DLQ topology, **and** publish consultation integration events to `medicalassistant.events` — today one identity does both roles; no access to transcription-worker queues. |
+| Backend outbox relay (provisioned, not yet wired) | `backend-outbox-relay` | Provisioned with publish-only permission to `medicalassistant.events` as a least-privilege target for the outbox relay specifically, but no running service currently authenticates as it — the backend publishes under `backend-clinical-knowledge` instead (see row above). |
 | Transcription Worker | `transcription-worker` | Read/configure only the audio-upload subscriber queue and retry/DLQ topology; publish Transcript Ready through the outbox path. |
+| Clinical Knowledge | `clinical-knowledge` | Publish terminal ingestion-failure events to `medicalassistant.events`; no subscriber-queue access. |
 | Broker bootstrap/operator | `medicalassistant-broker-bootstrap` | Local bootstrap/admin only; never used by application workloads. |
 
 The event-bus connection options reject blank credentials and shared default broker users such as `guest` or `admin`. Production AMQP should set `RabbitMQ:UseTls=true` and, when the certificate name differs from the broker host, `RabbitMQ:TlsServerName`.

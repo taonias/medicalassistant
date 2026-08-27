@@ -1,3 +1,4 @@
+using MedicalAssistant.Persistence.Repositories;
 using MedicalAssistant.Application.Contracts.Persistence;
 using MedicalAssistant.Application.Services;
 using MedicalAssistant.Domain;
@@ -5,7 +6,7 @@ using MedicalAssistant.Persistence.DatabaseContext;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
-namespace MedicalAssistant.Persistence.Repositories;
+namespace MedicalAssistant.Persistence.Modules.CareWorkflow.Transcripts;
 
 public class TranscriptRepository : GenericRepository<Transcript>, ITranscriptRepository
 {

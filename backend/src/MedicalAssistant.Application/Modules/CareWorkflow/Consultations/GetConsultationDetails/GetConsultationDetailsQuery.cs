@@ -1,6 +1,6 @@
 using MediatR;
 
-namespace MedicalAssistant.Application.Features.Consultation.Queries.GetConsultationDetails;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.Consultations.GetConsultationDetails;
 
 public record GetConsultationDetailsQuery(int Id) : IRequest<ConsultationDto>;
 

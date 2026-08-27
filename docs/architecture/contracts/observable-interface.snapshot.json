@@ -111,8 +111,8 @@
     "medicalassistant_rabbitmq_data"
   ],
   "solutionProjects": [
-    "AI/src/MedicalAssistance.Ingestion.Api/MedicalAssistance.Ingestion.Api.csproj",
-    "AI/tests/MedicalAssistance.Ingestion.Api.Tests/MedicalAssistance.Ingestion.Api.Tests.csproj",
+    "clinical-knowledge/src/MedicalAssistance.Ingestion.Api/MedicalAssistance.Ingestion.Api.csproj",
+    "clinical-knowledge/tests/MedicalAssistance.Ingestion.Api.Tests/MedicalAssistance.Ingestion.Api.Tests.csproj",
     "backend/src/MedicalAssistant.Api/MedicalAssistant.Api.csproj",
     "backend/src/MedicalAssistant.Application/MedicalAssistant.Application.csproj",
     "backend/src/MedicalAssistant.ConsultationProcessing.Contracts/MedicalAssistant.ConsultationProcessing.Contracts.csproj",
@@ -125,6 +125,7 @@
     "backend/src/MedicalAssistant.Persistence/MedicalAssistant.Persistence.csproj",
     "backend/src/MedicalAssistant.Transcription.Worker/MedicalAssistant.Transcription.Worker.csproj",
     "backend/test/MedicalAssistant.Application.UnitTests/MedicalAssistant.Application.UnitTests.csproj",
+    "backend/test/MedicalAssistant.Architecture.Tests/MedicalAssistant.Architecture.Tests.csproj",
     "backend/test/MedicalAssistant.EventBus.UnitTests/MedicalAssistant.EventBus.UnitTests.csproj",
     "backend/test/MedicalAssistant.EventBusRabbitMQ.UnitTests/MedicalAssistant.EventBusRabbitMQ.UnitTests.csproj",
     "backend/test/MedicalAssistant.Persistence.IntegrationTests/MedicalAssistant.Persistence.IntegrationTests.csproj",
@@ -132,7 +133,7 @@
     "tests/MedicalAssistant.AcceptanceTests/MedicalAssistant.AcceptanceTests.csproj"
   ],
   "modelSnapshots": {
-    "AI/src/MedicalAssistance.Ingestion.Api/Ingestions/Migrations/IngestionDbContextModelSnapshot.cs": "DB01996EF1783AE8ECBF7FCC34AE086BCEFA36502E6CCF8F33F1E4BEE6290C73",
+    "clinical-knowledge/src/MedicalAssistance.Ingestion.Api/Ingestions/Migrations/IngestionDbContextModelSnapshot.cs": "DB01996EF1783AE8ECBF7FCC34AE086BCEFA36502E6CCF8F33F1E4BEE6290C73",
     "backend/src/MedicalAssistant.Identity/Migrations/MedicalAssistantIdentityDbContextModelSnapshot.cs": "9E78A3569B6F3F8D708F37312AC8B915ADDC5891A682B60A878203FD3AD3F1B7",
     "backend/src/MedicalAssistant.Persistence/Migrations/MedicalAssistantDatabaseContextModelSnapshot.cs": "7201A478751E8F046744BEF42753479D3015E331471FE6B1E18E434012DB3A07"
   },
@@ -154,7 +155,7 @@
     "backend/src/MedicalAssistant.Identity/Migrations": [
       "20260612142659_InitialIdentity.cs"
     ],
-    "AI/src/MedicalAssistance.Ingestion.Api/Ingestions/Migrations": [
+    "clinical-knowledge/src/MedicalAssistance.Ingestion.Api/Ingestions/Migrations": [
       "20260718233712_InitialSchema.cs",
       "20260719140541_DocumentIdCarriesDoctorAndPatient.cs",
       "20260719201600_UnIngestDocumentIdAndTombstone.cs",
@@ -257,19 +258,19 @@
       "contains": ["return Unauthorized();", "return Ok();"]
     },
     {
-      "path": "AI/src/MedicalAssistance.Ingestion.Api/Modules/Ingestion/Intake/IngestionsController.cs",
+      "path": "clinical-knowledge/src/MedicalAssistance.Ingestion.Api/Modules/Ingestion/Intake/IngestionsController.cs",
       "contains": ["StatusCodes.Status202Accepted", "StatusCodes.Status400BadRequest", "StatusCodes.Status404NotFound", "StatusCodes.Status409Conflict"]
     },
     {
-      "path": "AI/src/MedicalAssistance.Ingestion.Api/Modules/DocumentLifecycle/UnIngest/DocumentsController.cs",
+      "path": "clinical-knowledge/src/MedicalAssistance.Ingestion.Api/Modules/DocumentLifecycle/UnIngest/DocumentsController.cs",
       "contains": ["StatusCodes.Status200OK", "StatusCodes.Status400BadRequest", "StatusCodes.Status404NotFound", "StatusCodes.Status409Conflict"]
     },
     {
-      "path": "AI/src/MedicalAssistance.Ingestion.Api/Modules/DocumentLifecycle/PatientsController.cs",
+      "path": "clinical-knowledge/src/MedicalAssistance.Ingestion.Api/Modules/DocumentLifecycle/PatientsController.cs",
       "contains": ["StatusCodes.Status200OK", "StatusCodes.Status400BadRequest", "StatusCodes.Status401Unauthorized", "StatusCodes.Status403Forbidden", "StatusCodes.Status404NotFound"]
     },
     {
-      "path": "AI/src/MedicalAssistance.Ingestion.Api/Modules/GroundedChat/ChatController.cs",
+      "path": "clinical-knowledge/src/MedicalAssistance.Ingestion.Api/Modules/GroundedChat/ChatController.cs",
       "contains": ["StatusCodes.Status200OK", "StatusCodes.Status400BadRequest", "StatusCodes.Status401Unauthorized", "StatusCodes.Status500InternalServerError"]
     }
   ],
@@ -285,52 +286,52 @@
       "contains": ["\"TranscriptionWorker\"", "\"Provider\"", "\"ShutdownDrainTimeout\"", "\"ProcessingLeaseDuration\"", "\"MaxConcurrentTranscriptions\"", "\"BlobRetrieval\"", "\"AzureSpeech\"", "\"OpenAiWhisper\""]
     },
     {
-      "path": "AI/src/MedicalAssistance.Ingestion.Api/Program.cs",
+      "path": "clinical-knowledge/src/MedicalAssistance.Ingestion.Api/Program.cs",
       "keys": ["ConnectionStrings:Postgres", "Ingestion:WorkerCount", "OTEL_EXPORTER_OTLP_ENDPOINT"],
       "contains": ["ConnectionStrings:Postgres", "Ingestion:WorkerCount", "OTEL_EXPORTER_OTLP_ENDPOINT"]
     },
     {
-      "path": "AI/src/MedicalAssistance.Ingestion.Api/Adapters/AdaptersModule.cs",
+      "path": "clinical-knowledge/src/MedicalAssistance.Ingestion.Api/Adapters/AdaptersModule.cs",
       "keys": ["DocumentArchive:LocalRootPath"],
       "contains": ["DocumentArchive:LocalRootPath"]
     },
     {
-      "path": "AI/src/MedicalAssistance.Ingestion.Api/Modules/Ingestion/Processing/IngestionWorker.cs",
+      "path": "clinical-knowledge/src/MedicalAssistance.Ingestion.Api/Modules/Ingestion/Processing/IngestionWorker.cs",
       "keys": ["Ingestion:WorkerCount", "Ingestion:MaxAttempts"],
       "contains": ["Ingestion:WorkerCount", "Ingestion:MaxAttempts"]
     },
     {
-      "path": "AI/src/MedicalAssistance.Ingestion.Api/Modules/Ingestion/Processing/IngestionRecoverySweep.cs",
+      "path": "clinical-knowledge/src/MedicalAssistance.Ingestion.Api/Modules/Ingestion/Processing/IngestionRecoverySweep.cs",
       "keys": ["Ingestion:RecoverySweepInterval"],
       "contains": ["Ingestion:RecoverySweepInterval"]
     },
     {
-      "path": "AI/src/MedicalAssistance.Ingestion.Api/Modules/Ingestion/Processing/ProseIngestionPipeline.cs",
+      "path": "clinical-knowledge/src/MedicalAssistance.Ingestion.Api/Modules/Ingestion/Processing/ProseIngestionPipeline.cs",
       "keys": ["Chunking:MinTokens", "Chunking:MaxTokens"],
       "contains": ["Chunking:MinTokens", "Chunking:MaxTokens"]
     },
     {
-      "path": "AI/src/MedicalAssistance.Ingestion.Api/Modules/Retrieval/Pipeline/RefineRetrievalStep.cs",
+      "path": "clinical-knowledge/src/MedicalAssistance.Ingestion.Api/Modules/Retrieval/Pipeline/RefineRetrievalStep.cs",
       "keys": ["Retrieval:QueryRefinement:Enabled"],
       "contains": ["Retrieval:QueryRefinement:Enabled"]
     },
     {
-      "path": "AI/src/MedicalAssistance.Ingestion.Api/Modules/Retrieval/Pipeline/PackageRetrievalStep.cs",
+      "path": "clinical-knowledge/src/MedicalAssistance.Ingestion.Api/Modules/Retrieval/Pipeline/PackageRetrievalStep.cs",
       "keys": ["Retrieval:ConfidenceThreshold"],
       "contains": ["Retrieval:ConfidenceThreshold"]
     },
     {
-      "path": "AI/src/MedicalAssistance.Ingestion.Api/Modules/Ingestion/Intake/PdfIntake.cs",
+      "path": "clinical-knowledge/src/MedicalAssistance.Ingestion.Api/Modules/Ingestion/Intake/PdfIntake.cs",
       "keys": ["Extraction:MaxPdfBytes"],
       "contains": ["Extraction:MaxPdfBytes"]
     },
     {
-      "path": "AI/src/MedicalAssistance.Ingestion.Api/Adapters/OpenAI/OpenAiProviders.cs",
+      "path": "clinical-knowledge/src/MedicalAssistance.Ingestion.Api/Adapters/OpenAI/OpenAiProviders.cs",
       "keys": ["OpenAIChat:{ApiKey,BaseUrl,Model}", "OpenAIEmbeddings:{ApiKey,BaseUrl,Model}"],
       "contains": ["OpenAIChat", "OpenAIEmbeddings", "section[\"ApiKey\"]", "section[\"BaseUrl\"]", "section[\"Model\"]"]
     },
     {
-      "path": "AI/src/MedicalAssistance.Ingestion.Api/Adapters/AzureDocumentIntelligence/AzureAi.cs",
+      "path": "clinical-knowledge/src/MedicalAssistance.Ingestion.Api/Adapters/AzureDocumentIntelligence/AzureAi.cs",
       "keys": ["AzureOpenAI:{Endpoint,ApiKey,ChatDeployment,EmbeddingDeployment,Embedding:Dimensions}", "DocumentIntelligence:{Endpoint,ApiKey}"],
       "contains": ["AzureOpenAI", "DocumentIntelligence", "Embedding:Dimensions", "section[\"Endpoint\"]", "section[\"ApiKey\"]", "section[\"ChatDeployment\"]", "section[\"EmbeddingDeployment\"]"]
     }
@@ -338,11 +339,19 @@
   "diAssertions": [
     {
       "path": "backend/src/MedicalAssistant.Application/ApplicationServiceRegistration.cs",
-      "contains": ["AddTransient(typeof(IPipelineBehavior<,>)", "AddScoped<Features.Chat.Common.IChatTurnRunner", "AddSingleton<Features.Chat.Common.IConversationSummaryRefreshQueue"]
+      "contains": ["AddTransient(typeof(IPipelineBehavior<,>)", "AddScoped<Modules.Assistance.Chat.IChatTurnRunner", "AddSingleton<Modules.Assistance.Chat.IConversationSummaryRefreshQueue"]
     },
     {
       "path": "backend/src/MedicalAssistant.Persistence/PersistenceServiceRegistration.cs",
-      "contains": ["AddDbContext<MedicalAssistantDatabaseContext>", "AddScoped<IPatientRepository", "AddScoped<IConsultationOutboxStore"]
+      "contains": ["AddDbContext<MedicalAssistantDatabaseContext>"]
+    },
+    {
+      "path": "backend/src/MedicalAssistant.Persistence/Modules/CareWorkflow/Patients/PatientsPersistenceRegistration.cs",
+      "contains": ["AddScoped<IPatientRepository"]
+    },
+    {
+      "path": "backend/src/MedicalAssistant.Persistence/Modules/ConsultationProcessing/DurableMessaging/DurableMessagingPersistenceRegistration.cs",
+      "contains": ["AddScoped<IConsultationOutboxStore"]
     },
     {
       "path": "backend/src/MedicalAssistant.Infrastructure/InfrastructureServiceRegistration.cs",
@@ -353,37 +362,37 @@
       "contains": ["AddScoped<IConsultationAudioBlobRetriever", "AddScoped<ConsultationAudioUploadedIntegrationEventHandler>()", "AddSingleton<IntegrationEventDispatcher>()"]
     },
     {
-      "path": "AI/src/MedicalAssistance.Ingestion.Api/Program.cs",
+      "path": "clinical-knowledge/src/MedicalAssistance.Ingestion.Api/Program.cs",
       "contains": ["AddSingleton<AgentInstructionProvider>()"]
     },
     {
-      "path": "AI/src/MedicalAssistance.Ingestion.Api/Modules/Ingestion/IngestionModule.cs",
+      "path": "clinical-knowledge/src/MedicalAssistance.Ingestion.Api/Modules/Ingestion/IngestionModule.cs",
       "contains": ["AddScoped<IngestionStore>()", "AddHostedService<IngestionWorker>()", "AddHostedService<IngestionRecoverySweep>()"]
     },
     {
-      "path": "AI/src/MedicalAssistance.Ingestion.Api/Modules/Retrieval/RetrievalModule.cs",
+      "path": "clinical-knowledge/src/MedicalAssistance.Ingestion.Api/Modules/Retrieval/RetrievalModule.cs",
       "contains": ["AddScoped<IRetrievalService, RetrievalService>()"]
     },
     {
-      "path": "AI/src/MedicalAssistance.Ingestion.Api/Adapters/AdaptersModule.cs",
+      "path": "clinical-knowledge/src/MedicalAssistance.Ingestion.Api/Adapters/AdaptersModule.cs",
       "contains": ["AddHostedService<IntegrationEventOutboxRelay>()"]
     }
   ],
   "sourceAssertions": [
     {
       "path": "backend/src/MedicalAssistant.Api/Program.cs",
-      "contains": ["app.UseSwagger();", "c.AddSecurityDefinition(\"Bearer\"", "app.MapHealthChecks(\"/health/live\"", "app.MapHealthChecks(\"/health/ready\"", "app.MapHub<MedicalAssistant.Api.Realtime.ChatHub>(\"/hubs/chat\")", "AddSingleton<Microsoft.AspNetCore.SignalR.IUserIdProvider", "AddScoped<MedicalAssistant.Application.Features.Chat.Common.IChatProgressNotifier"]
+      "contains": ["app.UseSwagger();", "c.AddSecurityDefinition(\"Bearer\"", "app.MapHealthChecks(\"/health/live\"", "app.MapHealthChecks(\"/health/ready\"", "app.MapHub<MedicalAssistant.Api.Realtime.ChatHub>(\"/hubs/chat\")", "AddSingleton<Microsoft.AspNetCore.SignalR.IUserIdProvider", "AddScoped<MedicalAssistant.Application.Modules.Assistance.Chat.IChatProgressNotifier"]
     },
     {
-      "path": "AI/src/MedicalAssistance.Ingestion.Api/HostEndpoints.cs",
+      "path": "clinical-knowledge/src/MedicalAssistance.Ingestion.Api/HostEndpoints.cs",
       "contains": ["app.UseSwagger();", "app.MapHub<IngestionStatusHub>(\"/hubs/ingestion-status\")"]
     },
     {
-      "path": "AI/src/MedicalAssistance.Ingestion.Api/Modules/Ingestion/IngestionModule.cs",
+      "path": "clinical-knowledge/src/MedicalAssistance.Ingestion.Api/Modules/Ingestion/IngestionModule.cs",
       "contains": ["AddScoped<IngestionStore>()", "AddHostedService<IngestionWorker>()", "AddHostedService<IngestionRecoverySweep>()"]
     },
     {
-      "path": "AI/src/MedicalAssistance.Ingestion.Api/Adapters/AdaptersModule.cs",
+      "path": "clinical-knowledge/src/MedicalAssistance.Ingestion.Api/Adapters/AdaptersModule.cs",
       "contains": ["AddHostedService<IntegrationEventOutboxRelay>()"]
     },
     {
@@ -391,11 +400,11 @@
       "contains": ["public const string ClientMethod = \"ChatProgress\";"]
     },
     {
-      "path": "AI/src/MedicalAssistance.Ingestion.Api/Modules/Ingestion/IngestionStatusPublisher.cs",
+      "path": "clinical-knowledge/src/MedicalAssistance.Ingestion.Api/Modules/Ingestion/IngestionStatusPublisher.cs",
       "contains": ["public const string ClientMethod = \"IngestionStatusChanged\";"]
     },
     {
-      "path": "AI/src/MedicalAssistance.Ingestion.Api/Security/ApiKeyAuthentication.cs",
+      "path": "clinical-knowledge/src/MedicalAssistance.Ingestion.Api/Security/ApiKeyAuthentication.cs",
       "contains": ["public const string HeaderName = \"X-Api-Key\";", "public const string KeysConfigurationPath = \"Authentication:ApiKeys\";", "public const string AdminKeysConfigurationPath = \"Authentication:AdminApiKeys\";"]
     },
     {
@@ -403,7 +412,7 @@
       "contains": ["consultation.audio-uploaded.v1", "consultation.document-uploaded.v1", "consultation.transcript-ready.v1", "consultation.transcription-failed.v1", "consultation.deleted.v1", "clinicalknowledge.ingestion-failed.v1"]
     },
     {
-      "path": "AI/src/MedicalAssistance.Ingestion.Api/Adapters/RabbitMQ/IntegrationEventOutbox.cs",
+      "path": "clinical-knowledge/src/MedicalAssistance.Ingestion.Api/Adapters/RabbitMQ/IntegrationEventOutbox.cs",
       "contains": ["eventId,", "eventType = IngestionFailedEventType", "eventVersion = 1", "occurredAtUtc = DateTime.UtcNow", "producer = Producer", "correlationId = (string?)null", "causationId = (string?)null", "payload = new", "sessionId,", "ingestionId,", "reason"]
     },
     {

@@ -74,7 +74,7 @@ builder.Services.AddHttpContextAccessor();
 // routed by doctorId while a turn is in flight (the answer itself is not streamed).
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<Microsoft.AspNetCore.SignalR.IUserIdProvider, MedicalAssistant.Api.Realtime.DoctorUserIdProvider>();
-builder.Services.AddScoped<MedicalAssistant.Application.Features.Chat.Common.IChatProgressNotifier, MedicalAssistant.Api.Realtime.SignalRChatProgressNotifier>();
+builder.Services.AddScoped<MedicalAssistant.Application.Modules.Assistance.Chat.IChatProgressNotifier, MedicalAssistant.Api.Realtime.SignalRChatProgressNotifier>();
 
 builder.Services.AddCors(options =>
 {

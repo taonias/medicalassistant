@@ -5,7 +5,7 @@ using System.Net.Mail;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 
-namespace MedicalAssistant.Application.Features.ActionRequest.Command.ProcessActionCallback;
+namespace MedicalAssistant.Application.Modules.Integrations.LegacyAiModule.ProcessActionCallback;
 
 public class ProcessActionCallbackCommandHandler : IRequestHandler<ProcessActionCallbackCommand, Unit>
 {

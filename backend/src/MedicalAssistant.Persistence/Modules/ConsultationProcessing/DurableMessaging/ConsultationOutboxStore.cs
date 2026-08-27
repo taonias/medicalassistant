@@ -4,7 +4,7 @@ using MedicalAssistant.Domain.Enums;
 using MedicalAssistant.Persistence.DatabaseContext;
 using Microsoft.EntityFrameworkCore;
 
-namespace MedicalAssistant.Persistence.Repositories;
+namespace MedicalAssistant.Persistence.Modules.ConsultationProcessing.DurableMessaging;
 
 public sealed class ConsultationOutboxStore : IConsultationOutboxStore
 {

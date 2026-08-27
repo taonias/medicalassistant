@@ -1,0 +1,46 @@
+name: Backend unit and architecture tests
+
+on:
+  pull_request:
+    paths:
+      - "backend/src/**"
+      - "backend/test/MedicalAssistant.Application.UnitTests/**"
+      - "backend/test/MedicalAssistant.Architecture.Tests/**"
+      - ".github/workflows/backend-unit-and-architecture-tests.yml"
+  push:
+    paths:
+      - "backend/src/**"
+      - "backend/test/MedicalAssistant.Application.UnitTests/**"
+      - "backend/test/MedicalAssistant.Architecture.Tests/**"
+      - ".github/workflows/backend-unit-and-architecture-tests.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  backend-unit-and-architecture-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Restore Application unit tests
+        run: >-
+          dotnet restore
+          backend/test/MedicalAssistant.Application.UnitTests/MedicalAssistant.Application.UnitTests.csproj
+      - name: Run Application unit tests
+        run: >-
+          dotnet test
+          backend/test/MedicalAssistant.Application.UnitTests/MedicalAssistant.Application.UnitTests.csproj
+          --no-restore
+      - name: Restore architecture tests
+        run: >-
+          dotnet restore
+          backend/test/MedicalAssistant.Architecture.Tests/MedicalAssistant.Architecture.Tests.csproj
+      - name: Run architecture/dependency-boundary tests
+        run: >-
+          dotnet test
+          backend/test/MedicalAssistant.Architecture.Tests/MedicalAssistant.Architecture.Tests.csproj
+          --no-restore

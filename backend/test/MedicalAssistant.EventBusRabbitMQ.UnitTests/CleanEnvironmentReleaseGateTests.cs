@@ -63,8 +63,7 @@ public class CleanEnvironmentReleaseGateTests
         var document = File.ReadAllText(documentPath);
         var services = new[]
         {
-            "postgres-app",
-            "postgres-clinical",
+            "postgres",
             "rabbitmq",
             "azurite",
             "backend-migrations",

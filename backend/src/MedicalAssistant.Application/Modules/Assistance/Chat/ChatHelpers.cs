@@ -1,7 +1,7 @@
 using System.Globalization;
 using MedicalAssistant.Domain;
 
-namespace MedicalAssistant.Application.Features.Chat.Common;
+namespace MedicalAssistant.Application.Modules.Assistance.Chat;
 
 /// <summary>
 /// The identifier the AI service knows a patient by: the external id when present,

@@ -41,7 +41,7 @@ New-Item -ItemType Directory -Force -Path $images | Out-Null
 $builds = [ordered]@{
     "backend-api"          = "backend/src/MedicalAssistant.Api/Dockerfile"
     "backend-migrations"   = "backend/src/MedicalAssistant.Migrations/Dockerfile"
-    "clinical-knowledge"   = "AI/src/MedicalAssistance.Ingestion.Api/Dockerfile"
+    "clinical-knowledge"   = "clinical-knowledge/src/MedicalAssistance.Ingestion.Api/Dockerfile"
     "transcription-worker" = "backend/src/MedicalAssistant.Transcription.Worker/Dockerfile"
     "proxy"                = "ops/deploy/proxy.Dockerfile"
 }

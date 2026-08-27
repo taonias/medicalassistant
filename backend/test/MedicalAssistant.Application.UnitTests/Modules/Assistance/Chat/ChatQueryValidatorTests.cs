@@ -1,5 +1,5 @@
 using FluentValidation.TestHelper;
-using MedicalAssistant.Application.Features.Chat.Queries.ChatQuery;
+using MedicalAssistant.Application.Modules.Assistance.Chat.ChatQuery;
 
 namespace MedicalAssistant.Application.UnitTests.Features;
 

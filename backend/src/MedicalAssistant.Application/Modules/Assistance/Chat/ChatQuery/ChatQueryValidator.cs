@@ -1,6 +1,6 @@
 using FluentValidation;
 
-namespace MedicalAssistant.Application.Features.Chat.Queries.ChatQuery;
+namespace MedicalAssistant.Application.Modules.Assistance.Chat.ChatQuery;
 
 public class ChatQueryValidator : AbstractValidator<ChatQuery>
 {

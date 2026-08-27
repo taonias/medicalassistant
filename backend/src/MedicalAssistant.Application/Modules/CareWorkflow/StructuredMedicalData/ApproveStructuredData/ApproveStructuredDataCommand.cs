@@ -5,7 +5,7 @@ using MedicalAssistant.Application.Exceptions;
 using MedicalAssistant.Domain;
 using MediatR;
 
-namespace MedicalAssistant.Application.Features.MedicalStructuredData.Command.ApproveStructuredData;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.StructuredMedicalData.ApproveStructuredData;
 
 public record ApproveStructuredDataCommand(int ConsultationId)
     : IRequest<Unit>, IAuditableRequest<Unit>

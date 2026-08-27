@@ -7,7 +7,7 @@ using MedicalAssistant.EventBus.Contracts;
 using MedicalAssistant.Persistence.DatabaseContext;
 using Microsoft.EntityFrameworkCore;
 
-namespace MedicalAssistant.Persistence.Repositories;
+namespace MedicalAssistant.Persistence.Modules.ConsultationProcessing.DurableMessaging;
 
 public sealed class TranscriptionInboxStore : ITranscriptionInboxStore
 {

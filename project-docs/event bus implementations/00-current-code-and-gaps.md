@@ -83,11 +83,11 @@ Target response: both initial completion and corrections create revisioned `cons
 
 Relevant sources:
 
-- [`AI/CONTEXT.md`](../../AI/CONTEXT.md)
-- [`ingestion-pipeline-design.md`](../../AI/docs/ingestion-pipeline-design.md)
-- [`IngestionRequest`](../../AI/src/MedicalAssistance.Ingestion.Api/Ingestions/IngestionRequest.cs)
-- [`TranscriptIngestionStrategy`](../../AI/src/MedicalAssistance.Ingestion.Api/Ingestions/TranscriptIngestionStrategy.cs)
-- [`Program.cs`](../../AI/src/MedicalAssistance.Ingestion.Api/Program.cs)
+- [`clinical-knowledge/CONTEXT.md`](../../clinical-knowledge/CONTEXT.md)
+- [`ingestion-pipeline-design.md`](../../clinical-knowledge/docs/ingestion-pipeline-design.md)
+- [`IngestionRequest`](../../clinical-knowledge/src/MedicalAssistance.Ingestion.Api/Ingestions/IngestionRequest.cs)
+- [`TranscriptIngestionStrategy`](../../clinical-knowledge/src/MedicalAssistance.Ingestion.Api/Ingestions/TranscriptIngestionStrategy.cs)
+- [`Program.cs`](../../clinical-knowledge/src/MedicalAssistance.Ingestion.Api/Program.cs)
 
 The newer Clinical Knowledge service is a .NET ingestion/retrieval system whose documented only caller is the backend. `SessionTranscript` ingestion accepts inline transcript text and patient/doctor/session context over authenticated HTTP, then persists queued work and processes it through its own recovery-capable background pipeline.
 

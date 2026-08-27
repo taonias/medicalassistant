@@ -1,5 +1,7 @@
 # Reliability, Observability, and Testing
 
+> Historical review snapshot (31 July 2026). Use [messaging-and-recovery.md](../../docs/runbooks/messaging-and-recovery.md) for current reliability/recovery mechanics and [cross-system-quality.md](../../docs/modules/cross-system-quality.md) for the current test/architecture-enforcement inventory.
+
 ## Reliability model by component
 
 ### Main backend

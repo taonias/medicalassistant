@@ -141,7 +141,7 @@ public class ArchitecturePrivacyEnforcementTests
         var activeRoots = new[]
         {
             Path.Combine(repositoryRoot, "backend", "src"),
-            Path.Combine(repositoryRoot, "AI", "src")
+            Path.Combine(repositoryRoot, "clinical-knowledge", "src")
         };
         var sourceFiles = activeRoots
             .Where(Directory.Exists)

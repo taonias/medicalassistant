@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using MediatR;
-using MedicalAssistant.Application.Features.Chat.Common;
+using MedicalAssistant.Application.Modules.Assistance.Chat;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;

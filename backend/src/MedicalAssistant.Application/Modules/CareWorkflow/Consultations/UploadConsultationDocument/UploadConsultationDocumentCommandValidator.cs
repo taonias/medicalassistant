@@ -2,7 +2,7 @@ using FluentValidation;
 using MedicalAssistant.Application.Models;
 using Microsoft.Extensions.Options;
 
-namespace MedicalAssistant.Application.Features.Consultation.Command.UploadConsultationDocument;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.Consultations.UploadConsultationDocument;
 
 public class UploadConsultationDocumentCommandValidator : AbstractValidator<UploadConsultationDocumentCommand>
 {

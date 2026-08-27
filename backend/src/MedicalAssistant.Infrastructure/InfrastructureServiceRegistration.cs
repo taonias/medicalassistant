@@ -50,7 +50,7 @@ public static class InfrastructureServiceRegistration
         services.AddTransient<IConversationSummarizer>(sp => sp.GetRequiredService<ClinicalKnowledgeHttpClient>());
         services.AddScoped<ConsultationOutboxRelay>();
         services.AddHostedService<ConsultationOutboxRelayHostedService>();
-        services.AddHostedService<MedicalAssistant.Application.Features.Chat.Common.ConversationSummaryRefreshHostedService>();
+        services.AddHostedService<MedicalAssistant.Application.Modules.Assistance.Chat.ConversationSummaryRefreshHostedService>();
         services.AddSingleton<IRabbitMqPersistentConnection, RabbitMqPersistentConnection>();
         services.AddSingleton<RabbitMqConfirmedPublisher>();
         services.AddSingleton<IConsultationOutboxPublisher, RabbitMqConsultationOutboxPublisher>();

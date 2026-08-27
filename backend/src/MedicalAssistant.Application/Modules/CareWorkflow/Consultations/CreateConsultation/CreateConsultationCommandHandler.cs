@@ -2,11 +2,11 @@ using AutoMapper;
 using MedicalAssistant.Application.Contracts.Identity;
 using MedicalAssistant.Application.Contracts.Persistence;
 using MedicalAssistant.Application.Exceptions;
-using MedicalAssistant.Application.Features.Consultation.Queries.GetConsultationDetails;
+using MedicalAssistant.Application.Modules.CareWorkflow.Consultations.GetConsultationDetails;
 using MedicalAssistant.Domain.Enums;
 using MediatR;
 
-namespace MedicalAssistant.Application.Features.Consultation.Command.CreateConsultation;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.Consultations.CreateConsultation;
 
 public class CreateConsultationCommandHandler : IRequestHandler<CreateConsultationCommand, ConsultationDto>
 {

@@ -1,5 +1,7 @@
 # Security, Privacy, and Clinical Safety
 
+> Historical review snapshot (31 July 2026). Use the [known-issue ledger](../../docs/known-issues/refactor-baseline.md) for the current tracked risk set — several items below have since been addressed or superseded.
+
 This document describes mechanisms present in code and risks requiring remediation. It is not a compliance certification or clinical-safety approval.
 
 ## Trust boundaries

@@ -4,7 +4,7 @@ using MedicalAssistant.Application.Contracts.Persistence;
 using MedicalAssistant.Application.Exceptions;
 using MediatR;
 
-namespace MedicalAssistant.Application.Features.Patient.Queries.GetPatientById;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.Patients.GetPatientById;
 
 public class GetPatientByIdQueryHandler : IRequestHandler<GetPatientByIdQuery, PatientDto>
 {

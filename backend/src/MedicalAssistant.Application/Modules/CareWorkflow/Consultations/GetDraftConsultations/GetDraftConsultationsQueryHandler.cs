@@ -1,10 +1,10 @@
 using MedicalAssistant.Application.Contracts.Identity;
 using MedicalAssistant.Application.Contracts.Persistence;
 using MedicalAssistant.Application.Exceptions;
-using MedicalAssistant.Application.Features.Consultation.Queries.GetConsultationsByPatient;
+using MedicalAssistant.Application.Modules.CareWorkflow.Consultations.GetConsultationsByPatient;
 using MediatR;
 
-namespace MedicalAssistant.Application.Features.Consultation.Queries.GetDraftConsultations;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.Consultations.GetDraftConsultations;
 
 public class GetDraftConsultationsQueryHandler
     : IRequestHandler<GetDraftConsultationsQuery, List<DraftConsultationGroupDto>>

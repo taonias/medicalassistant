@@ -3,7 +3,7 @@ using MedicalAssistant.Application.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 
-namespace MedicalAssistant.Application.Features.Consultation.Command.UploadConsultationAudio;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.Consultations.UploadConsultationAudio;
 
 public class UploadConsultationAudioCommandValidator : AbstractValidator<UploadConsultationAudioCommand>
 {

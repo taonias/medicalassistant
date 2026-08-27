@@ -1,6 +1,6 @@
-using MedicalAssistant.Application.Features.Chat.Command.AskChat;
-using MedicalAssistant.Application.Features.Chat.Common;
-using MedicalAssistant.Application.Features.Chat.Queries.ChatQuery;
+using MedicalAssistant.Application.Modules.Assistance.Chat.AskChat;
+using MedicalAssistant.Application.Modules.Assistance.Chat;
+using MedicalAssistant.Application.Modules.Assistance.Chat.ChatQuery;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

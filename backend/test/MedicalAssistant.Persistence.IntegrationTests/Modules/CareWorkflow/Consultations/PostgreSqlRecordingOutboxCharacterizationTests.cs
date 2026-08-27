@@ -2,7 +2,7 @@ using MedicalAssistant.Application.Services;
 using MedicalAssistant.Domain;
 using MedicalAssistant.Domain.Enums;
 using MedicalAssistant.EventBus.Contracts;
-using MedicalAssistant.Persistence.Repositories;
+using MedicalAssistant.Persistence.Modules.CareWorkflow.Consultations;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 

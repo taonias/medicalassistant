@@ -1,5 +1,7 @@
 # Interfaces and Processing Workflows
 
+> Historical interface snapshot. Use the [observable interface baseline](../../docs/architecture/observable-interface-baseline.md) for the current HTTP/SignalR contract. The sequence diagrams and "Contract adapter required" section below predate the current Transcription Worker/outbox event architecture and the completed Clinical Knowledge integration — they describe an Azure Functions transcriber and an unintegrated AI service that no longer match the system; see [messaging-and-recovery.md](../../docs/runbooks/messaging-and-recovery.md) for the current event flow.
+
 ## Main backend HTTP API
 
 All routes are under `/api`. Except login, registration, and callback routes, controllers require a valid doctor JWT.

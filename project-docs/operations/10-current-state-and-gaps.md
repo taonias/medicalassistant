@@ -34,7 +34,7 @@ The repository contains a credible doctor-facing workflow and a sophisticated cl
 - OpenAI/Azure provider wiring and OpenTelemetry.
 - Evidence-threshold refusal, bilingual answer selection, grounded generation, and citation-label validation.
 
-These features exist inside `AI/` and can be exercised directly through its API, but the main backend/frontend do not call them.
+These features exist inside `clinical-knowledge/` and can be exercised directly through its API, but the main backend/frontend do not call them.
 
 ## Contract contradiction: old versus new AI
 
@@ -87,8 +87,8 @@ The AI service exposes SignalR events, document lists, un-ingestion, summaries, 
 
 ## Documentation contradictions
 
-- `backend/README.md` and `backend/docs/AI_MODULE_API.md` refer to a Python AI module, while the active `AI/` implementation is .NET 10 with another contract.
-- `AI/docs/retrieval-and-chat-design.md` says the backend does not exist yet; the repository contains a developed backend and frontend.
+- `backend/README.md` and `backend/docs/AI_MODULE_API.md` refer to a Python AI module, while the active `clinical-knowledge/` implementation is .NET 10 with another contract.
+- `clinical-knowledge/docs/retrieval-and-chat-design.md` says the backend does not exist yet; the repository contains a developed backend and frontend.
 - `frontend/README.md` says the patient list relies on local recent-patient storage because no endpoint exists; current frontend code calls `GET /api/patient` and the backend implements it.
 - `transcriber/README.md` describes transcript-ready publication for a future LLM Function; that consumer is still absent, but the AI service now exists as HTTP rather than a queue Function.
 - AI design documents sometimes describe stronger citation verification than implemented. Code validates referenced evidence labels, not semantic support for every claim.

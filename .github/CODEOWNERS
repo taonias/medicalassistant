@@ -1,6 +1,6 @@
 # Ownership follows a capability across code, tests, documentation, and
 # operations (Ownership Map, R37). This repo has one real maintainer today
-# so every path below resolves to the same owner — the
+# (@georgekarounias), so every path below resolves to the same owner — the
 # file exists anyway to make the intended vertical seams legible on every
 # PR (matching "Owning bounded context/capability" in
 # .github/pull_request_template.md), and to be ready to extend the moment
@@ -8,7 +8,7 @@
 #
 # CODEOWNERS applies the LAST matching pattern, so broader/foundational
 # rules are listed first and more specific overrides after — in particular,
-# /AI/ (Clinical Knowledge) must precede /AI/tests/ and the AI migrations
+# /clinical-knowledge/ (Clinical Knowledge) must precede /clinical-knowledge/tests/ and the AI migrations
 # path below, or its broad match would win over the narrower ones.
 #
 # Lines marked "dual-review" are cross-context contracts or migrations
@@ -18,40 +18,71 @@
 
 # ---- Clinical Knowledge (Clinical Knowledge Team) ----
 # Ingestion, document lifecycle, retrieval, grounded answers, summaries, clinical DB and adapters.
-# (Ownership Map's own "Primary folders" cell for this area reads literally "AI/..." in the
-# source workbook — an incomplete entry there; treated here as the whole AI/ deployable, with
+# (Ownership Map's own "Primary folders" cell for this area reads literally "clinical-knowledge/..." in the
+# source workbook — an incomplete entry there; treated here as the whole clinical-knowledge/ deployable, with
 # the two narrower overrides below for the parts other teams own.)
-/AI/                                                                 
+/clinical-knowledge/                                                                @georgekarounias
+
 # ---- Runtime & Data (Platform + Data Steward) ----
 # Composition, databases, migrations, observability, releases, VM/secret/runtime policy.
-/ops/                                                                /scripts/                                                            /backend/src/MedicalAssistant.Migrations/                           @georgekarounias  # dual-review: schema migration
-/AI/src/MedicalAssistance.Ingestion.Api/Ingestions/Migrations/      @georgekarounias  # dual-review: schema migration; overrides the /AI/ line above
+/ops/                                                               @georgekarounias
+/scripts/                                                           @georgekarounias
+/backend/src/MedicalAssistant.Migrations/                           @georgekarounias  # dual-review: schema migration
+/clinical-knowledge/src/MedicalAssistance.Ingestion.Api/Ingestions/Migrations/      @georgekarounias  # dual-review: schema migration; overrides the /clinical-knowledge/ line above
 
 # ---- Cross-system Quality (Quality Engineering) ----
 # Full-system journeys, test harnesses, baseline snapshots, dependency enforcement.
-/tests/                                                              /frontend/e2e/                                                       /backend/test/                                                       /AI/tests/                                                          @georgekarounias  # overrides the /AI/ line above
+/tests/                                                             @georgekarounias
+/frontend/e2e/                                                      @georgekarounias
+/backend/test/                                                      @georgekarounias
+/clinical-knowledge/tests/                                                          @georgekarounias  # overrides the /clinical-knowledge/ line above
 
 # ---- Durable Messaging (Messaging Team) ----
 # Wire envelopes, routing/topology, delivery, ACK/DLQ, inbox/outbox mechanics.
 /backend/src/MedicalAssistant.ConsultationProcessing.Contracts/     @georgekarounias  # dual-review: cross-context contract
-/backend/src/MedicalAssistant.EventBus/                              /backend/src/MedicalAssistant.EventBusRabbitMQ/                      
+/backend/src/MedicalAssistant.EventBus/                             @georgekarounias
+/backend/src/MedicalAssistant.EventBusRabbitMQ/                     @georgekarounias
+
 # ---- Consultation Processing (Processing Team) ----
 # Audio-to-transcript workflow, provider ports, transaction outcomes, stale-work gates.
-/backend/src/MedicalAssistant.Transcription.Worker/                           /backend/src/MedicalAssistant.Application/Modules/ConsultationProcessing/     /backend/src/MedicalAssistant.Persistence/Modules/ConsultationProcessing/     
+/backend/src/MedicalAssistant.Transcription.Worker/                          @georgekarounias
+/backend/src/MedicalAssistant.Application/Modules/ConsultationProcessing/    @georgekarounias
+/backend/src/MedicalAssistant.Persistence/Modules/ConsultationProcessing/    @georgekarounias
+
 # ---- Identity & Preferences (Identity Owner) ----
 # Session, roles, profile, password, theme/preferences and guards.
-/backend/src/MedicalAssistant.Identity/                              /frontend/src/modules/auth/                                          /frontend/src/features/auth/                                         /frontend/src/features/settings/                                     
+/backend/src/MedicalAssistant.Identity/                             @georgekarounias
+/frontend/src/modules/auth/                                         @georgekarounias
+/frontend/src/features/auth/                                        @georgekarounias
+/frontend/src/features/settings/                                    @georgekarounias
+
 # ---- Patient Workspace (Patient Team) ----
 # Patient directory, details, history filters, recent patient state and patient API.
-/frontend/src/features/patients/                                             /backend/src/MedicalAssistant.Application/Modules/CareWorkflow/Patients/      /backend/src/MedicalAssistant.Persistence/Modules/CareWorkflow/Patients/      
+/frontend/src/features/patients/                                            @georgekarounias
+/backend/src/MedicalAssistant.Application/Modules/CareWorkflow/Patients/     @georgekarounias
+/backend/src/MedicalAssistant.Persistence/Modules/CareWorkflow/Patients/     @georgekarounias
+
 # ---- Consultation Lifecycle (Consultation Team) ----
 # Create/assign/upload/record/status/retry/delete/files and cache policy.
-/frontend/src/modules/consultations/                                           /backend/src/MedicalAssistant.Application/Modules/CareWorkflow/Consultations/   /backend/src/MedicalAssistant.Persistence/Modules/CareWorkflow/Consultations/   
+/frontend/src/modules/consultations/                                          @georgekarounias
+/backend/src/MedicalAssistant.Application/Modules/CareWorkflow/Consultations/  @georgekarounias
+/backend/src/MedicalAssistant.Persistence/Modules/CareWorkflow/Consultations/  @georgekarounias
+
 # ---- Clinical Record (Clinical Record Team) ----
 # Transcript review/editing, structured medical data, clinician notes.
-/frontend/src/modules/clinical-record/                                                  /backend/src/MedicalAssistant.Application/Modules/CareWorkflow/Transcripts/              /backend/src/MedicalAssistant.Persistence/Modules/CareWorkflow/Transcripts/              /backend/src/MedicalAssistant.Application/Modules/CareWorkflow/StructuredMedicalData/    /backend/src/MedicalAssistant.Persistence/Modules/CareWorkflow/StructuredMedicalData/    /backend/src/MedicalAssistant.Application/Modules/CareWorkflow/DoctorNotes/              /backend/src/MedicalAssistant.Persistence/Modules/CareWorkflow/DoctorNotes/              
+/frontend/src/modules/clinical-record/                                                 @georgekarounias
+/backend/src/MedicalAssistant.Application/Modules/CareWorkflow/Transcripts/             @georgekarounias
+/backend/src/MedicalAssistant.Persistence/Modules/CareWorkflow/Transcripts/             @georgekarounias
+/backend/src/MedicalAssistant.Application/Modules/CareWorkflow/StructuredMedicalData/   @georgekarounias
+/backend/src/MedicalAssistant.Persistence/Modules/CareWorkflow/StructuredMedicalData/   @georgekarounias
+/backend/src/MedicalAssistant.Application/Modules/CareWorkflow/DoctorNotes/             @georgekarounias
+/backend/src/MedicalAssistant.Persistence/Modules/CareWorkflow/DoctorNotes/             @georgekarounias
+
 # ---- Frontend Platform (Frontend Platform Team) ----
 # Bootstrap, routing, transport/query/media/realtime adapters, design system and CSS foundations.
 # These paths (app/, platform/, styles/, shared/) are siblings of the module paths above under
 # frontend/src/, not ancestors of them, so ordering relative to those sections doesn't matter.
-/frontend/src/app/                                                   /frontend/src/platform/                                              /frontend/src/styles/                                                /frontend/src/shared/                                                 
+/frontend/src/app/                                                  @georgekarounias
+/frontend/src/platform/                                             @georgekarounias
+/frontend/src/styles/                                               @georgekarounias
+/frontend/src/shared/                                                @georgekarounias

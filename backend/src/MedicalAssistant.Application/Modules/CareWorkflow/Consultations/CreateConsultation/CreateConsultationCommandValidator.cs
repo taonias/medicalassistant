@@ -2,7 +2,7 @@ using FluentValidation;
 using MedicalAssistant.Application.Contracts.Identity;
 using MedicalAssistant.Application.Contracts.Persistence;
 
-namespace MedicalAssistant.Application.Features.Consultation.Command.CreateConsultation;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.Consultations.CreateConsultation;
 
 public class CreateConsultationCommandValidator : AbstractValidator<CreateConsultationCommand>
 {

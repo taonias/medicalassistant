@@ -3,7 +3,7 @@ using MedicalAssistant.Domain;
 using MedicalAssistant.Domain.Enums;
 using MedicalAssistant.EventBus.Contracts;
 
-namespace MedicalAssistant.Persistence.Repositories;
+namespace MedicalAssistant.Persistence.Modules.ConsultationProcessing.DurableMessaging;
 
 internal static class TranscriptionStateGate
 {

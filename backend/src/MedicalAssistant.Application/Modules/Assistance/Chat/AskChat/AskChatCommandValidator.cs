@@ -1,6 +1,6 @@
 using FluentValidation;
 
-namespace MedicalAssistant.Application.Features.Chat.Command.AskChat;
+namespace MedicalAssistant.Application.Modules.Assistance.Chat.AskChat;
 
 public sealed class AskChatCommandValidator : AbstractValidator<AskChatCommand>
 {

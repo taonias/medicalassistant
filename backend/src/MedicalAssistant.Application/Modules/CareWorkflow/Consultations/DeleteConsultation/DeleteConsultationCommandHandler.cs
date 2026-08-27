@@ -5,7 +5,7 @@ using MedicalAssistant.Application.Services;
 using MedicalAssistant.Domain;
 using MediatR;
 
-namespace MedicalAssistant.Application.Features.Consultation.Command.DeleteConsultation;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.Consultations.DeleteConsultation;
 
 public class DeleteConsultationCommandHandler : IRequestHandler<DeleteConsultationCommand, Unit>
 {

@@ -2,10 +2,10 @@ using AutoMapper;
 using MedicalAssistant.Application.Contracts.Identity;
 using MedicalAssistant.Application.Contracts.Persistence;
 using MedicalAssistant.Application.Exceptions;
-using MedicalAssistant.Application.Features.Patient.Queries.GetPatientById;
+using MedicalAssistant.Application.Modules.CareWorkflow.Patients.GetPatientById;
 using MediatR;
 
-namespace MedicalAssistant.Application.Features.Patient.Command.UpdatePatient;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.Patients.UpdatePatient;
 
 public class UpdatePatientCommandHandler : IRequestHandler<UpdatePatientCommand, PatientDto>
 {

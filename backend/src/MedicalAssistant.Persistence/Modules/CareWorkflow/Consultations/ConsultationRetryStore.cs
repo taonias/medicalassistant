@@ -6,7 +6,7 @@ using MedicalAssistant.Domain.Enums;
 using MedicalAssistant.Persistence.DatabaseContext;
 using Microsoft.EntityFrameworkCore;
 
-namespace MedicalAssistant.Persistence.Repositories;
+namespace MedicalAssistant.Persistence.Modules.CareWorkflow.Consultations;
 
 public sealed class ConsultationRetryStore : IConsultationRetryStore
 {

@@ -4,7 +4,7 @@ using MedicalAssistant.Application.Contracts.Persistence;
 using MedicalAssistant.Application.Exceptions;
 using MediatR;
 
-namespace MedicalAssistant.Application.Features.Consultation.Queries.GetConsultationDetails;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.Consultations.GetConsultationDetails;
 
 public class GetConsultationDetailsQueryHandler : IRequestHandler<GetConsultationDetailsQuery, ConsultationDto>
 {

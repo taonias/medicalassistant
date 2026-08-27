@@ -1,7 +1,7 @@
 using FluentValidation.TestHelper;
 using MedicalAssistant.Application.Contracts.Identity;
 using MedicalAssistant.Application.Contracts.Persistence;
-using MedicalAssistant.Application.Features.ActionRequest.Command.TriggerAiAction;
+using MedicalAssistant.Application.Modules.Integrations.LegacyAiModule.TriggerAiAction;
 using MedicalAssistant.Domain;
 using MedicalAssistant.Domain.Enums;
 using Moq;

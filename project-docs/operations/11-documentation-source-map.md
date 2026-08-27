@@ -1,8 +1,10 @@
 # Documentation Source Map
 
+> Historical note: this describes how the 31 July 2026 review (this `operations/` series) was compiled — it is not a living index. For the current documentation set, start at [docs/](../../docs/) and its module/context/runbook indexes.
+
 ## Scope and method
 
-These operations documents were synthesized from every active Markdown file outside `project-docs` and `AI/docs/helping_documents_out_of_repo`, then checked against application source, project manifests, configuration examples, controllers, handlers, entities, service registration, migrations, and test inventory.
+These operations documents were synthesized from every active Markdown file outside `project-docs` and `clinical-knowledge/docs/helping_documents_out_of_repo`, then checked against application source, project manifests, configuration examples, controllers, handlers, entities, service registration, migrations, and test inventory.
 
 The `helping_documents_out_of_repo` tree is reference material imported from another project. It influenced the AI retrieval design but is not treated as an active deployable component.
 
@@ -14,13 +16,13 @@ The `helping_documents_out_of_repo` tree is reference material imported from ano
 | [Legacy AI module contract](../../backend/docs/AI_MODULE_API.md) | `/v1/*` HTTP/callback contract expected by backend | Accurately describes current client, but no matching implementation exists here |
 | [Frontend README](../../frontend/README.md) | Stack, routes, backend dependencies, UX notes | Mostly current; recent-patient limitation is stale |
 | [Transcriber README](../../transcriber/README.md) | Function setup, queue names, speech behavior, deployment | Strong and mostly aligned with code |
-| [AI glossary](../../AI/CONTEXT.md) | Precise ingestion/retrieval terminology | Strong; incorporated into the context map |
-| [AI database guide](../../AI/database/README.md) | pgvector container and migration workflow | Strong; destructive reset warning is operationally important |
-| [Ingestion design](../../AI/docs/ingestion-pipeline-design.md) | Detailed document types, strategies, state, safety, deferred work | Strong design record and largely implemented |
-| [Ingestion PRD](../../AI/docs/prd/0001-clinical-document-ingestion-service.md) | Problem, value, user stories, constraints | Strong product intent; “chat is future” was superseded by later work |
-| [Retrieval/chat design](../../AI/docs/retrieval-and-chat-design.md) | Retrieval/grounded-answer contract and boundary | Strong but incorrectly says backend does not exist |
-| [Retrieval/chat PRD](../../AI/docs/prd/0002-retrieval-and-grounded-chat.md) | Grounded-chat user value and acceptance behaviors | Strong target; test counts and some verification language are stale/stronger than code |
-| [AI ADRs](../../AI/docs/adr/) | Twelve load-bearing architecture decisions | Current and valuable; indexed in this suite |
+| [AI glossary](../../clinical-knowledge/CONTEXT.md) | Precise ingestion/retrieval terminology | Strong; incorporated into the context map |
+| [AI database guide](../../clinical-knowledge/database/README.md) | pgvector container and migration workflow | Strong; destructive reset warning is operationally important |
+| [Ingestion design](../../clinical-knowledge/docs/ingestion-pipeline-design.md) | Detailed document types, strategies, state, safety, deferred work | Strong design record and largely implemented |
+| [Ingestion PRD](../../clinical-knowledge/docs/prd/0001-clinical-document-ingestion-service.md) | Problem, value, user stories, constraints | Strong product intent; “chat is future” was superseded by later work |
+| [Retrieval/chat design](../../clinical-knowledge/docs/retrieval-and-chat-design.md) | Retrieval/grounded-answer contract and boundary | Strong but incorrectly says backend does not exist |
+| [Retrieval/chat PRD](../../clinical-knowledge/docs/prd/0002-retrieval-and-grounded-chat.md) | Grounded-chat user value and acceptance behaviors | Strong target; test counts and some verification language are stale/stronger than code |
+| [AI ADRs](../../clinical-knowledge/docs/adr/) | Twelve load-bearing architecture decisions | Current and valuable; indexed in this suite |
 
 ## Code sources used to resolve truth
 

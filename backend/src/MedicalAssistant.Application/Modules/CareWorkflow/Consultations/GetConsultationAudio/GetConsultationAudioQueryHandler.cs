@@ -6,7 +6,7 @@ using MedicalAssistant.Application.Models;
 using MediatR;
 using Microsoft.Extensions.Options;
 
-namespace MedicalAssistant.Application.Features.Consultation.Queries.GetConsultationAudio;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.Consultations.GetConsultationAudio;
 
 public class GetConsultationAudioQueryHandler
     : IRequestHandler<GetConsultationAudioQuery, ConsultationAudioResult?>

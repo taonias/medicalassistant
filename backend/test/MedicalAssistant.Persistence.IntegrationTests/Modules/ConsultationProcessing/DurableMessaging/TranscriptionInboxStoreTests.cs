@@ -4,7 +4,7 @@ using MedicalAssistant.EventBus;
 using MedicalAssistant.EventBus.Contracts;
 using MedicalAssistant.Application.Contracts.Persistence;
 using MedicalAssistant.Persistence.DatabaseContext;
-using MedicalAssistant.Persistence.Repositories;
+using MedicalAssistant.Persistence.Modules.ConsultationProcessing.DurableMessaging;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;

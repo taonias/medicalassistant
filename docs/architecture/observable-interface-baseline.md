@@ -233,7 +233,7 @@ Run from the repository root:
 - pwsh -NoProfile -File scripts/dev/verify-observable-interface.ps1
 - dotnet build MedicalAssistant.slnx
 - dotnet test backend/MedicalAssistant.slnx
-- dotnet test AI/MedicalAssistance.Ingestion.slnx
+- dotnet test clinical-knowledge/MedicalAssistance.Ingestion.slnx
 - dotnet test tests/MedicalAssistant.AcceptanceTests/MedicalAssistant.AcceptanceTests.csproj
 - npm run lint and npm run build in frontend
 - docker compose config --services

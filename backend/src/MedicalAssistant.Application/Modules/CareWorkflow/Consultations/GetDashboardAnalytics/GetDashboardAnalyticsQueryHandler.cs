@@ -4,7 +4,7 @@ using MedicalAssistant.Application.Exceptions;
 using MedicalAssistant.Domain.Enums;
 using MediatR;
 
-namespace MedicalAssistant.Application.Features.Consultation.Queries.GetDashboardAnalytics;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.Consultations.GetDashboardAnalytics;
 
 public class GetDashboardAnalyticsQueryHandler
     : IRequestHandler<GetDashboardAnalyticsQuery, DashboardAnalyticsDto>

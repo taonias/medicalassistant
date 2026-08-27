@@ -1,6 +1,6 @@
 using MediatR;
 
-namespace MedicalAssistant.Application.Features.Patient.Queries.GetPatientHistory;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.Patients.GetPatientHistory;
 
 public record GetPatientHistoryQuery(
     int PatientId,
@@ -14,7 +14,7 @@ public record GetPatientHistoryQuery(
 
 public class PatientHistoryDto
 {
-    public required Queries.GetPatientById.PatientDto Patient { get; set; }
+    public required GetPatientById.PatientDto Patient { get; set; }
     public List<ConsultationHistoryItemDto> Consultations { get; set; } = [];
     public List<PatientDoctorNoteDto> DoctorNotes { get; set; } = [];
     public int TotalConsultations { get; set; }

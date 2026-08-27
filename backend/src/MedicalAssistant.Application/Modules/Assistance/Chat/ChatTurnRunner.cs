@@ -4,7 +4,7 @@ using MedicalAssistant.Domain;
 using MedicalAssistant.Domain.Enums;
 using Microsoft.Extensions.Logging;
 
-namespace MedicalAssistant.Application.Features.Chat.Common;
+namespace MedicalAssistant.Application.Modules.Assistance.Chat;
 
 /// <summary>
 /// Runs a single grounded turn against the AI service and records the outcome on the

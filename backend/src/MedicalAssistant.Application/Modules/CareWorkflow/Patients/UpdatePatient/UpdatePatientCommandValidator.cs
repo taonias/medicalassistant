@@ -2,7 +2,7 @@ using FluentValidation;
 using MedicalAssistant.Application.Contracts.Identity;
 using MedicalAssistant.Application.Contracts.Persistence;
 
-namespace MedicalAssistant.Application.Features.Patient.Command.UpdatePatient;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.Patients.UpdatePatient;
 
 public class UpdatePatientCommandValidator : AbstractValidator<UpdatePatientCommand>
 {

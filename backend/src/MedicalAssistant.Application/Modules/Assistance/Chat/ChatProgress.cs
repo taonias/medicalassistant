@@ -1,4 +1,4 @@
-namespace MedicalAssistant.Application.Features.Chat.Common;
+namespace MedicalAssistant.Application.Modules.Assistance.Chat;
 
 /// <summary>
 /// The ordered "what the system is doing" phases, shared by name across the backend

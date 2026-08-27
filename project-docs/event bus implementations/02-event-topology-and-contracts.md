@@ -6,7 +6,7 @@ All business integration events enter one durable direct exchange:
 
 `medicalassistant.events`
 
-Each independently deployable subscriber declares its own durable main queue, retry topology, and dead-letter queue. The Transcription Worker owns a queue bound only to `consultation.audio-uploaded.v1`. A future Document Processor owns a different queue bound to `consultation.document-uploaded.v1`. A publisher sends to a routing key and never publishes directly to either queue.
+Each independently deployable subscriber declares its own durable main queue and dead-letter queue; the same topology code can also declare delayed-retry queues in between, but that's disabled by default in the shipped configuration (empty `RabbitMQ:Topology:RetryDelays` for every subscriber — tracked as [K07](../../docs/known-issues/refactor-baseline.md)), so a transient failure dead-letters on the first attempt rather than retrying. The Transcription Worker owns a queue bound only to `consultation.audio-uploaded.v1`. A future Document Processor owns a different queue bound to `consultation.document-uploaded.v1`. A publisher sends to a routing key and never publishes directly to either queue.
 
 ```mermaid
 flowchart LR
@@ -16,9 +16,9 @@ flowchart LR
     TQ --> TW["Transcription Worker"]
     TW -->|"transcript-ready.v1 or transcription-failed.v1"| Exchange
     Exchange -->|"binding"| Downstream["Downstream subscriber queues"]
-    TQ -. "delayed retry" .-> Retry["Transcription retry queues"]
+    TQ -. "delayed retry (disabled by default, K07)" .-> Retry["Transcription retry queues"]
     Retry -. "retry" .-> TQ
-    TQ -. "exhausted or invalid" .-> DLQ["Transcription dead-letter queue"]
+    TQ -. "exhausted, invalid, or no retry stages configured" .-> DLQ["Transcription dead-letter queue"]
 ```
 
 The concrete subscriber queue names are configuration, not event contracts. A recommended convention is `<service>.<purpose>.q`, with `.retry.<delay>` and `.dlq` suffixes, scoped by environment or virtual host.
@@ -31,6 +31,7 @@ Every event carries the same durable envelope fields:
 | --- | --- |
 | `eventId` | Globally unique idempotency key generated once by the producer |
 | `eventType` | Stable routing key, including major contract version |
+| `eventVersion` | Integer contract version, carried alongside the `.vN` suffix already embedded in `eventType` |
 | `occurredAtUtc` | UTC time when the stated business fact became true |
 | `producer` | Stable logical producer name, not an instance hostname |
 | `correlationId` | Connects all work for the same user-visible operation |

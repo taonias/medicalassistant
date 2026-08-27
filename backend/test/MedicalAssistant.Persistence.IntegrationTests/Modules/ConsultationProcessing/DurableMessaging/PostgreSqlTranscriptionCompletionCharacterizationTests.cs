@@ -3,7 +3,7 @@ using MedicalAssistant.Domain;
 using MedicalAssistant.Domain.Enums;
 using MedicalAssistant.EventBus;
 using MedicalAssistant.EventBus.Contracts;
-using MedicalAssistant.Persistence.Repositories;
+using MedicalAssistant.Persistence.Modules.ConsultationProcessing.DurableMessaging;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 

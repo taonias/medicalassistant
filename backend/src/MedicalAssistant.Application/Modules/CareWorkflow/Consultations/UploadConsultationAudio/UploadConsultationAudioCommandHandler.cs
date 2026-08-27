@@ -3,14 +3,14 @@ using MedicalAssistant.Application.Contracts.Identity;
 using MedicalAssistant.Application.Contracts.Persistence;
 using MedicalAssistant.Application.Contracts.Storage;
 using MedicalAssistant.Application.Exceptions;
-using MedicalAssistant.Application.Features.Consultation.Queries.GetConsultationDetails;
+using MedicalAssistant.Application.Modules.CareWorkflow.Consultations.GetConsultationDetails;
 using MedicalAssistant.Application.Models;
 using MedicalAssistant.Application.Services;
 using MedicalAssistant.Domain.Enums;
 using MediatR;
 using Microsoft.Extensions.Options;
 
-namespace MedicalAssistant.Application.Features.Consultation.Command.UploadConsultationAudio;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.Consultations.UploadConsultationAudio;
 
 public class UploadConsultationAudioCommandHandler : IRequestHandler<UploadConsultationAudioCommand, ConsultationDto>
 {

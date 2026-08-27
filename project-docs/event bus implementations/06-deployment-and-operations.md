@@ -44,7 +44,7 @@ Implemented root Compose assets:
 
 ## Topology ownership
 
-The event-bus infrastructure idempotently declares `medicalassistant.events`. Each subscriber declares its own main, retry, and dead-letter queues and bindings during startup or through an equivalent controlled provisioning step. Exchange/routing contracts are shared; queue names and retry implementation belong to the subscriber.
+The event-bus infrastructure idempotently declares `medicalassistant.events`. Each subscriber declares its own main and dead-letter queues and bindings during startup or through an equivalent controlled provisioning step; the same code path can also declare delayed-retry queues, but every subscriber ships with that disabled today (empty `RabbitMQ:Topology:RetryDelays`, tracked as [K07](../../docs/known-issues/refactor-baseline.md)). Exchange/routing contracts are shared; queue names and retry implementation belong to the subscriber.
 
 Changing immutable RabbitMQ queue arguments in place can fail startup. Such changes use a new queue/topology name and a controlled migration instead of silently deleting the existing durable queue.
 
@@ -63,7 +63,7 @@ Changing immutable RabbitMQ queue arguments in place can fail startup. Such chan
 Required alerts include:
 
 - outbox oldest-unpublished age and failed publish attempts;
-- main/retry/dead-letter queue depth and oldest-message age per subscriber;
+- main/dead-letter (and retry, once enabled) queue depth and oldest-message age per subscriber;
 - replay denials, replay successes, and repeated DLQ entries after replay;
 - consumer reconnect loops and acknowledgement latency;
 - transcription success/failure/latency and Azure Speech throttling;

@@ -1,5 +1,7 @@
 # Domain and Data Model
 
+> Historical domain snapshot. Use the [context maps](../../docs/contexts/) (Care Workflow, Clinical Knowledge, Consultation Processing) and the [canonical system map](../../docs/architecture/system-map.md) for current terms and data placement.
+
 The system has two related models. The main backend models the doctor's workflow; the AI service models clinical documents and derived knowledge. Canonical terms are in the [Context Map](CONTEXT-MAP.md).
 
 ## Care Workflow model

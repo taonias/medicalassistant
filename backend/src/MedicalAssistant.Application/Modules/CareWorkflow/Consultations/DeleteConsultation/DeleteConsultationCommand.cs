@@ -1,7 +1,7 @@
 using MediatR;
 using MedicalAssistant.Application.Contracts.Logging;
 
-namespace MedicalAssistant.Application.Features.Consultation.Command.DeleteConsultation;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.Consultations.DeleteConsultation;
 
 public record DeleteConsultationCommand(int Id) : IRequest<Unit>, IAuditableRequest<Unit>
 {

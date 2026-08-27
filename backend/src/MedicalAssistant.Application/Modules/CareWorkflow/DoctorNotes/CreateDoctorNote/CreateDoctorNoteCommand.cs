@@ -8,7 +8,7 @@ using MedicalAssistant.Domain;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace MedicalAssistant.Application.Features.DoctorNotes.Command.CreateDoctorNote;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.DoctorNotes.CreateDoctorNote;
 
 public class CreateDoctorNoteCommand : IRequest<DoctorNote>, IAuditableRequest<DoctorNote>
 {

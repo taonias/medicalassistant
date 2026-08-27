@@ -1,6 +1,6 @@
 using MediatR;
 
-namespace MedicalAssistant.Application.Features.Consultation.Queries.GetDashboardAnalytics;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.Consultations.GetDashboardAnalytics;
 
 public record GetDashboardAnalyticsQuery : IRequest<DashboardAnalyticsDto>;
 

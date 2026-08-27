@@ -49,7 +49,7 @@ Run against a real disposable RabbitMQ node:
 - Persistent publish with mandatory routing receives confirm; an unbound routing key is detected as returned/unroutable.
 - Handler ACK occurs only after the durable completion signal.
 - Connection/channel loss causes recovery without losing an unacknowledged event.
-- Five delayed retries preserve event identity and end in the correct DLQ.
+- The delayed-retry mechanism preserves event identity and ends in the correct DLQ when retry stages are configured; the shipped default configures zero stages, so today this proves the mechanism, not five actual retries in production ([K07](../../docs/known-issues/refactor-baseline.md)).
 - Duplicate publication produces one business effect.
 - Multiple subscriber queues receive the same fact independently.
 - Trace headers propagate without payload logging.

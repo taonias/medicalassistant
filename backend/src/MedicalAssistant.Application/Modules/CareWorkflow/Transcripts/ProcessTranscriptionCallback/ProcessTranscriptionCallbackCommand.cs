@@ -1,7 +1,7 @@
 using MediatR;
 using MedicalAssistant.Application.Contracts.Logging;
 
-namespace MedicalAssistant.Application.Features.Transcript.Command.ProcessTranscriptionCallback;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.Transcripts.ProcessTranscriptionCallback;
 
 public class ProcessTranscriptionCallbackCommand : IRequest<Unit>, IAuditableRequest<Unit>
 {

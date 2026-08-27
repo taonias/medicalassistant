@@ -5,7 +5,7 @@ using MedicalAssistant.Application.Exceptions;
 using MedicalAssistant.Domain;
 using MediatR;
 
-namespace MedicalAssistant.Application.Features.Chat.Command.DeleteConversation;
+namespace MedicalAssistant.Application.Modules.Assistance.Chat.DeleteConversation;
 
 /// <summary>Soft-deletes (archives) a conversation. History is retained; it just leaves the active list.</summary>
 public sealed class DeleteConversationCommand : IRequest<Unit>, IAuditableRequest<Unit>

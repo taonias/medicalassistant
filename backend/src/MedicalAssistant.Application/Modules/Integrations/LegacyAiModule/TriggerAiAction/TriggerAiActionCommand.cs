@@ -1,9 +1,9 @@
 using MediatR;
 using MedicalAssistant.Application.Contracts.Logging;
-using MedicalAssistant.Application.Features.ActionRequest.Queries.GetActionRequestStatus;
+using MedicalAssistant.Application.Modules.Integrations.LegacyAiModule.GetActionRequestStatus;
 using MedicalAssistant.Domain.Enums;
 
-namespace MedicalAssistant.Application.Features.ActionRequest.Command.TriggerAiAction;
+namespace MedicalAssistant.Application.Modules.Integrations.LegacyAiModule.TriggerAiAction;
 
 public class TriggerAiActionCommand
     : IRequest<ActionRequestDto>, IAuditableRequest<ActionRequestDto>

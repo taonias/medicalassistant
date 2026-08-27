@@ -1,6 +1,6 @@
 using MediatR;
 
-namespace MedicalAssistant.Application.Features.Consultation.Queries.GetConsultationAudio;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.Consultations.GetConsultationAudio;
 
 public record GetConsultationAudioQuery(int ConsultationId) : IRequest<ConsultationAudioResult?>;
 

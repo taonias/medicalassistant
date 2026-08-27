@@ -1,8 +1,8 @@
 using MedicalAssistant.Application.Contracts.Logging;
-using MedicalAssistant.Application.Features.Consultation.Queries.GetConsultationDetails;
+using MedicalAssistant.Application.Modules.CareWorkflow.Consultations.GetConsultationDetails;
 using MediatR;
 
-namespace MedicalAssistant.Application.Features.Consultation.Command.RetryConsultationProcessing;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.Consultations.RetryConsultationProcessing;
 
 /// <summary>
 /// Doctor-triggered manual retry of a failed consultation. Re-runs transcription when the

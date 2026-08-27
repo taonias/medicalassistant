@@ -1,7 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using MedicalAssistant.Api.Realtime;
-using MedicalAssistant.Application.Features.Chat.Common;
+using MedicalAssistant.Application.Modules.Assistance.Chat;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;

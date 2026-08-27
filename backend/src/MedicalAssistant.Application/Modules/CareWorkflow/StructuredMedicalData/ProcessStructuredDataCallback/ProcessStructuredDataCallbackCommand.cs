@@ -1,7 +1,7 @@
 using MediatR;
 using MedicalAssistant.Application.Contracts.Logging;
 
-namespace MedicalAssistant.Application.Features.MedicalStructuredData.Command.ProcessStructuredDataCallback;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.StructuredMedicalData.ProcessStructuredDataCallback;
 
 public class ProcessStructuredDataCallbackCommand : IRequest<Unit>, IAuditableRequest<Unit>
 {

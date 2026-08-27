@@ -76,7 +76,7 @@ docker compose down --volumes  # full reset
 | **Frontend** | 5173 | React + Vite web app. The doctor's UI: sign in, manage patients, upload consultations, view transcripts and status. |
 | **Backend API** | 7037 | ASP.NET Core API. Owns auth, patients, consultations, blob upload, and the outbox that publishes events. The system's front door. |
 | **Transcription Worker** | — | Standalone service. Consumes audio-uploaded events, pulls the audio, transcribes via OpenAI Whisper (or Azure Speech), stores the transcript, emits transcript-ready. |
-| **Clinical Knowledge** | 8000 | AI service (`AI/`). Ingests transcripts/notes/reports into a pgvector store and answers doctor questions with grounded, cited RAG. |
+| **Clinical Knowledge** | 8000 | AI service (`clinical-knowledge/`). Ingests transcripts/notes/reports into a pgvector store and answers doctor questions with grounded, cited RAG. |
 | **PostgreSQL** | 5432 | One pgvector server hosting two databases: `MedicalAssistantDb` (app: users, patients, consultations, transcripts, outbox/inbox) and `ai_med` (Clinical Knowledge: document chunks + embeddings). Same credentials. |
 | **RabbitMQ** | 5672 / 15672 | Event bus connecting backend ↔ worker ↔ Clinical Knowledge. Management UI at :15672. |
 | **Azurite** | 10000 | Local Azure Blob emulator. Stores uploaded consultation audio/PDF files. |

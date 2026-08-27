@@ -6,7 +6,7 @@ using MedicalAssistant.Application.Models;
 using MediatR;
 using Microsoft.Extensions.Options;
 
-namespace MedicalAssistant.Application.Features.Consultation.Queries.GetConsultationDocument;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.Consultations.GetConsultationDocument;
 
 public record GetConsultationDocumentQuery(int ConsultationId) : IRequest<ConsultationDocumentResult?>;
 

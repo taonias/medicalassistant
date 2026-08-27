@@ -4,7 +4,7 @@ using MedicalAssistant.Application.Exceptions;
 using MedicalAssistant.Domain;
 using MediatR;
 
-namespace MedicalAssistant.Application.Features.DoctorNotes.Query.GetDoctorNotesByConsultation;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.DoctorNotes.GetDoctorNotesByConsultation;
 
 public record GetDoctorNotesByConsultationQuery(int ConsultationId) : IRequest<IReadOnlyList<DoctorNote>>;
 

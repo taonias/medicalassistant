@@ -5,7 +5,7 @@ using MedicalAssistant.Application.Contracts.Persistence;
 using MedicalAssistant.Application.Exceptions;
 using MediatR;
 
-namespace MedicalAssistant.Application.Features.Chat.Queries.ChatQuery;
+namespace MedicalAssistant.Application.Modules.Assistance.Chat.ChatQuery;
 
 public class ChatQueryHandler : IRequestHandler<ChatQuery, ChatResponseDto>
 {

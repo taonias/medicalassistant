@@ -1,6 +1,6 @@
 using MediatR;
 
-namespace MedicalAssistant.Application.Features.MedicalStructuredData.Queries.GetStructuredData;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.StructuredMedicalData.GetStructuredData;
 
 public record GetStructuredDataQuery(int ConsultationId) : IRequest<MedicalStructuredDataDto?>;
 

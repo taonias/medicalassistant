@@ -1,8 +1,8 @@
 using MediatR;
 using MedicalAssistant.Application.Contracts.Logging;
-using MedicalAssistant.Application.Features.Patient.Queries.GetPatientById;
+using MedicalAssistant.Application.Modules.CareWorkflow.Patients.GetPatientById;
 
-namespace MedicalAssistant.Application.Features.Patient.Command.UpdatePatient;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.Patients.UpdatePatient;
 
 public class UpdatePatientCommand : IRequest<PatientDto>, IAuditableRequest<PatientDto>
 {

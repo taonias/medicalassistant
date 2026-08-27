@@ -1,11 +1,11 @@
 using MedicalAssistant.Application.Contracts.Identity;
 using MedicalAssistant.Application.Contracts.Persistence;
 using MedicalAssistant.Application.Exceptions;
-using MedicalAssistant.Application.Features.Chat.Common;
+using MedicalAssistant.Application.Modules.Assistance.Chat;
 using MedicalAssistant.Domain;
 using MediatR;
 
-namespace MedicalAssistant.Application.Features.Chat.Query.GetConversationMessages;
+namespace MedicalAssistant.Application.Modules.Assistance.Chat.GetConversationMessages;
 
 /// <summary>A full conversation thread (header + messages + structured citations) for rehydration.</summary>
 public sealed record GetConversationMessagesQuery(int ConversationId) : IRequest<ConversationThreadDto>;

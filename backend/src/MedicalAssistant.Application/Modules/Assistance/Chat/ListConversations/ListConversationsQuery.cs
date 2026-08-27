@@ -1,10 +1,10 @@
 using MedicalAssistant.Application.Contracts.Identity;
 using MedicalAssistant.Application.Contracts.Persistence;
 using MedicalAssistant.Application.Exceptions;
-using MedicalAssistant.Application.Features.Chat.Common;
+using MedicalAssistant.Application.Modules.Assistance.Chat;
 using MediatR;
 
-namespace MedicalAssistant.Application.Features.Chat.Query.ListConversations;
+namespace MedicalAssistant.Application.Modules.Assistance.Chat.ListConversations;
 
 /// <summary>A doctor's active conversations about one patient (history list).</summary>
 public sealed record ListConversationsQuery(int PatientId) : IRequest<IReadOnlyList<ConversationSummaryDto>>;

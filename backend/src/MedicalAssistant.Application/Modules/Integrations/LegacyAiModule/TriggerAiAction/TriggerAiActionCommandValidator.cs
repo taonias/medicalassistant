@@ -2,7 +2,7 @@ using FluentValidation;
 using MedicalAssistant.Application.Contracts.Identity;
 using MedicalAssistant.Application.Contracts.Persistence;
 
-namespace MedicalAssistant.Application.Features.ActionRequest.Command.TriggerAiAction;
+namespace MedicalAssistant.Application.Modules.Integrations.LegacyAiModule.TriggerAiAction;
 
 public class TriggerAiActionCommandValidator : AbstractValidator<TriggerAiActionCommand>
 {

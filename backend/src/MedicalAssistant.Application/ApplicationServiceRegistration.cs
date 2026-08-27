@@ -20,9 +20,9 @@ public static class ApplicationServiceRegistration
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(AuditBehavior<,>));
         services.AddScoped<Services.PatientHistoryAssembler>();
-        services.AddScoped<Features.Chat.Common.IChatTurnRunner, Features.Chat.Common.ChatTurnRunner>();
-        services.AddSingleton<Features.Chat.Common.IConversationSummaryRefreshQueue, Features.Chat.Common.ConversationSummaryRefreshQueue>();
-        services.AddScoped<Features.Chat.Common.ConversationSummaryRefresher>();
+        services.AddScoped<Modules.Assistance.Chat.IChatTurnRunner, Modules.Assistance.Chat.ChatTurnRunner>();
+        services.AddSingleton<Modules.Assistance.Chat.IConversationSummaryRefreshQueue, Modules.Assistance.Chat.ConversationSummaryRefreshQueue>();
+        services.AddScoped<Modules.Assistance.Chat.ConversationSummaryRefresher>();
         services.AddSingleton<Services.IConsultationOutboxRelayObserver, Services.ConsultationOutboxRelayMetrics>();
         services.AddSingleton<Services.IntegrationEventReplayPolicy>();
         services.AddScoped<Services.IntegrationEventReplayService>();

@@ -3,7 +3,7 @@ using MedicalAssistant.Application.Exceptions;
 using MedicalAssistant.Application.Services;
 using MediatR;
 
-namespace MedicalAssistant.Application.Features.Patient.Queries.GetPatientHistory;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.Patients.GetPatientHistory;
 
 public class GetPatientHistoryQueryHandler : IRequestHandler<GetPatientHistoryQuery, PatientHistoryDto>
 {

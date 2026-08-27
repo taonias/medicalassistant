@@ -1,6 +1,6 @@
 using MediatR;
 
-namespace MedicalAssistant.Application.Features.Transcript.Queries.GetTranscript;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.Transcripts.GetTranscript;
 
 public record GetTranscriptQuery(int ConsultationId) : IRequest<TranscriptDto?>;
 

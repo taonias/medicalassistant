@@ -1,10 +1,11 @@
+using MedicalAssistant.Persistence.Repositories;
 using MedicalAssistant.Application.Contracts.Persistence;
 using MedicalAssistant.Domain;
 using MedicalAssistant.Persistence.DatabaseContext;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
-namespace MedicalAssistant.Persistence.Repositories;
+namespace MedicalAssistant.Persistence.Modules.CareWorkflow.StructuredMedicalData;
 
 public class MedicalStructuredDataRepository : GenericRepository<MedicalStructuredData>, IMedicalStructuredDataRepository
 {

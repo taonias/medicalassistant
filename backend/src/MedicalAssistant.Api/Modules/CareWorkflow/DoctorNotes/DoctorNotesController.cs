@@ -1,6 +1,6 @@
-using MedicalAssistant.Application.Features.DoctorNotes.Command.CreateDoctorNote;
-using MedicalAssistant.Application.Features.DoctorNotes.Query.GetDoctorNotesByConsultation;
-using MedicalAssistant.Application.Features.DoctorNotes.Query.GetPatientLevelDoctorNotes;
+using MedicalAssistant.Application.Modules.CareWorkflow.DoctorNotes.CreateDoctorNote;
+using MedicalAssistant.Application.Modules.CareWorkflow.DoctorNotes.GetDoctorNotesByConsultation;
+using MedicalAssistant.Application.Modules.CareWorkflow.DoctorNotes.GetPatientLevelDoctorNotes;
 using MedicalAssistant.Domain;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;

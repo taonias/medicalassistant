@@ -3,13 +3,13 @@ name: Clinical Knowledge characterization
 on:
   pull_request:
     paths:
-      - "AI/src/**"
-      - "AI/tests/**"
+      - "clinical-knowledge/src/**"
+      - "clinical-knowledge/tests/**"
       - ".github/workflows/clinical-knowledge-characterization.yml"
   push:
     paths:
-      - "AI/src/**"
-      - "AI/tests/**"
+      - "clinical-knowledge/src/**"
+      - "clinical-knowledge/tests/**"
       - ".github/workflows/clinical-knowledge-characterization.yml"
 
 permissions:
@@ -27,9 +27,9 @@ jobs:
       - name: Restore ingestion tests
         run: >-
           dotnet restore
-          AI/tests/MedicalAssistance.Ingestion.Api.Tests/MedicalAssistance.Ingestion.Api.Tests.csproj
+          clinical-knowledge/tests/MedicalAssistance.Ingestion.Api.Tests/MedicalAssistance.Ingestion.Api.Tests.csproj
       - name: Run Clinical Knowledge characterization gate
         run: >-
           dotnet test
-          AI/tests/MedicalAssistance.Ingestion.Api.Tests/MedicalAssistance.Ingestion.Api.Tests.csproj
+          clinical-knowledge/tests/MedicalAssistance.Ingestion.Api.Tests/MedicalAssistance.Ingestion.Api.Tests.csproj
           --no-restore

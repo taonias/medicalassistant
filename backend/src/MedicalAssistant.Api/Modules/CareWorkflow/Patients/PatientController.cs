@@ -1,8 +1,8 @@
-using MedicalAssistant.Application.Features.Patient.Command.CreatePatient;
-using MedicalAssistant.Application.Features.Patient.Command.UpdatePatient;
-using MedicalAssistant.Application.Features.Patient.Queries.GetPatientById;
-using MedicalAssistant.Application.Features.Patient.Queries.GetPatientHistory;
-using MedicalAssistant.Application.Features.Patient.Queries.GetPatientsList;
+using MedicalAssistant.Application.Modules.CareWorkflow.Patients.CreatePatient;
+using MedicalAssistant.Application.Modules.CareWorkflow.Patients.UpdatePatient;
+using MedicalAssistant.Application.Modules.CareWorkflow.Patients.GetPatientById;
+using MedicalAssistant.Application.Modules.CareWorkflow.Patients.GetPatientHistory;
+using MedicalAssistant.Application.Modules.CareWorkflow.Patients.GetPatientsList;
 using MedicalAssistant.Application.Models.Patients;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;

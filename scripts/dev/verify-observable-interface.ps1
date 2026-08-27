@@ -155,7 +155,7 @@ $controllerDirectories = @(
     # Controllers now live beside their capability under Modules/<Context>/<Capability>
     # rather than in one flat folder, so this recurses instead of naming one directory.
     (Join-Path $repositoryRoot "backend/src/MedicalAssistant.Api"),
-    (Join-Path $repositoryRoot "AI/src/MedicalAssistance.Ingestion.Api")
+    (Join-Path $repositoryRoot "clinical-knowledge/src/MedicalAssistance.Ingestion.Api")
 )
 Assert-EqualSet -Name "HTTP routes" -Expected $snapshot.httpRoutes -Actual @(Get-ControllerRoutes $controllerDirectories)
 Assert-EqualSet -Name "Endpoint status signatures" -Expected $snapshot.endpointStatusSignatures -Actual @(
@@ -165,9 +165,9 @@ Assert-EqualSet -Name "Endpoint status signatures" -Expected $snapshot.endpointS
 $backendProgram = Get-Content -Raw -LiteralPath (Join-Path $repositoryRoot "backend/src/MedicalAssistant.Api/Program.cs")
 # R26 moved endpoint mapping (UseSwagger, MapHub<IngestionStatusHub>) out of Program.cs
 # into HostEndpoints.cs, so both are read together here for the checks below.
-$clinicalProgram = (Get-Content -Raw -LiteralPath (Join-Path $repositoryRoot "AI/src/MedicalAssistance.Ingestion.Api/Program.cs")) +
-    (Get-Content -Raw -LiteralPath (Join-Path $repositoryRoot "AI/src/MedicalAssistance.Ingestion.Api/HostEndpoints.cs"))
-$apiKeySource = Get-Content -Raw -LiteralPath (Join-Path $repositoryRoot "AI/src/MedicalAssistance.Ingestion.Api/Security/ApiKeyAuthentication.cs")
+$clinicalProgram = (Get-Content -Raw -LiteralPath (Join-Path $repositoryRoot "clinical-knowledge/src/MedicalAssistance.Ingestion.Api/Program.cs")) +
+    (Get-Content -Raw -LiteralPath (Join-Path $repositoryRoot "clinical-knowledge/src/MedicalAssistance.Ingestion.Api/HostEndpoints.cs"))
+$apiKeySource = Get-Content -Raw -LiteralPath (Join-Path $repositoryRoot "clinical-knowledge/src/MedicalAssistance.Ingestion.Api/Security/ApiKeyAuthentication.cs")
 $backendSecurityName = [regex]::Match($backendProgram, 'AddSecurityDefinition\("([^"]+)"').Groups[1].Value
 $clinicalSecurityName = [regex]::Match($apiKeySource, 'SchemeName = "([^"]+)"').Groups[1].Value
 $clinicalSecurityHeader = [regex]::Match($apiKeySource, 'HeaderName = "([^"]+)"').Groups[1].Value
@@ -183,7 +183,7 @@ Assert-EqualSet -Name "OpenAPI endpoints/security" -Expected $snapshot.openApi -
 $backendHubPath = [regex]::Match($backendProgram, 'MapHub<[^>]*ChatHub>\("([^"]+)"\)').Groups[1].Value
 $clinicalHubPath = [regex]::Match($clinicalProgram, 'MapHub<IngestionStatusHub>\("([^"]+)"\)').Groups[1].Value
 $chatHubSource = Get-Content -Raw -LiteralPath (Join-Path $repositoryRoot "backend/src/MedicalAssistant.Api/Modules/Assistance/Chat/ChatHub.cs")
-$ingestionStatusSource = Get-Content -Raw -LiteralPath (Join-Path $repositoryRoot "AI/src/MedicalAssistance.Ingestion.Api/Modules/Ingestion/IngestionStatusPublisher.cs")
+$ingestionStatusSource = Get-Content -Raw -LiteralPath (Join-Path $repositoryRoot "clinical-knowledge/src/MedicalAssistance.Ingestion.Api/Modules/Ingestion/IngestionStatusPublisher.cs")
 $chatClientMethod = [regex]::Match($chatHubSource, 'ClientMethod = "([^"]+)"').Groups[1].Value
 $ingestionClientMethod = [regex]::Match($ingestionStatusSource, 'ClientMethod = "([^"]+)"').Groups[1].Value
 Assert-EqualSet -Name "SignalR hubs/client methods" -Expected $snapshot.signalR -Actual @(

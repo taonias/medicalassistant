@@ -1,7 +1,7 @@
 using MedicalAssistant.Domain;
 using MedicalAssistant.Domain.Enums;
 using MedicalAssistant.EventBus.Contracts;
-using MedicalAssistant.Persistence.Repositories;
+using MedicalAssistant.Persistence.Modules.ConsultationProcessing.DurableMessaging;
 using Microsoft.EntityFrameworkCore;
 
 namespace MedicalAssistant.Persistence.IntegrationTests;

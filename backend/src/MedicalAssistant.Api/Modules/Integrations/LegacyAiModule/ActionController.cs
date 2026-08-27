@@ -1,5 +1,5 @@
-using MedicalAssistant.Application.Features.ActionRequest.Command.TriggerAiAction;
-using MedicalAssistant.Application.Features.ActionRequest.Queries.GetActionRequestStatus;
+using MedicalAssistant.Application.Modules.Integrations.LegacyAiModule.TriggerAiAction;
+using MedicalAssistant.Application.Modules.Integrations.LegacyAiModule.GetActionRequestStatus;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

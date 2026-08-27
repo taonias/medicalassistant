@@ -192,7 +192,7 @@ public sealed class ClinicalKnowledgeServiceControl : IServiceLifecycleControl, 
         {
             var candidate = Path.Combine(
                 directory.FullName,
-                "AI",
+                "clinical-knowledge",
                 "src",
                 "MedicalAssistance.Ingestion.Api",
                 "bin",

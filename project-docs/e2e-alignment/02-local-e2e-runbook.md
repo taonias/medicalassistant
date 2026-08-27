@@ -21,8 +21,7 @@ Everything up to those two model calls runs with no external credentials.
 | Backend API (HTTP) | http://localhost:7037 — Swagger at `/swagger`, health at `/health/live` and `/health/ready` |
 | Clinical Knowledge API | http://localhost:8000/swagger |
 | RabbitMQ management | http://localhost:15672 |
-| App PostgreSQL | localhost:5432 (`MedicalAssistantDb`) |
-| Clinical PostgreSQL | localhost:5434 (`ai_med`, pgvector) — remapped off 5433 via `docker-compose.override.yml` |
+| PostgreSQL (one server, two DBs) | localhost:5432 — `MedicalAssistantDb` (app) and `ai_med` (Clinical Knowledge, pgvector), same container |
 
 ## Start
 
@@ -73,7 +72,7 @@ curl -s http://localhost:7037/api/Consultation/1 -H "Authorization: Bearer $TOKE
 
 ```bash
 # outbox published?
-docker compose exec -T postgres-app psql -U medicalassistant -d MedicalAssistantDb \
+docker compose exec -T postgres psql -U medicalassistant -d MedicalAssistantDb \
   -c 'SELECT "EventType","Status","PublishedAtUtc" IS NOT NULL AS published FROM "ConsultationOutboxMessages" ORDER BY "OccurredAtUtc" DESC LIMIT 5;'
 # rabbitmq queues (consumers should be 1 on the two main queues)
 curl -s -u "$(grep ^RABBITMQ_BOOTSTRAP_USER= .env|cut -d= -f2):$(grep ^RABBITMQ_BOOTSTRAP_PASSWORD= .env|cut -d= -f2)" \

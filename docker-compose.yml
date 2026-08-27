@@ -125,7 +125,7 @@ services:
   clinical-knowledge:
     build:
       context: .
-      dockerfile: AI/src/MedicalAssistance.Ingestion.Api/Dockerfile
+      dockerfile: clinical-knowledge/src/MedicalAssistance.Ingestion.Api/Dockerfile
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080

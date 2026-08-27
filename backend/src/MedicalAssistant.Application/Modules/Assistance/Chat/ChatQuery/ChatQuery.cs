@@ -1,6 +1,6 @@
 using MediatR;
 
-namespace MedicalAssistant.Application.Features.Chat.Queries.ChatQuery;
+namespace MedicalAssistant.Application.Modules.Assistance.Chat.ChatQuery;
 
 public class ChatQuery : IRequest<ChatResponseDto>
 {

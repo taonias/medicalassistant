@@ -1,8 +1,8 @@
 using MedicalAssistant.Application.Contracts.Logging;
-using MedicalAssistant.Application.Features.Transcript.Queries.GetTranscript;
+using MedicalAssistant.Application.Modules.CareWorkflow.Transcripts.GetTranscript;
 using MediatR;
 
-namespace MedicalAssistant.Application.Features.Transcript.Command.UpdateTranscript;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.Transcripts.UpdateTranscript;
 
 public class UpdateTranscriptCommand : IRequest<TranscriptDto>, IAuditableRequest<TranscriptDto>
 {

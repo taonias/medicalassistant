@@ -1,4 +1,4 @@
-using MedicalAssistant.Application.Features.Chat.Common;
+using MedicalAssistant.Application.Modules.Assistance.Chat;
 using Shouldly;
 
 namespace MedicalAssistant.Application.UnitTests.Chat;

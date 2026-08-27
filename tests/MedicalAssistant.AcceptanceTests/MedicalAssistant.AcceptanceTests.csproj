@@ -21,7 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\backend\src\MedicalAssistant.Api\MedicalAssistant.Api.csproj" />
-    <ProjectReference Include="..\..\AI\src\MedicalAssistance.Ingestion.Api\MedicalAssistance.Ingestion.Api.csproj"
+    <ProjectReference Include="..\..\clinical-knowledge\src\MedicalAssistance.Ingestion.Api\MedicalAssistance.Ingestion.Api.csproj"
                       ReferenceOutputAssembly="false"
                       SkipGetTargetFrameworkProperties="true" />
     <ProjectReference Include="..\..\backend\src\MedicalAssistant.Transcription.Worker\MedicalAssistant.Transcription.Worker.csproj"

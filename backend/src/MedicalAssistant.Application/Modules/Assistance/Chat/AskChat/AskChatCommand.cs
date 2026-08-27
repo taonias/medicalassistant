@@ -2,12 +2,12 @@ using MedicalAssistant.Application.Contracts.Identity;
 using MedicalAssistant.Application.Contracts.Logging;
 using MedicalAssistant.Application.Contracts.Persistence;
 using MedicalAssistant.Application.Exceptions;
-using MedicalAssistant.Application.Features.Chat.Common;
+using MedicalAssistant.Application.Modules.Assistance.Chat;
 using MedicalAssistant.Domain;
 using MedicalAssistant.Domain.Enums;
 using MediatR;
 
-namespace MedicalAssistant.Application.Features.Chat.Command.AskChat;
+namespace MedicalAssistant.Application.Modules.Assistance.Chat.AskChat;
 
 /// <summary>
 /// Ask one grounded turn. Unified entry point: with a <see cref="ConversationId"/> the turn

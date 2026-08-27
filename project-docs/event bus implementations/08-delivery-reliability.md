@@ -58,9 +58,9 @@ An abandoned in-progress inbox attempt must be recoverable; it cannot permanentl
 | Malformed/unsupported/policy-invalid contract | No clinical mutation; record safe diagnostic | Dead-letter immediately |
 | Unhandled failure after retry budget | Roll back uncommitted work | Dead-letter and alert |
 
-## Five-retry topology
+## Configurable delayed-retry topology
 
-Each subscriber owns a main queue, five delayed retry stages, and a final dead-letter queue. Delays increase and are deployment-configurable; changing delay values does not change event contracts. A practical initial schedule may be selected from observed dependency behavior, then tuned without code changes.
+Each subscriber owns a main queue, an optional sequence of delayed retry stages, and a final dead-letter queue — the number of stages and their delays are deployment-configurable (`RabbitMQ:Topology:RetryDelays`); changing delay values does not change event contracts. **The currently shipped configuration sets zero retry stages for every subscriber** (tracked as [K07](../../docs/known-issues/refactor-baseline.md)), so a transient failure dead-letters on the first attempt rather than retrying five times. A practical initial schedule may be selected from observed dependency behavior, then tuned without code changes.
 
 Every transfer preserves original event ID/type/correlation/causation metadata and records the attempt in broker headers. The consumer does not trust arbitrary publisher-supplied attempt counts; broker topology/death headers and subscriber policy determine exhaustion.
 
@@ -75,7 +75,7 @@ Replay requires:
 1. Diagnose and repair the cause.
 2. Verify the event contract remains supported and the Consultation is not deleted/superseded.
 3. Record operator/reason/change reference.
-4. Republish the original immutable event with the same event ID through an approved replay tool.
+4. Republish the original immutable event with the same event ID through the replay mechanism — implemented and unit-tested (`IntegrationEventReplayService` and its safety checks), but with no operator-facing entry point (API/CLI) yet; wiring one up is still outstanding.
 5. Observe inbox outcome and resulting events.
 6. Close the incident only after business-state reconciliation.
 

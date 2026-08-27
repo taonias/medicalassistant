@@ -2,7 +2,7 @@ using FluentValidation;
 using MedicalAssistant.Application.Contracts.Identity;
 using MedicalAssistant.Application.Contracts.Persistence;
 
-namespace MedicalAssistant.Application.Features.Patient.Command.CreatePatient;
+namespace MedicalAssistant.Application.Modules.CareWorkflow.Patients.CreatePatient;
 
 public class CreatePatientCommandValidator : AbstractValidator<CreatePatientCommand>
 {

@@ -1,7 +1,7 @@
 using FluentValidation.TestHelper;
 using MedicalAssistant.Application.Contracts.Identity;
 using MedicalAssistant.Application.Contracts.Persistence;
-using MedicalAssistant.Application.Features.Patient.Command.CreatePatient;
+using MedicalAssistant.Application.Modules.CareWorkflow.Patients.CreatePatient;
 using Moq;
 
 namespace MedicalAssistant.Application.UnitTests.Features;

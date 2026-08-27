@@ -1,7 +1,7 @@
 using MediatR;
 using MedicalAssistant.Application.Contracts.Logging;
 
-namespace MedicalAssistant.Application.Features.ActionRequest.Command.ProcessActionCallback;
+namespace MedicalAssistant.Application.Modules.Integrations.LegacyAiModule.ProcessActionCallback;
 
 public class ProcessActionCallbackCommand : IRequest<Unit>, IAuditableRequest<Unit>
 {

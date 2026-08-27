@@ -100,7 +100,7 @@ For Greek recognition, the example uses `el-GR`. That is speech recognition, not
 
 The AI service uses `pgvector/pgvector:pg17` on host port 5433, database `ai_med`, in the documented development setup.
 
-The supplied `AI/database/createDB.ps1` drops and recreates the database before applying migrations. It is suitable only for disposable local data. Do not use the reset path on a database containing records that must be retained.
+The supplied `clinical-knowledge/database/createDB.ps1` drops and recreates the database before applying migrations. It is suitable only for disposable local data. Do not use the reset path on a database containing records that must be retained.
 
 The AI host also calls EF Core migrations at startup under an advisory lock.
 
