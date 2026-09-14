@@ -19,6 +19,8 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+$envFile = Join-Path $PSScriptRoot ".env"
+$composeArgs = @("--env-file", $envFile)
 Set-Location -Path $PSScriptRoot
 
 function Test-Url([string]$Url) {
@@ -27,7 +29,7 @@ function Test-Url([string]$Url) {
 }
 
 function Get-EnvValue([string]$Name) {
-    $line = (Get-Content ".env" -ErrorAction SilentlyContinue | Where-Object { $_ -match "^$Name=" } | Select-Object -First 1)
+    $line = (Get-Content -LiteralPath $envFile -ErrorAction SilentlyContinue | Where-Object { $_ -match "^$Name=" } | Select-Object -First 1)
     if ($line) { return $line.Substring($line.IndexOf('=') + 1).Trim() }
     return ""
 }
@@ -47,8 +49,8 @@ function Open-InChrome([string[]]$Urls) {
     }
 }
 
-if (-not (Test-Path ".env")) {
-    Write-Host "No .env found. Copy compose.env.example to .env and fill in keys first." -ForegroundColor Red
+if (-not (Test-Path -LiteralPath $envFile)) {
+    Write-Host "No .env found beside start.ps1 at '$envFile'. Copy compose.env.example to .env and fill in keys first." -ForegroundColor Red
     exit 1
 }
 
@@ -64,15 +66,15 @@ if (-not $Rebuild -and -not $Build) {
 
 if ($doRebuild) {
     Write-Host "==> Removing locally-built images and rebuilding from scratch (docker compose)..." -ForegroundColor Cyan
-    docker compose down --rmi local --remove-orphans
-    docker compose build --no-cache
-    docker compose up -d
+    docker compose @composeArgs down --rmi local --remove-orphans
+    docker compose @composeArgs build --no-cache
+    docker compose @composeArgs up -d
 } elseif ($Build) {
     Write-Host "==> Starting backend services with an incremental image rebuild (docker compose)..." -ForegroundColor Cyan
-    docker compose up -d --build
+    docker compose @composeArgs up -d --build
 } else {
     Write-Host "==> Starting backend services (docker compose)..." -ForegroundColor Cyan
-    docker compose up -d
+    docker compose @composeArgs up -d
 }
 
 Write-Host "==> Waiting for backend API (http://localhost:7037/health/ready)..." -ForegroundColor Cyan
