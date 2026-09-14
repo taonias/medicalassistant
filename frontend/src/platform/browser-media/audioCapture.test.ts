@@ -2,10 +2,22 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { startAudioCapture } from './audioCapture';
 
 type DataAvailableHandler = ((event: { data: Blob }) => void) | null;
+type TrackEventType = 'mute' | 'unmute';
 
 class FakeTrack {
   enabled = true;
   stopped = false;
+  private listeners: Record<TrackEventType, Array<() => void>> = { mute: [], unmute: [] };
+
+  addEventListener(type: TrackEventType, listener: () => void) {
+    this.listeners[type].push(listener);
+  }
+  removeEventListener(type: TrackEventType, listener: () => void) {
+    this.listeners[type] = this.listeners[type].filter((l) => l !== listener);
+  }
+  dispatch(type: TrackEventType) {
+    this.listeners[type].forEach((listener) => listener());
+  }
   stop() {
     this.stopped = true;
   }
@@ -18,6 +30,49 @@ class FakeStream {
   }
   getTracks() {
     return [this.track];
+  }
+}
+
+/** Fixed sample value everywhere: 128 is the silent midpoint of a byte time-domain buffer. */
+class FakeAnalyserNode {
+  fftSize = 2048;
+  smoothingTimeConstant = 0;
+  timeDomainValue = 128;
+  frequencyValue = 0;
+  connected = false;
+
+  get frequencyBinCount() {
+    return this.fftSize / 2;
+  }
+  connect() {
+    this.connected = true;
+  }
+  disconnect() {
+    this.connected = false;
+  }
+  getByteTimeDomainData(array: Uint8Array) {
+    array.fill(this.timeDomainValue);
+  }
+  getByteFrequencyData(array: Uint8Array) {
+    array.fill(this.frequencyValue);
+  }
+}
+
+class FakeAudioContext {
+  static lastAnalyser: FakeAnalyserNode | null = null;
+  closed = false;
+
+  createMediaStreamSource() {
+    return { connect: vi.fn(), disconnect: vi.fn() };
+  }
+  createAnalyser() {
+    const analyser = new FakeAnalyserNode();
+    FakeAudioContext.lastAnalyser = analyser;
+    return analyser;
+  }
+  close() {
+    this.closed = true;
+    return Promise.resolve();
   }
 }
 
@@ -72,6 +127,7 @@ let lastStream: FakeStream;
 function installFakes() {
   FakeMediaRecorder.instances = [];
   FakeMediaRecorder.callOrder = [];
+  FakeAudioContext.lastAnalyser = null;
   lastStream = new FakeStream();
 
   Object.defineProperty(navigator, 'mediaDevices', {
@@ -82,6 +138,11 @@ function installFakes() {
     configurable: true,
     writable: true,
     value: FakeMediaRecorder,
+  });
+  Object.defineProperty(window, 'AudioContext', {
+    configurable: true,
+    writable: true,
+    value: FakeAudioContext,
   });
 }
 
@@ -172,5 +233,104 @@ describe('startAudioCapture', () => {
 
     const recorder = FakeMediaRecorder.instances[0];
     expect(() => recorder.onerror?.()).not.toThrow();
+  });
+
+  describe('silence detection', () => {
+    it('reports sustained silence only after several consecutive quiet ticks', async () => {
+      vi.useFakeTimers();
+      const onSilenceChange = vi.fn();
+      await startAudioCapture({ onSilenceChange });
+
+      FakeAudioContext.lastAnalyser!.timeDomainValue = 128; // silence (centered)
+
+      vi.advanceTimersByTime(3000);
+      expect(onSilenceChange).not.toHaveBeenCalled(); // a brief pause is not silence
+
+      vi.advanceTimersByTime(1000);
+      expect(onSilenceChange).toHaveBeenCalledTimes(1);
+      expect(onSilenceChange).toHaveBeenCalledWith(true);
+    });
+
+    it('clears once real signal returns', async () => {
+      vi.useFakeTimers();
+      const onSilenceChange = vi.fn();
+      await startAudioCapture({ onSilenceChange });
+
+      const analyser = FakeAudioContext.lastAnalyser!;
+      analyser.timeDomainValue = 128;
+      vi.advanceTimersByTime(4000);
+      expect(onSilenceChange).toHaveBeenLastCalledWith(true);
+
+      analyser.timeDomainValue = 220; // loud signal, well above the threshold
+      vi.advanceTimersByTime(1000);
+      expect(onSilenceChange).toHaveBeenLastCalledWith(false);
+    });
+
+    it('treats a muted track as immediate silence, independent of level', async () => {
+      const onSilenceChange = vi.fn();
+      await startAudioCapture({ onSilenceChange });
+
+      lastStream.track.dispatch('mute');
+      expect(onSilenceChange).toHaveBeenCalledTimes(1);
+      expect(onSilenceChange).toHaveBeenCalledWith(true);
+
+      lastStream.track.dispatch('unmute');
+      expect(onSilenceChange).toHaveBeenLastCalledWith(false);
+    });
+
+    it('does not warn while paused, and resets the hold on resume', async () => {
+      vi.useFakeTimers();
+      const onSilenceChange = vi.fn();
+      const session = await startAudioCapture({ onSilenceChange });
+      FakeAudioContext.lastAnalyser!.timeDomainValue = 128;
+
+      vi.advanceTimersByTime(3000); // 3 quiet ticks, just short of the hold
+      session.pause();
+      vi.advanceTimersByTime(10_000); // no ticks fire while paused
+      expect(onSilenceChange).not.toHaveBeenCalled();
+
+      session.resume();
+      vi.advanceTimersByTime(3000); // hold resets on resume, so 3 more ticks isn't enough
+      expect(onSilenceChange).not.toHaveBeenCalled();
+    });
+
+    it('falls back to never reporting silence when Web Audio metering is unavailable', async () => {
+      vi.useFakeTimers();
+      Object.defineProperty(window, 'AudioContext', { configurable: true, value: undefined });
+      const onSilenceChange = vi.fn();
+      await startAudioCapture({ onSilenceChange });
+
+      vi.advanceTimersByTime(10_000);
+      expect(onSilenceChange).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getSpectrum', () => {
+    it('buckets frequency data into the requested number of 0..1 bars', async () => {
+      const session = await startAudioCapture();
+      FakeAudioContext.lastAnalyser!.frequencyValue = 191; // ~0.75 of 255
+
+      const bars = session.getSpectrum(8);
+
+      expect(bars).toHaveLength(8);
+      bars.forEach((value) => {
+        expect(value).toBeCloseTo(191 / 255, 2);
+      });
+    });
+
+    it('returns all-zero bars once disposed, even if the input was loud', async () => {
+      const session = await startAudioCapture();
+      FakeAudioContext.lastAnalyser!.frequencyValue = 200;
+      session.dispose();
+
+      expect(session.getSpectrum(4)).toEqual([0, 0, 0, 0]);
+    });
+
+    it('returns all-zero bars when Web Audio metering is unavailable', async () => {
+      Object.defineProperty(window, 'AudioContext', { configurable: true, value: undefined });
+      const session = await startAudioCapture();
+
+      expect(session.getSpectrum(5)).toEqual([0, 0, 0, 0, 0]);
+    });
   });
 });

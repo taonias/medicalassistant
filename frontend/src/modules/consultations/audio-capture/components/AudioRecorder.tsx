@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { startAudioCapture, type AudioCaptureSession } from '../../../../platform/browser-media';
 import { resolveRecordingDuration } from '../utils/getAudioDuration';
+import { AudioVisualizer } from '../../record/components/AudioVisualizer';
 
 interface Props {
   onRecordingComplete: (file: File, durationSeconds?: number) => void;
@@ -10,9 +11,11 @@ interface Props {
 }
 
 function formatDuration(totalSeconds: number) {
-  const minutes = Math.floor(totalSeconds / 60);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
-  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  const pad = (value: number) => value.toString().padStart(2, '0');
+  return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
 }
 
 export function AudioRecorder({
@@ -25,15 +28,25 @@ export function AudioRecorder({
   const [isPaused, setIsPaused] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [isSilent, setIsSilent] = useState(false);
   const sessionRef = useRef<AudioCaptureSession | null>(null);
   const elapsedRef = useRef(0);
+  // Guards against a getUserMedia prompt resolving after the component has
+  // already unmounted (e.g. the user navigates away mid-permission-prompt):
+  // without this, the resulting session would be adopted and start ticking
+  // on a component nothing is listening to anymore, leaking the mic stream.
+  const mountedRef = useRef(true);
+  const getSpectrum = (barCount: number) =>
+    sessionRef.current?.getSpectrum(barCount) ?? new Array(barCount).fill(0);
 
   useEffect(() => {
     elapsedRef.current = elapsed;
   }, [elapsed]);
 
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
+      mountedRef.current = false;
       sessionRef.current?.dispose();
       sessionRef.current = null;
     };
@@ -41,19 +54,28 @@ export function AudioRecorder({
 
   async function startRecording() {
     setError(null);
+    setIsSilent(false);
     try {
-      const session = await startAudioCapture({
+      const newSession = await startAudioCapture({
         onTick: (value) => {
           setElapsed(value);
           elapsedRef.current = value;
         },
+        onSilenceChange: setIsSilent,
       });
-      sessionRef.current = session;
+
+      if (!mountedRef.current) {
+        newSession.dispose();
+        return;
+      }
+
+      sessionRef.current = newSession;
       setIsRecording(true);
       setIsPaused(false);
       setElapsed(0);
       elapsedRef.current = 0;
     } catch {
+      if (!mountedRef.current) return;
       setError('Microphone access is required to record consultations.');
     }
   }
@@ -76,6 +98,7 @@ export function AudioRecorder({
     sessionRef.current = null;
     setIsRecording(false);
     setIsPaused(false);
+    setIsSilent(false);
 
     void session.stop().then(async (file) => {
       if (!file) return;
@@ -103,6 +126,14 @@ export function AudioRecorder({
         >
           {statusLabel}
         </div>
+      ) : null}
+      {isRecording ? (
+        <AudioVisualizer active={isRecording} paused={isPaused} getSpectrum={getSpectrum} />
+      ) : null}
+      {isSilent && isRecording && !isPaused ? (
+        <p className="record-session__silence-warning" role="status" aria-live="polite">
+          No sound detected — check your microphone.
+        </p>
       ) : null}
       {error ? <p className="field__error">{error}</p> : null}
       <div className="audio-recorder__actions">

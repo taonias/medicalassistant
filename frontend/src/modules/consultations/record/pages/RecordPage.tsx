@@ -16,9 +16,11 @@ function createIdempotencyKey() {
 }
 
 function formatDuration(totalSeconds: number) {
-  const minutes = Math.floor(totalSeconds / 60);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
-  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  const pad = (value: number) => value.toString().padStart(2, '0');
+  return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
 }
 
 export function RecordPage() {
@@ -39,9 +41,11 @@ export function RecordPage() {
   const elapsed = useRecordSessionStore((state) => state.elapsed);
   const isPaused = useRecordSessionStore((state) => state.isPaused);
   const micError = useRecordSessionStore((state) => state.micError);
+  const isSilent = useRecordSessionStore((state) => state.isSilent);
   const startNewRecording = useRecordSessionStore((state) => state.startNewRecording);
   const resetToIdle = useRecordSessionStore((state) => state.resetToIdle);
   const clearTimer = useRecordSessionStore((state) => state.clearTimer);
+  const getSpectrum = useRecordSessionStore((state) => state.getSpectrum);
 
   const pause = useRecordSessionStore((state) => state.pause);
   const resume = useRecordSessionStore((state) => state.resume);
@@ -188,7 +192,13 @@ export function RecordPage() {
             {formatDuration(elapsed)}
           </div>
 
-          <AudioVisualizer active={isRecording} paused={isPaused} />
+          <AudioVisualizer active={isRecording} paused={isPaused} getSpectrum={getSpectrum} />
+
+          {isSilent && isRecording && !isPaused ? (
+            <p className="record-session__silence-warning" role="status" aria-live="polite">
+              No sound detected — check your microphone.
+            </p>
+          ) : null}
         </div>
       </div>
 

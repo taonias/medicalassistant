@@ -14,17 +14,28 @@ interface RecordSessionState {
   isPaused: boolean;
   audioFile: File | null;
   micError: string | null;
+  /** True once the input has read as sustained silence for a few seconds — surfaced as a non-blocking warning, recording continues. */
+  isSilent: boolean;
   startNewRecording: () => Promise<void>;
   pause: () => void;
   resume: () => void;
   stop: () => void;
   resetToIdle: () => void;
   clearTimer: () => void;
+  /** Live input spectrum for the recording visualizer; see AudioCaptureSession.getSpectrum. */
+  getSpectrum: (barCount: number) => number[];
 }
 
 let session: AudioCaptureSession | null = null;
+// Bumped by every disposal so an in-flight startAudioCapture() from an
+// earlier startNewRecording() call can tell it's been superseded (e.g. React
+// StrictMode's mount→cleanup→remount, or fast navigation away and back)
+// before it resolves, and discard itself instead of overwriting `session`
+// with a second, uncoordinated recording.
+let sessionGeneration = 0;
 
 function disposeSession() {
+  sessionGeneration += 1;
   session?.dispose();
   session = null;
 }
@@ -36,6 +47,7 @@ export const useRecordSessionStore = create<RecordSessionState>((set, get) => ({
   isPaused: false,
   audioFile: null,
   micError: null,
+  isSilent: false,
 
   clearTimer: () => {
     disposeSession();
@@ -50,11 +62,13 @@ export const useRecordSessionStore = create<RecordSessionState>((set, get) => ({
       isPaused: false,
       audioFile: null,
       micError: null,
+      isSilent: false,
     });
   },
 
   startNewRecording: async () => {
     get().clearTimer();
+    const myGeneration = sessionGeneration;
     set({
       phase: 'idle',
       elapsed: 0,
@@ -62,6 +76,7 @@ export const useRecordSessionStore = create<RecordSessionState>((set, get) => ({
       isPaused: false,
       audioFile: null,
       micError: null,
+      isSilent: false,
     });
 
     if (!navigator.mediaDevices?.getUserMedia) {
@@ -72,7 +87,7 @@ export const useRecordSessionStore = create<RecordSessionState>((set, get) => ({
     }
 
     try {
-      session = await startAudioCapture({
+      const newSession = await startAudioCapture({
         onTick: (elapsed) => set({ elapsed }),
         onError: () => {
           session = null;
@@ -80,11 +95,24 @@ export const useRecordSessionStore = create<RecordSessionState>((set, get) => ({
             phase: 'idle',
             isPaused: false,
             micError: 'Recording failed. Check your microphone and try again.',
+            isSilent: false,
           });
         },
+        onSilenceChange: (isSilent) => set({ isSilent }),
       });
-      set({ phase: 'recording', elapsed: 0, isPaused: false, micError: null });
+
+      if (myGeneration !== sessionGeneration) {
+        // Superseded while awaiting getUserMedia (StrictMode remount, a
+        // second startNewRecording/resetToIdle, or unmount) — tear this one
+        // down instead of adopting it alongside whatever is now current.
+        newSession.dispose();
+        return;
+      }
+
+      session = newSession;
+      set({ phase: 'recording', elapsed: 0, isPaused: false, micError: null, isSilent: false });
     } catch {
+      if (myGeneration !== sessionGeneration) return;
       session = null;
       set({
         phase: 'idle',
@@ -120,7 +148,10 @@ export const useRecordSessionStore = create<RecordSessionState>((set, get) => ({
         savedDuration: elapsed,
         isPaused: false,
         audioFile: file,
+        isSilent: false,
       });
     });
   },
+
+  getSpectrum: (barCount) => session?.getSpectrum(barCount) ?? new Array(barCount).fill(0),
 }));
