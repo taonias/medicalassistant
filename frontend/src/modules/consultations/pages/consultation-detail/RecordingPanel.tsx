@@ -1,4 +1,5 @@
 import { ErrorMessage } from '../../../../shared/components/ErrorMessage';
+import { ConsultationStatusIcon } from '../../../../shared/components/ConsultationStatusIcon';
 import { DownloadIcon } from '../../../../app/shell/navigation/NavIcons';
 import type { ApiError } from '../../../../shared/types/api';
 import { RecordingPreviewPlayer } from '../../record';
@@ -6,6 +7,7 @@ import { consultationApi } from '../../api/consultationApi';
 
 interface Props {
   consultationId: number;
+  status: string;
   durationSeconds: number;
   hasStoredAudio: boolean;
   audioIsLoading: boolean;
@@ -16,6 +18,7 @@ interface Props {
 
 export function RecordingPanel({
   consultationId,
+  status,
   durationSeconds,
   hasStoredAudio,
   audioIsLoading,
@@ -26,7 +29,10 @@ export function RecordingPanel({
   return (
     <section className="panel">
       <div className="panel-heading">
-        <h3>Recording</h3>
+        <span className="panel-heading__title">
+          <h3>Recording</h3>
+          <ConsultationStatusIcon status={status} showLabel />
+        </span>
         {hasStoredAudio ? (
           <button
             type="button"

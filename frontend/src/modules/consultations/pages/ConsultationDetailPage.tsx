@@ -1,8 +1,6 @@
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
-import { ConsultationStatusIcon } from '../../../shared/components/ConsultationStatusIcon';
-import { ConsultationStatusStepper } from '../../../shared/components/ConsultationStatusStepper';
 import { ErrorMessage } from '../../../shared/components/ErrorMessage';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton';
 import { consultationKeys } from '../queryKeys';
@@ -119,16 +117,7 @@ export function ConsultationDetailPage() {
             </>
           ) : null}
         </p>
-        <ConsultationStatusIcon
-          status={consultation.data.status}
-          className="consultation-status-icon--header"
-          showLabel
-        />
       </div>
-
-      {!isPdfConsultation ? (
-        <ConsultationStatusStepper status={consultation.data.status} />
-      ) : null}
 
       {consultation.data.failureReason ? (
         <div className="stack">
@@ -158,6 +147,7 @@ export function ConsultationDetailPage() {
         {canShowPlayer ? (
           <RecordingPanel
             consultationId={consultationIdNum}
+            status={consultation.data.status}
             durationSeconds={durationSeconds}
             hasStoredAudio={hasStoredAudio}
             audioIsLoading={audioQuery.isLoading}
@@ -168,7 +158,11 @@ export function ConsultationDetailPage() {
         ) : null}
 
         {hasStoredDocument ? (
-          <DocumentPanel consultationId={consultationIdNum} documentFileName={documentFileName} />
+          <DocumentPanel
+            consultationId={consultationIdNum}
+            documentFileName={documentFileName}
+            status={consultation.data.status}
+          />
         ) : null}
 
         {showTranscript ? (

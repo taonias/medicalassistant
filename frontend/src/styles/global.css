@@ -32,6 +32,7 @@
   --accent-hover: #0a2344;
   --danger: #b42318;
   --danger-soft: #fef2f2;
+  --success: #15803d;
   --success-soft: rgba(63, 177, 181, 0.12);
 
   --chart-1: #3fb1b5;
@@ -102,6 +103,7 @@
   --accent-hover: #5eb8bd;
   --danger: #f87171;
   --danger-soft: rgba(248, 113, 113, 0.12);
+  --success: #4ade80;
   --success-soft: rgba(79, 209, 197, 0.14);
 
   --chart-1: #4fd1c5;
@@ -233,6 +235,13 @@ textarea {
 
 .panel-heading h3 {
   margin: 0;
+}
+
+.panel-heading__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
 }
 
 .panel-heading .icon-button {
@@ -1658,19 +1667,35 @@ textarea {
 }
 
 .consultation-status-icon--completed {
-  color: var(--primary);
+  color: var(--success);
 }
 
 .consultation-status-icon--failed {
   color: var(--danger);
 }
 
-.consultation-status-icon--audiouploaded,
-.consultation-status-icon--documentuploaded,
-.consultation-status-icon--transcribing,
-.consultation-status-icon--transcribed,
-.consultation-status-icon--structureddatapending {
+.consultation-status-icon--spinning {
   color: var(--accent, var(--primary));
+}
+
+.consultation-status-icon--spinning svg {
+  animation: consultation-status-spin 1s linear infinite;
+  transform-origin: center;
+}
+
+@keyframes consultation-status-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .consultation-status-icon--spinning svg {
+    animation: none;
+  }
 }
 
 .consultation-status-badge {
@@ -1723,16 +1748,6 @@ textarea {
   gap: 1rem;
   max-width: 100%;
   min-width: 0;
-}
-
-.consultation-status-icon--header {
-  width: 2.25rem;
-  height: 2.25rem;
-}
-
-.consultation-status-icon--header svg {
-  width: 1.45rem;
-  height: 1.45rem;
 }
 
 .transcript-panel {
@@ -1853,50 +1868,6 @@ textarea {
 
 .structured-data__field dd {
   margin: 0;
-}
-
-.status-stepper {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  padding: 1rem;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-}
-
-.status-stepper__step {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  color: var(--text-muted);
-  font-size: 0.875rem;
-}
-
-.status-stepper__step--complete {
-  color: var(--text);
-}
-
-.status-stepper__step--active {
-  color: var(--primary);
-  font-weight: 600;
-}
-
-.status-stepper__dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: currentColor;
-}
-
-.status-stepper--failed {
-  border-color: var(--danger);
-}
-
-.status-stepper__failed {
-  color: var(--danger);
-  font-weight: 600;
-  font-size: 0.875rem;
 }
 
 .loading-skeleton {

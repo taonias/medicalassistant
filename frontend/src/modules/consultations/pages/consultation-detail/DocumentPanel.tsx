@@ -1,3 +1,4 @@
+import { ConsultationStatusIcon } from '../../../../shared/components/ConsultationStatusIcon';
 import { DownloadIcon } from '../../../../app/shell/navigation/NavIcons';
 import type { ApiError } from '../../../../shared/types/api';
 import { consultationApi } from '../../api/consultationApi';
@@ -5,13 +6,17 @@ import { consultationApi } from '../../api/consultationApi';
 interface Props {
   consultationId: number;
   documentFileName: string;
+  status: string;
 }
 
-export function DocumentPanel({ consultationId, documentFileName }: Props) {
+export function DocumentPanel({ consultationId, documentFileName, status }: Props) {
   return (
     <section className="panel">
       <div className="panel-heading">
-        <h3>Document</h3>
+        <span className="panel-heading__title">
+          <h3>Document</h3>
+          <ConsultationStatusIcon status={status} showLabel />
+        </span>
         <button
           type="button"
           className="icon-button"
