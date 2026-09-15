@@ -1673,6 +1673,19 @@ textarea {
   color: var(--accent, var(--primary));
 }
 
+.consultation-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.consultation-status-badge__label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: inherit;
+  white-space: nowrap;
+}
+
 .timeline__delete {
   position: absolute;
   top: 50%;
@@ -1874,6 +1887,16 @@ textarea {
   height: 10px;
   border-radius: 50%;
   background: currentColor;
+}
+
+.status-stepper--failed {
+  border-color: var(--danger);
+}
+
+.status-stepper__failed {
+  color: var(--danger);
+  font-weight: 600;
+  font-size: 0.875rem;
 }
 
 .loading-skeleton {

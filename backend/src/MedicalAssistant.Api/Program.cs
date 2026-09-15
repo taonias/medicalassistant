@@ -76,6 +76,11 @@ builder.Services.AddSignalR();
 builder.Services.AddSingleton<Microsoft.AspNetCore.SignalR.IUserIdProvider, MedicalAssistant.Api.Realtime.DoctorUserIdProvider>();
 builder.Services.AddScoped<MedicalAssistant.Application.Modules.Assistance.Chat.IChatProgressNotifier, MedicalAssistant.Api.Realtime.SignalRChatProgressNotifier>();
 
+// Real-time consultation status: the browser connects to /hubs/consultations and is
+// pinged (by doctorId) whenever a watched consultation's status changes server-side,
+// replacing client-side polling on the detail page.
+builder.Services.AddScoped<MedicalAssistant.Application.Modules.CareWorkflow.Consultations.IConsultationStatusNotifier, MedicalAssistant.Api.Realtime.SignalRConsultationStatusNotifier>();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("all", policy =>
@@ -142,6 +147,7 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
 });
 app.MapControllers();
 app.MapHub<MedicalAssistant.Api.Realtime.ChatHub>("/hubs/chat");
+app.MapHub<MedicalAssistant.Api.Realtime.ConsultationHub>("/hubs/consultations");
 
 await IdentityDbInitializer.SeedRolesAsync(app.Services);
 await IdentityDbInitializer.SeedDevelopmentDoctorAsync(app.Services);

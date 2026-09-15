@@ -59,6 +59,7 @@ public static class InfrastructureServiceRegistration
         services.AddScoped<ConsultationTranscriptReadyIntegrationEventHandler>();
         services.AddScoped<ConsultationDeletedIntegrationEventHandler>();
         services.AddScoped<ConsultationIngestionFailedIntegrationEventHandler>();
+        services.AddScoped<ConsultationTranscriptionFailedIntegrationEventHandler>();
         services.AddSingleton(ConsultationIntegrationEvents.Registry);
         services.AddSingleton(provider =>
             IntegrationEventSubscriptionRegistry.Create(
@@ -71,7 +72,10 @@ public static class InfrastructureServiceRegistration
                     ConsultationDeletedIntegrationEventHandler>()
                     .Subscribe<
                     ConsultationIngestionFailedV1,
-                    ConsultationIngestionFailedIntegrationEventHandler>()));
+                    ConsultationIngestionFailedIntegrationEventHandler>()
+                    .Subscribe<
+                    ConsultationTranscriptionFailedV1,
+                    ConsultationTranscriptionFailedIntegrationEventHandler>()));
         services.AddSingleton<IntegrationEventDispatcher>();
         services.AddRabbitMqEventBusConsumer(configuration);
         services.PostConfigure<RabbitMqTopologyOptions>(options =>

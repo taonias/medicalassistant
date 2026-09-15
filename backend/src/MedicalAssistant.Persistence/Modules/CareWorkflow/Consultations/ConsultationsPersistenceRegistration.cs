@@ -26,6 +26,7 @@ public static class ConsultationsPersistenceRegistration
         services.AddScoped<IConsultationPatientAssignment, ConsultationRepository>();
         services.AddScoped<IConsultationStructuredDataApproval, ConsultationRepository>();
         services.AddScoped<IStructuredDataCompletion, ConsultationRepository>();
+        services.AddScoped<IConsultationDoctorLookup, ConsultationRepository>();
         services.AddScoped<IConsultationRetryStore, ConsultationRetryStore>();
 
         return services;

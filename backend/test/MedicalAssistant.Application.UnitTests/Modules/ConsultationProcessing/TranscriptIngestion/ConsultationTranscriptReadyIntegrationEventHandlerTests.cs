@@ -1,6 +1,7 @@
 using MedicalAssistant.Application.Contracts.ClinicalKnowledge;
 using MedicalAssistant.Application.Contracts.Persistence;
 using MedicalAssistant.Application.EventHandlers;
+using MedicalAssistant.Application.Modules.CareWorkflow.Consultations;
 using MedicalAssistant.EventBus;
 using MedicalAssistant.EventBus.Contracts;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -14,9 +15,11 @@ public class ConsultationTranscriptReadyIntegrationEventHandlerTests
     {
         var store = new RecordingTranscriptReadyPreparationStore();
         var client = new RecordingClinicalKnowledgeClient();
+        var notifier = new RecordingConsultationStatusNotifier();
         var handler = new ConsultationTranscriptReadyIntegrationEventHandler(
             client,
             store,
+            notifier,
             NullLogger<ConsultationTranscriptReadyIntegrationEventHandler>.Instance);
         var envelope = CreateEnvelope();
 
@@ -37,6 +40,8 @@ public class ConsultationTranscriptReadyIntegrationEventHandlerTests
         Assert.Equal("doctor-1#patient-ext-5#10#2", store.Accepted.DocumentId);
         Assert.Equal(Guid.Parse("aaaaaaaa-1111-1111-1111-aaaaaaaaaaaa"), store.Accepted.IngestionId);
         Assert.DoesNotContain("clinical transcript text", IntegrationEventSerializer.Serialize(envelope));
+        Assert.Equal("doctor-1", notifier.DoctorId);
+        Assert.Equal(10, notifier.StatusChanged?.ConsultationId);
     }
 
     [Fact]
@@ -44,15 +49,18 @@ public class ConsultationTranscriptReadyIntegrationEventHandlerTests
     {
         var store = new RecordingTranscriptReadyPreparationStore(TranscriptReadyPreparationStatus.IgnoredDeleted);
         var client = new RecordingClinicalKnowledgeClient();
+        var notifier = new RecordingConsultationStatusNotifier();
         var handler = new ConsultationTranscriptReadyIntegrationEventHandler(
             client,
             store,
+            notifier,
             NullLogger<ConsultationTranscriptReadyIntegrationEventHandler>.Instance);
 
         await handler.HandleAsync(CreateEnvelope(), CancellationToken.None);
 
         Assert.Null(client.Request);
         Assert.Null(store.Accepted);
+        Assert.Null(notifier.DoctorId);
     }
 
     [Fact]
@@ -62,9 +70,11 @@ public class ConsultationTranscriptReadyIntegrationEventHandlerTests
         // to retry manually) and the message acknowledged, so the handler must not rethrow.
         var store = new RecordingTranscriptReadyPreparationStore();
         var client = new RecordingClinicalKnowledgeClient(throwOnSubmit: true);
+        var notifier = new RecordingConsultationStatusNotifier();
         var handler = new ConsultationTranscriptReadyIntegrationEventHandler(
             client,
             store,
+            notifier,
             NullLogger<ConsultationTranscriptReadyIntegrationEventHandler>.Instance);
 
         await handler.HandleAsync(CreateEnvelope(), CancellationToken.None);
@@ -72,6 +82,8 @@ public class ConsultationTranscriptReadyIntegrationEventHandlerTests
         Assert.True(store.RecordFailedCalled);
         Assert.Equal("clinical-knowledge-ingestion-failed", store.FailedCode);
         Assert.Null(store.Accepted);
+        Assert.Equal("doctor-1", notifier.DoctorId);
+        Assert.Equal(10, notifier.StatusChanged?.ConsultationId);
     }
 
     private sealed class RecordingTranscriptReadyPreparationStore : ITranscriptReadyPreparationStore
@@ -175,6 +187,22 @@ public class ConsultationTranscriptReadyIntegrationEventHandlerTests
             return Task.FromResult(new ClinicalKnowledgeIngestionAccepted(
                 Guid.Parse("aaaaaaaa-1111-1111-1111-aaaaaaaaaaaa"),
                 Duplicate: false));
+        }
+    }
+
+    private sealed class RecordingConsultationStatusNotifier : IConsultationStatusNotifier
+    {
+        public string? DoctorId { get; private set; }
+        public ConsultationStatusChangedEvent? StatusChanged { get; private set; }
+
+        public Task NotifyAsync(
+            string doctorId,
+            ConsultationStatusChangedEvent statusChanged,
+            CancellationToken cancellationToken = default)
+        {
+            DoctorId = doctorId;
+            StatusChanged = statusChanged;
+            return Task.CompletedTask;
         }
     }
 

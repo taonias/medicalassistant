@@ -148,14 +148,19 @@ public class TranscriptionCompletionUnitOfWorkTests
                 "transcription-worker",
                 envelope,
                 "speech-unsupported-audio",
-                "Permanent"),
+                "Permanent",
+                "The audio format is not supported."),
             CancellationToken.None);
 
         Assert.Equal(TranscriptionFailureStatus.Failed, result.Status);
         Assert.Equal(ConsultationStatus.Failed, context.Consultations.Single().Status);
-        Assert.Equal("speech-unsupported-audio", context.Consultations.Single().FailureReason);
+        Assert.Equal(
+            "The audio format is not supported. (code: speech-unsupported-audio)",
+            context.Consultations.Single().FailureReason);
         Assert.Equal(TranscriptStatus.Failed, context.Transcripts.Single().Status);
-        Assert.Equal("speech-unsupported-audio", context.Transcripts.Single().FailureReason);
+        Assert.Equal(
+            "The audio format is not supported. (code: speech-unsupported-audio)",
+            context.Transcripts.Single().FailureReason);
         Assert.Equal(ConsultationEventMessageStatus.Completed, context.ConsultationInboxMessages.Single().Status);
         Assert.Equal("Permanent", context.ConsultationInboxMessages.Single().LastFailureCategory);
         Assert.Equal("speech-unsupported-audio", context.ConsultationInboxMessages.Single().LastFailureCode);

@@ -12,7 +12,7 @@ public class ConsultationRepository :
     GenericRepository<Consultation>, IConsultationRepository, IConsultationDeletion,
     IConsultationFileRegistration, ITranscriptionCompletion, IConsultationAccess,
     IConsultationListing, IConsultationCreation, IConsultationPatientAssignment,
-    IConsultationStructuredDataApproval, IStructuredDataCompletion
+    IConsultationStructuredDataApproval, IStructuredDataCompletion, IConsultationDoctorLookup
 {
     public ConsultationRepository(MedicalAssistantDatabaseContext context, IHttpContextAccessor httpContextAccessor)
         : base(context, httpContextAccessor)
@@ -23,6 +23,14 @@ public class ConsultationRepository :
     {
         return await _context.Consultations
             .FirstOrDefaultAsync(c => c.Id == id && c.DoctorId == doctorId);
+    }
+
+    public async Task<string?> GetDoctorIdAsync(int consultationId, CancellationToken cancellationToken = default)
+    {
+        return await _context.Consultations
+            .Where(c => c.Id == consultationId)
+            .Select(c => c.DoctorId)
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
     public async Task<IReadOnlyList<Consultation>> GetConsultationsByPatientForDoctorAsync(int patientId, string doctorId)

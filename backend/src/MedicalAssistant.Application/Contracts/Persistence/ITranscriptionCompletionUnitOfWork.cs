@@ -30,7 +30,8 @@ public sealed record TranscriptionFailureRequest(
     string ConsumerName,
     IntegrationEventEnvelope<ConsultationAudioUploadedV1> Envelope,
     string FailureCode,
-    string FailureCategory);
+    string FailureCategory,
+    string FailureMessage);
 
 public sealed record TranscriptionFailureResult(
     TranscriptionFailureStatus Status,

@@ -1,11 +1,12 @@
-import { useEffect, useRef } from 'react';
-
 interface Props {
   status: string;
   processingStatuses?: string[];
 }
 
 const DEFAULT_PROCESSING = [
+  'AudioUploaded',
+  'DocumentUploaded',
+  'DocumentProcessingPending',
   'Transcribing',
   'Transcribed',
   'StructuredDataPending',
@@ -51,29 +52,4 @@ export function ConsultationStatusStepper({
       )}
     </div>
   );
-}
-
-interface UseConsultationPollingOptions {
-  status: string;
-  onPoll: () => void;
-  intervalMs?: number;
-}
-
-const ONE_DAY_MS = 24 * 60 * 60 * 1000;
-
-export function useConsultationPolling({
-  status,
-  onPoll,
-  intervalMs = ONE_DAY_MS,
-}: UseConsultationPollingOptions) {
-  const onPollRef = useRef(onPoll);
-  onPollRef.current = onPoll;
-
-  useEffect(() => {
-    const processing = DEFAULT_PROCESSING.includes(status) || status === 'DocumentProcessingPending';
-    if (!processing) return;
-
-    const id = window.setInterval(() => onPollRef.current(), intervalMs);
-    return () => window.clearInterval(id);
-  }, [status, intervalMs]);
 }

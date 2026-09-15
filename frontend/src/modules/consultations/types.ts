@@ -12,6 +12,7 @@ export interface Consultation {
   durationSeconds?: number;
   idempotencyKey?: string;
   failureReason?: string;
+  dateModified?: string;
 }
 
 export interface ConsultationSummary {

@@ -199,8 +199,9 @@ public sealed class TranscriptionCompletionUnitOfWork : ITranscriptionCompletion
             await _context.Transcripts.AddAsync(transcript, cancellationToken);
         }
 
-        transcript.MarkFailed(request.FailureCode);
-        consultation.MarkFailed(request.FailureCode);
+        var failureReason = $"{request.FailureMessage} (code: {request.FailureCode})";
+        transcript.MarkFailed(failureReason);
+        consultation.MarkFailed(failureReason);
 
         await _context.SaveChangesAsync(cancellationToken);
 

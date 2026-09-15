@@ -1,5 +1,6 @@
 using MedicalAssistant.Application.Contracts.ClinicalKnowledge;
 using MedicalAssistant.Application.Contracts.Persistence;
+using MedicalAssistant.Application.Modules.CareWorkflow.Consultations;
 using MedicalAssistant.EventBus;
 using MedicalAssistant.EventBus.Contracts;
 using Microsoft.Extensions.Logging;
@@ -13,15 +14,18 @@ public sealed class ConsultationTranscriptReadyIntegrationEventHandler
 
     private readonly ITranscriptIngestionGateway _clinicalKnowledgeClient;
     private readonly ITranscriptReadyPreparationStore _preparationStore;
+    private readonly IConsultationStatusNotifier _statusNotifier;
     private readonly ILogger<ConsultationTranscriptReadyIntegrationEventHandler> _logger;
 
     public ConsultationTranscriptReadyIntegrationEventHandler(
         ITranscriptIngestionGateway clinicalKnowledgeClient,
         ITranscriptReadyPreparationStore preparationStore,
+        IConsultationStatusNotifier statusNotifier,
         ILogger<ConsultationTranscriptReadyIntegrationEventHandler> logger)
     {
         _clinicalKnowledgeClient = clinicalKnowledgeClient;
         _preparationStore = preparationStore;
+        _statusNotifier = statusNotifier;
         _logger = logger;
     }
 
@@ -53,6 +57,10 @@ public sealed class ConsultationTranscriptReadyIntegrationEventHandler
                         request.DocumentId,
                         accepted.Duplicate),
                     cancellationToken);
+                await _statusNotifier.NotifyAsync(
+                    prepared.DoctorId,
+                    ConsultationStatusChangedEvent.For(prepared.ConsultationId),
+                    cancellationToken);
 
                 _logger.LogInformation(
                     "Submitted session transcript request for consultation {ConsultationId}, transcript {TranscriptId}, revision {TranscriptRevision}; ingestion {IngestionId}, duplicate {Duplicate}.",
@@ -72,6 +80,10 @@ public sealed class ConsultationTranscriptReadyIntegrationEventHandler
                     ConsumerName,
                     envelope,
                     "clinical-knowledge-ingestion-failed",
+                    cancellationToken);
+                await _statusNotifier.NotifyAsync(
+                    prepared.DoctorId,
+                    ConsultationStatusChangedEvent.For(prepared.ConsultationId),
                     cancellationToken);
 
                 _logger.LogError(

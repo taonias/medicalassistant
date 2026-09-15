@@ -3,17 +3,19 @@ import { consultationStatusLabel } from '../utils/format';
 interface Props {
   status: string;
   className?: string;
+  /** Also render the status as visible text next to the icon, not just a hover tooltip/aria-label. */
+  showLabel?: boolean;
 }
 
 function normalizeStatus(status: string) {
   return status.replace(/\s+/g, '');
 }
 
-export function ConsultationStatusIcon({ status, className }: Props) {
+export function ConsultationStatusIcon({ status, className, showLabel }: Props) {
   const normalized = normalizeStatus(status);
   const label = consultationStatusLabel(status);
 
-  return (
+  const badge = (
     <span
       className={[
         'consultation-status-icon',
@@ -22,8 +24,8 @@ export function ConsultationStatusIcon({ status, className }: Props) {
       ]
         .filter(Boolean)
         .join(' ')}
-      title={label}
-      aria-label={label}
+      title={showLabel ? undefined : label}
+      aria-label={showLabel ? undefined : label}
     >
       <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
         {normalized === 'Draft' ? (
@@ -138,6 +140,20 @@ export function ConsultationStatusIcon({ status, className }: Props) {
           <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.75" />
         ) : null}
       </svg>
+    </span>
+  );
+
+  if (!showLabel) return badge;
+
+  return (
+    <span
+      className={[
+        'consultation-status-badge',
+        `consultation-status-icon--${normalized.toLowerCase()}`,
+      ].join(' ')}
+    >
+      {badge}
+      <span className="consultation-status-badge__label">{label}</span>
     </span>
   );
 }

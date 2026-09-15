@@ -19,4 +19,5 @@ public class ConsultationDto
     public int? DurationSeconds { get; set; }
     public string? IdempotencyKey { get; set; }
     public string? FailureReason { get; set; }
+    public DateTime? DateModified { get; set; }
 }

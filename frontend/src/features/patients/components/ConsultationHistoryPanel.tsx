@@ -146,7 +146,7 @@ export function ConsultationHistoryPanel({
                             {sourceLabel}
                           </span>
                         ) : null}
-                        <ConsultationStatusIcon status={item.status} />
+                        <ConsultationStatusIcon status={item.status} showLabel />
                       </div>
                       <div className="timeline__datetime">
                         <span className="timeline__date">{formatDate(item.consultationDate)}</span>

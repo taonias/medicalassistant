@@ -2,20 +2,19 @@ import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 import { ConsultationStatusIcon } from '../../../shared/components/ConsultationStatusIcon';
-import {
-  useConsultationPolling,
-} from '../../../shared/components/ConsultationStatusStepper';
+import { ConsultationStatusStepper } from '../../../shared/components/ConsultationStatusStepper';
 import { ErrorMessage } from '../../../shared/components/ErrorMessage';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton';
 import { consultationKeys } from '../queryKeys';
 import { parseStructuredSummary } from '../../../shared/utils/structuredData';
-import { formatDate, formatDuration } from '../../../shared/utils/format';
+import { formatDate, formatDateTime, formatDuration } from '../../../shared/utils/format';
 import { usePatient, usePatientHistory, patientKeys } from '../../../features/patients';
 import {
   useConsultation,
   useConsultationAudio,
   useRetryConsultationProcessing,
 } from '../hooks/useConsultations';
+import { useConsultationStatusUpdates } from '../hooks/useConsultationStatusUpdates';
 import {
   useTranscript,
   TranscriptViewer,
@@ -67,21 +66,20 @@ export function ConsultationDetailPage() {
     };
   }, [consultationIdNum, queryClient]);
 
-  useConsultationPolling({
-    status: consultation.data?.status ?? 'Draft',
-    onPoll: () => {
-      void consultation.refetch();
-      void transcript.refetch();
-      if (hasPatient) {
-        void history.refetch();
-        void queryClient.invalidateQueries({
-          queryKey: patientKeys.patientHistoryPrefix(resolvedPatientId),
-        });
-      }
+  useConsultationStatusUpdates((event) => {
+    if (event.consultationId !== consultationIdNum) return;
+
+    void consultation.refetch();
+    void transcript.refetch();
+    if (hasPatient) {
+      void history.refetch();
       void queryClient.invalidateQueries({
-        queryKey: structuredDataKeys.structuredData(consultationIdNum),
+        queryKey: patientKeys.patientHistoryPrefix(resolvedPatientId),
       });
-    },
+    }
+    void queryClient.invalidateQueries({
+      queryKey: structuredDataKeys.structuredData(consultationIdNum),
+    });
   });
 
   if (consultation.isLoading || (hasPatient && patient.isLoading)) {
@@ -124,23 +122,36 @@ export function ConsultationDetailPage() {
         <ConsultationStatusIcon
           status={consultation.data.status}
           className="consultation-status-icon--header"
+          showLabel
         />
       </div>
 
+      {!isPdfConsultation ? (
+        <ConsultationStatusStepper status={consultation.data.status} />
+      ) : null}
+
       {consultation.data.failureReason ? (
-        <ErrorMessage
-          message={
-            retryMutation.isPending
-              ? 'Retrying…'
-              : consultation.data.failureReason
-          }
-          onRetry={
-            retryMutation.isPending
-              ? undefined
-              : () =>
-                  retryMutation.mutate({ consultationId: consultationIdNum })
-          }
-        />
+        <div className="stack">
+          <p className="muted">
+            Failed{consultation.data.dateModified
+              ? ` at ${formatDateTime(consultation.data.dateModified)}`
+              : ''}
+            {' · '}consultation #{consultation.data.id}
+          </p>
+          <ErrorMessage
+            message={
+              retryMutation.isPending
+                ? 'Retrying…'
+                : consultation.data.failureReason
+            }
+            onRetry={
+              retryMutation.isPending
+                ? undefined
+                : () =>
+                    retryMutation.mutate({ consultationId: consultationIdNum })
+            }
+          />
+        </div>
       ) : null}
 
       <div className="consultation-grid">

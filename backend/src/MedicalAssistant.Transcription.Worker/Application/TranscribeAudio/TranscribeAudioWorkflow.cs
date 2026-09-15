@@ -78,7 +78,8 @@ internal sealed class TranscribeAudioWorkflow(
                     workItem.ConsumerName,
                     envelope,
                     ex.Code,
-                    ex.Category.ToString()),
+                    ex.Category.ToString(),
+                    ex.Message),
                 cancellationToken);
             return;
         }
@@ -97,7 +98,8 @@ internal sealed class TranscribeAudioWorkflow(
                     workItem.ConsumerName,
                     envelope,
                     ex.Code,
-                    ex.Category.ToString()),
+                    ex.Category.ToString(),
+                    ex.Message),
                 cancellationToken);
             return;
         }
