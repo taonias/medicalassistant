@@ -179,3 +179,21 @@ export function useDeleteConsultation() {
     },
   });
 }
+
+/**
+ * Discards an unassigned draft consultation (no patient attached yet), e.g. a recording or
+ * document a doctor uploaded by mistake. Unlike useDeleteConsultation, there is no patient
+ * to invalidate views for.
+ */
+export function useDeleteUnattachedConsultation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ consultationId }: { consultationId: number }) =>
+      consultationApi.delete(consultationId),
+    onSuccess: (_data, variables) => {
+      queryClient.removeQueries({ queryKey: consultationKeys.consultation(variables.consultationId) });
+      invalidateConsultationLists(queryClient);
+    },
+  });
+}

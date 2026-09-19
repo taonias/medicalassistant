@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { ConfirmModal } from '../../../shared/components/ConfirmModal';
+import { DiscardIcon } from '../../../app/shell/navigation/NavIcons';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import { ErrorMessage } from '../../../shared/components/ErrorMessage';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton';
@@ -11,6 +13,7 @@ import {
   useAssignConsultationPatient,
   useConsultationAudio,
   useDashboardAnalytics,
+  useDeleteUnattachedConsultation,
   useUnattachedDraftConsultations,
   consultationKeys,
   PatientAttachPanel,
@@ -174,13 +177,16 @@ function UnattachedRecordingCard({
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const assignPatient = useAssignConsultationPatient();
+  const deleteConsultation = useDeleteUnattachedConsultation();
   const [isOpen, setIsOpen] = useState(false);
   const [assignError, setAssignError] = useState<string | null>(null);
   const [savingPatientId, setSavingPatientId] = useState<number | null>(null);
+  const [pendingDelete, setPendingDelete] = useState(false);
 
   const hasStoredAudio = consultation.hasAudio;
   const audioQuery = useConsultationAudio(consultation.id, hasStoredAudio && isOpen);
   const durationSeconds = consultation.durationSeconds ?? 0;
+  const fileLabel = consultation.hasAudio ? 'recording' : 'document';
 
   useEffect(() => {
     return () => {
@@ -208,50 +214,96 @@ function UnattachedRecordingCard({
     }
   }
 
+  async function confirmDelete() {
+    try {
+      await deleteConsultation.mutateAsync({ consultationId: consultation.id });
+      setPendingDelete(false);
+    } catch {
+      // Error surfaced via deleteConsultation.error below.
+    }
+  }
+
   return (
-    <details
-      className="accordion-item"
-      onToggle={(event) => setIsOpen(event.currentTarget.open)}
-    >
-      <summary className="accordion-item__summary">
-        <span className="accordion-item__title">
-          {formatDate(consultation.consultationDate)}
-        </span>
-        <span className="accordion-item__meta muted">
-          {consultation.hasAudio
-            ? formatDuration(consultation.durationSeconds)
-            : consultation.hasDocument
-              ? 'PDF'
-              : consultation.status}
-        </span>
-      </summary>
+    <>
+      <details
+        className="accordion-item"
+        onToggle={(event) => setIsOpen(event.currentTarget.open)}
+      >
+        <summary className="accordion-item__summary">
+          <span className="accordion-item__title">
+            {formatDate(consultation.consultationDate)}
+          </span>
+          <span className="accordion-item__meta muted">
+            {consultation.hasAudio
+              ? formatDuration(consultation.durationSeconds)
+              : consultation.hasDocument
+                ? 'PDF'
+                : consultation.status}
+          </span>
+          <button
+            type="button"
+            className="icon-button icon-button--danger"
+            aria-label={`Delete ${fileLabel} from ${formatDate(consultation.consultationDate)}`}
+            title={`Delete ${fileLabel}`}
+            disabled={deleteConsultation.isPending}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              setPendingDelete(true);
+            }}
+          >
+            <DiscardIcon />
+          </button>
+        </summary>
 
-      <div className="accordion-item__content dashboard-unattached-card">
-        <div className="dashboard-unattached-card__player">
-          {hasStoredAudio && audioQuery.isLoading ? (
-            <p className="muted">Loading recording…</p>
-          ) : hasStoredAudio && audioQuery.error ? (
+        <div className="accordion-item__content dashboard-unattached-card">
+          {deleteConsultation.error ? (
             <ErrorMessage
-              message={(audioQuery.error as Error).message ?? 'Unable to load recording'}
-              onRetry={() => audioQuery.refetch()}
+              message={(deleteConsultation.error as Error).message ?? `Unable to delete ${fileLabel}`}
             />
-          ) : (
-            <RecordingPreviewPlayer
-              durationSeconds={durationSeconds}
-              audioSrc={hasStoredAudio ? audioQuery.data : null}
-            />
-          )}
-        </div>
+          ) : null}
 
-        <PatientAttachPanel
-          durationSeconds={durationSeconds}
-          isSaving={assignPatient.isPending}
-          savingPatientId={savingPatientId}
-          saveError={assignError}
-          onPatientSelect={(patientId) => void handleAssign(patientId)}
-          compact
+          <div className="dashboard-unattached-card__player">
+            {hasStoredAudio && audioQuery.isLoading ? (
+              <p className="muted">Loading recording…</p>
+            ) : hasStoredAudio && audioQuery.error ? (
+              <ErrorMessage
+                message={(audioQuery.error as Error).message ?? 'Unable to load recording'}
+                onRetry={() => audioQuery.refetch()}
+              />
+            ) : (
+              <RecordingPreviewPlayer
+                durationSeconds={durationSeconds}
+                audioSrc={hasStoredAudio ? audioQuery.data : null}
+              />
+            )}
+          </div>
+
+          <PatientAttachPanel
+            durationSeconds={durationSeconds}
+            isSaving={assignPatient.isPending}
+            savingPatientId={savingPatientId}
+            saveError={assignError}
+            onPatientSelect={(patientId) => void handleAssign(patientId)}
+            compact
+          />
+        </div>
+      </details>
+
+      {pendingDelete ? (
+        <ConfirmModal
+          title={`Delete ${fileLabel}`}
+          message={`Delete this unassigned ${fileLabel} from ${formatDate(consultation.consultationDate)}? This cannot be undone.`}
+          confirmLabel="Delete"
+          cancelLabel="Cancel"
+          danger
+          isPending={deleteConsultation.isPending}
+          onCancel={() => {
+            if (!deleteConsultation.isPending) setPendingDelete(false);
+          }}
+          onConfirm={() => void confirmDelete()}
         />
-      </div>
-    </details>
+      ) : null}
+    </>
   );
 }

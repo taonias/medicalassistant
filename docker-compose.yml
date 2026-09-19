@@ -99,6 +99,10 @@ services:
     # WORKDIR) instead of the mounted volume below, so every blob was silently lost on
     # container recreation.
     command: azurite --location /data --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --skipApiVersionCheck --loose
+    environment:
+      # Matches AZURITE_CONNECTION_STRING below when a root .env overrides it away from the
+      # UseDevelopmentStorage=true default - keep both in sync, same as docker-compose.prod.yml.
+      AZURITE_ACCOUNTS: ${AZURITE_ACCOUNT_NAME:-devstoreaccount1}:${AZURITE_ACCOUNT_KEY:-Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==}
     ports:
       - "10000:10000"
       - "10001:10001"

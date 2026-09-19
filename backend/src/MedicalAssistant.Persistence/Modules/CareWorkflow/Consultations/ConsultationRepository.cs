@@ -166,7 +166,8 @@ public class ConsultationRepository :
             .AsNoTracking()
             .Where(c =>
                 c.DoctorId == doctorId &&
-                c.PatientId == null)
+                c.PatientId == null &&
+                c.Status != ConsultationStatus.Deleted)
             .OrderByDescending(c => c.ConsultationDate)
             .ToListAsync();
     }

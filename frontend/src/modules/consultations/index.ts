@@ -9,6 +9,7 @@ export {
   useUploadConsultationAudio,
   useUploadConsultationDocument,
   useDeleteConsultation,
+  useDeleteUnattachedConsultation,
 } from './hooks/useConsultations';
 export { ConsultationDetailPage } from './pages/ConsultationDetailPage';
 export * from './types';
