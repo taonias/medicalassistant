@@ -125,6 +125,22 @@ function Get-ComposeServiceNames {
 
 <#
 .SYNOPSIS
+  Parses simple KEY=value lines (no quoting/escaping — matches what every .env file in this
+  repo actually uses) from $Path into a hashtable. Returns @{} if the file doesn't exist.
+#>
+function Get-DotEnvValues {
+    param([Parameter(Mandatory)][string]$Path)
+
+    $values = @{}
+    if (-not (Test-Path -LiteralPath $Path)) { return $values }
+    foreach ($line in Get-Content -LiteralPath $Path) {
+        if ($line -match '^([A-Z0-9_]+)=(.*)$') { $values[$Matches[1]] = $Matches[2] }
+    }
+    return $values
+}
+
+<#
+.SYNOPSIS
   Ensures $SecretsPath exists, creating it from VM_HOST/VM_PORT/VM_USER/VM_PASSWORD/
   VM_REMOTE_PATH in $EnvPath (the repo-root .env you already maintain for local dev) the
   first time it's missing. An existing secrets.json is left untouched — this only fills the
@@ -142,10 +158,7 @@ function Get-OrCreateVmSecretsFile {
         throw "Neither $SecretsPath nor $EnvPath exist. Add VM_HOST/VM_PORT/VM_USER/VM_PASSWORD/VM_REMOTE_PATH to $EnvPath, or create $SecretsPath by hand (see secrets.json.example)."
     }
 
-    $envVars = @{}
-    foreach ($line in Get-Content -LiteralPath $EnvPath) {
-        if ($line -match '^([A-Z0-9_]+)=(.*)$') { $envVars[$Matches[1]] = $Matches[2] }
-    }
+    $envVars = Get-DotEnvValues -Path $EnvPath
     foreach ($required in @('VM_HOST', 'VM_USER', 'VM_PASSWORD', 'VM_REMOTE_PATH')) {
         if (-not $envVars[$required]) {
             throw "$EnvPath is missing $required. Add it (see the VM connection section at the top of .env) or create $SecretsPath by hand."

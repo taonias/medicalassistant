@@ -33,6 +33,7 @@ $SecretsPath = Join-Path $ScriptRoot "secrets.json"
 $ComposeFilePath = Join-Path $RepoRoot "docker-compose.prod.yml"
 $EnvExamplePath = Join-Path $RepoRoot "ops/deploy/.env.prod.example"
 $DeploymentDocPath = Join-Path $RepoRoot "ops/deploy/DEPLOYMENT.md"
+$ExposedServicesDocPath = Join-Path $RepoRoot "ops/deploy/EXPOSED-SERVICES.md"
 # Local staging copy for the optional "also upload .env.prod" checkbox — never committed
 # (see .gitignore's **/.env.prod rule), lives next to secrets.json for the same reason.
 $LocalEnvProdPath = Join-Path $ScriptRoot ".env.prod"
@@ -315,6 +316,27 @@ function Get-VmSecrets {
       </Border>
     </TabItem>
 
+    <!-- ================= Exposed Services ================= -->
+    <TabItem Header="Exposed Services">
+      <Grid Margin="12">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0" Margin="0,0,0,12">
+          <StackPanel Orientation="Horizontal">
+            <Button x:Name="ExposedServicesEditButton" Content="Open EXPOSED-SERVICES.md" Style="{StaticResource SecondaryButton}" Padding="10,6"/>
+            <TextBlock x:Name="ExposedServicesMessage" VerticalAlignment="Center" Margin="14,0,0,0" Foreground="{StaticResource Orange}"/>
+          </StackPanel>
+          <TextBlock Margin="0,6,0,0" FontSize="11" Foreground="{StaticResource Red}" TextWrapping="Wrap"
+                     Text="⚠ This tab fills in real passwords and keys from your local .env. Don't screen-share or screenshot it."/>
+        </StackPanel>
+        <Border Grid.Row="1" Style="{StaticResource Card}">
+          <FlowDocumentScrollViewer x:Name="ExposedServicesViewer" VerticalScrollBarVisibility="Auto"/>
+        </Border>
+      </Grid>
+    </TabItem>
+
     <!-- ================= VM Status ================= -->
     <TabItem Header="VM Status">
       <Grid Margin="12">
@@ -509,6 +531,9 @@ $StatusBanner           = Get-Control "StatusBanner"
 $OverallProgressBar     = Get-Control "OverallProgressBar"
 $LogBox                 = Get-Control "LogBox"
 $DocsViewer             = Get-Control "DocsViewer"
+$ExposedServicesViewer      = Get-Control "ExposedServicesViewer"
+$ExposedServicesEditButton  = Get-Control "ExposedServicesEditButton"
+$ExposedServicesMessage     = Get-Control "ExposedServicesMessage"
 $VmStatusRefreshButton  = Get-Control "VmStatusRefreshButton"
 $VmStatusMessage        = Get-Control "VmStatusMessage"
 $VmStatusList           = Get-Control "VmStatusList"
@@ -841,25 +866,34 @@ function Add-InlineRuns {
     }
 }
 
+<#
+.SYNOPSIS
+  Renders Markdown to a FlowDocument, either from $Path (read fresh, the normal case) or
+  from $Lines (already-loaded text — used to render a template after substituting live
+  values into it without writing a temp file to disk).
+#>
 function ConvertTo-FlowDocument {
-    param([string]$Path)
+    param([string]$Path, [string[]]$Lines)
 
     $doc = New-Object System.Windows.Documents.FlowDocument
     $doc.FontFamily = "Segoe UI"
     $doc.FontSize = 13
     $doc.PagePadding = New-Object System.Windows.Thickness(4)
 
-    if (-not (Test-Path $Path)) {
-        $p = New-Object System.Windows.Documents.Paragraph
-        $p.Inlines.Add("$Path not found.")
-        $doc.Blocks.Add($p)
-        return $doc
+    if (-not $Lines) {
+        if (-not (Test-Path $Path)) {
+            $p = New-Object System.Windows.Documents.Paragraph
+            $p.Inlines.Add("$Path not found.")
+            $doc.Blocks.Add($p)
+            return $doc
+        }
+        $Lines = Get-Content -LiteralPath $Path
     }
 
     $inCode = $false
     $codeParagraph = $null
 
-    foreach ($rawLine in Get-Content -LiteralPath $Path) {
+    foreach ($rawLine in $Lines) {
         $line = $rawLine
 
         if ($line -match '^\s*```') {
@@ -930,6 +964,73 @@ function ConvertTo-FlowDocument {
 }
 
 $DocsViewer.Document = ConvertTo-FlowDocument -Path $DeploymentDocPath
+
+# ============================================================================
+# Exposed Services tab — renders ops/deploy/EXPOSED-SERVICES.md the same way
+# Documentation renders DEPLOYMENT.md, except every <SOME_VAR_NAME> placeholder in the
+# template is first substituted with that key's real value from the repo-root .env (the
+# same file deploy-ui already treats as the source of truth for secrets — see
+# Sync-AndCheckLocalEnvProd above). Polled on the main timer below, watching both the
+# template and .env's write times, so editing either one shows up here within a tick —
+# no re-run, no reopening the window.
+# ============================================================================
+$script:ExposedServicesLastWriteKey = $null
+
+<#
+.SYNOPSIS
+  Replaces every <UPPER_SNAKE_CASE> token in $Lines with $EnvValues' value for that key,
+  when one exists — a template placeholder with no matching .env entry (e.g. the literal
+  <port>/<user> examples in the "tunnel over SSH" line, which are lowercase and never
+  match) is left exactly as written rather than guessed at.
+#>
+function Resolve-ExposedServicesPlaceholders {
+    param([string[]]$Lines, [hashtable]$EnvValues)
+
+    return $Lines | ForEach-Object {
+        [regex]::Replace($_, '<([A-Z0-9_]+)>', {
+            param($m)
+            $key = $m.Groups[1].Value
+            if ($EnvValues.ContainsKey($key)) { $EnvValues[$key] } else { $m.Value }
+        })
+    }
+}
+
+function Update-ExposedServicesDoc {
+    if (-not (Test-Path -LiteralPath $ExposedServicesDocPath)) {
+        if ($script:ExposedServicesLastWriteKey -ne "missing") {
+            $ExposedServicesViewer.Document = ConvertTo-FlowDocument -Path $ExposedServicesDocPath
+            $ExposedServicesMessage.Text = "$ExposedServicesDocPath not found."
+            $ExposedServicesMessage.Foreground = $BrushFailed
+            $script:ExposedServicesLastWriteKey = "missing"
+        }
+        return
+    }
+
+    $docWriteUtc = (Get-Item -LiteralPath $ExposedServicesDocPath).LastWriteTimeUtc
+    $envWriteUtc = if (Test-Path -LiteralPath $RootEnvPath) { (Get-Item -LiteralPath $RootEnvPath).LastWriteTimeUtc } else { [DateTime]::MinValue }
+    $writeKey = "$docWriteUtc|$envWriteUtc"
+    if ($script:ExposedServicesLastWriteKey -eq $writeKey) { return }
+
+    $envValues = Get-DotEnvValues -Path $RootEnvPath
+    $rawLines = Get-Content -LiteralPath $ExposedServicesDocPath
+    $filledLines = Resolve-ExposedServicesPlaceholders -Lines $rawLines -EnvValues $envValues
+
+    $ExposedServicesViewer.Document = ConvertTo-FlowDocument -Lines $filledLines
+    $ExposedServicesMessage.Text = if ($envValues.Count -gt 0) {
+        "Filled in from $RootEnvPath at $(Get-Date -Format 'HH:mm:ss') — showing real values. Auto-refreshes when either file changes."
+    } else {
+        "$RootEnvPath not found — showing placeholders as written. Auto-refreshes when either file changes."
+    }
+    $ExposedServicesMessage.Foreground = $window.Resources["Orange"]
+    $script:ExposedServicesLastWriteKey = $writeKey
+}
+Update-ExposedServicesDoc
+
+$ExposedServicesEditButton.Add_Click({
+    try { Start-Process $ExposedServicesDocPath } catch {
+        [System.Windows.MessageBox]::Show("Couldn't open $ExposedServicesDocPath`: $($_.Exception.Message)", "Can't open file", "OK", "Error") | Out-Null
+    }
+})
 
 # ============================================================================
 # VM Status tab
@@ -1439,6 +1540,8 @@ $timer.Add_Tick({
         $appended = $true
     }
     if ($appended) { $LogBox.ScrollToEnd() }
+
+    Update-ExposedServicesDoc
 
     $doneCount = 0
     foreach ($key in $StepKeys) {
