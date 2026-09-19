@@ -95,7 +95,10 @@ services:
     # x-ms-version than older Azurite builds accept, which surfaced as a shared-key
     # AuthorizationFailure on container create. loose relaxes header validation for
     # local dev.
-    command: azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --skipApiVersionCheck --loose
+    # --location /data: without this, Azurite defaults to its cwd (/opt/azurite, the image's
+    # WORKDIR) instead of the mounted volume below, so every blob was silently lost on
+    # container recreation.
+    command: azurite --location /data --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --skipApiVersionCheck --loose
     ports:
       - "10000:10000"
       - "10001:10001"
