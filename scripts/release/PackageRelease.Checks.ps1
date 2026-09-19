@@ -123,6 +123,45 @@ function Get-ComposeServiceNames {
     return $services.ToArray()
 }
 
+<#
+.SYNOPSIS
+  Ensures $SecretsPath exists, creating it from VM_HOST/VM_PORT/VM_USER/VM_PASSWORD/
+  VM_REMOTE_PATH in $EnvPath (the repo-root .env you already maintain for local dev) the
+  first time it's missing. An existing secrets.json is left untouched — this only fills the
+  gap so you don't have to hand-maintain both files; it's not a sync/overwrite step.
+#>
+function Get-OrCreateVmSecretsFile {
+    param(
+        [Parameter(Mandatory)][string]$SecretsPath,
+        [Parameter(Mandatory)][string]$EnvPath
+    )
+
+    if (Test-Path $SecretsPath) { return }
+
+    if (-not (Test-Path $EnvPath)) {
+        throw "Neither $SecretsPath nor $EnvPath exist. Add VM_HOST/VM_PORT/VM_USER/VM_PASSWORD/VM_REMOTE_PATH to $EnvPath, or create $SecretsPath by hand (see secrets.json.example)."
+    }
+
+    $envVars = @{}
+    foreach ($line in Get-Content -LiteralPath $EnvPath) {
+        if ($line -match '^([A-Z0-9_]+)=(.*)$') { $envVars[$Matches[1]] = $Matches[2] }
+    }
+    foreach ($required in @('VM_HOST', 'VM_USER', 'VM_PASSWORD', 'VM_REMOTE_PATH')) {
+        if (-not $envVars[$required]) {
+            throw "$EnvPath is missing $required. Add it (see the VM connection section at the top of .env) or create $SecretsPath by hand."
+        }
+    }
+
+    $secrets = [ordered]@{
+        host       = $envVars['VM_HOST']
+        port       = if ($envVars['VM_PORT']) { [int]$envVars['VM_PORT'] } else { 22 }
+        user       = $envVars['VM_USER']
+        password   = $envVars['VM_PASSWORD']
+        remotePath = $envVars['VM_REMOTE_PATH']
+    }
+    $secrets | ConvertTo-Json | Set-Content -LiteralPath $SecretsPath
+}
+
 # The exact allowlist a packaged release/<tag>/ must satisfy.
 $script:ReleaseBundleAllowlist = @(
     'manifest.json',

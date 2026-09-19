@@ -43,6 +43,16 @@ $RootEnvPath = Join-Path $RepoRoot ".env"
 
 . (Join-Path $ScriptRoot "PackageRelease.Checks.ps1")
 
+# Every tab reads $SecretsPath directly (several from background runspaces, which can't
+# share a function call with the main thread) — ensuring the file exists here, once, before
+# the window even opens means none of them need their own fallback logic.
+try {
+    Get-OrCreateVmSecretsFile -SecretsPath $SecretsPath -EnvPath $RootEnvPath
+} catch {
+    [System.Windows.MessageBox]::Show($_.Exception.Message, "Can't find VM connection details", "OK", "Error") | Out-Null
+    exit 1
+}
+
 # ============================================================================
 # Generic background-async helper — runs $Action in its own runspace so the UI
 # thread never blocks, then calls $OnComplete(result, errorMessage) on the UI

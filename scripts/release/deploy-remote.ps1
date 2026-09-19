@@ -60,6 +60,8 @@ $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)   # repo root (two levels up)
 $releaseDir = Join-Path $root "release" $Tag
 
+. (Join-Path $PSScriptRoot "PackageRelease.Checks.ps1")
+
 function Send-Step {
     param([string]$Stage, [string]$Status, [string]$Detail = "")
     if ($OnStep) { & $OnStep $Stage $Status $Detail }
@@ -239,9 +241,7 @@ if (-not $DeployOnly -and -not $EnvOnly -and -not (Test-Path $releaseDir)) {
 }
 
 $secretsPath = Join-Path $PSScriptRoot "secrets.json"
-if (-not (Test-Path $secretsPath)) {
-    throw "Missing $secretsPath. Copy scripts/release/secrets.json.example to secrets.json and fill in the VM's connection details."
-}
+Get-OrCreateVmSecretsFile -SecretsPath $secretsPath -EnvPath (Join-Path $root ".env")
 $secrets = Get-Content -LiteralPath $secretsPath -Raw | ConvertFrom-Json
 foreach ($field in @("host", "user", "password", "remotePath")) {
     if (-not $secrets.$field) { throw "$secretsPath is missing required field: $field" }
