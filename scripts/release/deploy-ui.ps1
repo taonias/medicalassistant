@@ -1,4 +1,4 @@
-#!/usr/bin/env pwsh
+﻿#!/usr/bin/env pwsh
 # Deployment control panel: a WPF window wrapping package-release.ps1 + deploy-remote.ps1
 # with a live step tracker instead of a scrolling console, plus read-only tabs for the VM's
 # container status, required-secrets checklist, and recent service logs.
@@ -11,6 +11,18 @@
 #   ./scripts/release/deploy-ui.ps1
 
 param()
+
+# Windows PowerShell (Desktop edition — what Explorer's "Run with PowerShell" launches) and
+# PowerShell 7 (pwsh) keep separate module folders. Posh-SSH is normally only installed for
+# whichever one you ran `Install-Module` from, so relaunch under pwsh here rather than making
+# every SSH-dependent tab fail with "module not found" depending on how this was started.
+if ($PSVersionTable.PSEdition -eq 'Desktop') {
+    $pwshCmd = Get-Command pwsh -ErrorAction SilentlyContinue
+    if ($pwshCmd) {
+        Start-Process -FilePath $pwshCmd.Source -ArgumentList @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "`"$PSCommandPath`"")
+        exit
+    }
+}
 
 $ErrorActionPreference = "Stop"
 Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, System.Xaml
