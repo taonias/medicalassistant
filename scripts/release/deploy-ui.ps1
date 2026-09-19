@@ -199,7 +199,7 @@ function Get-VmSecrets {
     </Style>
   </Window.Resources>
 
-  <TabControl Margin="12">
+  <TabControl x:Name="MainTabControl" Margin="12">
     <!-- ================= Deploy ================= -->
     <TabItem Header="Deploy">
       <Grid Margin="12">
@@ -378,6 +378,77 @@ function Get-VmSecrets {
         </Border>
       </Grid>
     </TabItem>
+
+    <!-- ================= Server ================= -->
+    <TabItem x:Name="ServerTabItem" Header="Server">
+      <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="12">
+        <StackPanel>
+          <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+            <Button x:Name="ServerRefreshButton" Content="Refresh now" Style="{StaticResource SecondaryButton}" Width="110"/>
+            <TextBlock x:Name="ServerAutoRefreshText" Text="Auto-refreshing every 4s while this tab is open" VerticalAlignment="Center" Margin="14,0,0,0" Foreground="{StaticResource Muted}"/>
+            <TextBlock x:Name="ServerMessage" VerticalAlignment="Center" Margin="14,0,0,0" Foreground="{StaticResource Muted}"/>
+          </StackPanel>
+
+          <WrapPanel>
+            <Border Style="{StaticResource Card}" Width="220" Margin="0,0,12,12">
+              <StackPanel>
+                <TextBlock Text="CPU" FontWeight="SemiBold" Foreground="{StaticResource Muted}" FontSize="12"/>
+                <TextBlock x:Name="CpuPctText" Text="—" FontSize="32" FontWeight="Bold" Margin="0,2,0,6"/>
+                <ProgressBar x:Name="CpuBar" Height="8" Minimum="0" Maximum="100" Value="0"/>
+                <TextBlock x:Name="CpuSubText" Text="" FontSize="11" Foreground="{StaticResource Muted}" Margin="0,6,0,0"/>
+              </StackPanel>
+            </Border>
+            <Border Style="{StaticResource Card}" Width="220" Margin="0,0,12,12">
+              <StackPanel>
+                <TextBlock Text="MEMORY" FontWeight="SemiBold" Foreground="{StaticResource Muted}" FontSize="12"/>
+                <TextBlock x:Name="MemPctText" Text="—" FontSize="32" FontWeight="Bold" Margin="0,2,0,6"/>
+                <ProgressBar x:Name="MemBar" Height="8" Minimum="0" Maximum="100" Value="0"/>
+                <TextBlock x:Name="MemSubText" Text="" FontSize="11" Foreground="{StaticResource Muted}" Margin="0,6,0,0"/>
+              </StackPanel>
+            </Border>
+            <Border Style="{StaticResource Card}" Width="220" Margin="0,0,12,12">
+              <StackPanel>
+                <TextBlock Text="DISK (/)" FontWeight="SemiBold" Foreground="{StaticResource Muted}" FontSize="12"/>
+                <TextBlock x:Name="DiskPctText" Text="—" FontSize="32" FontWeight="Bold" Margin="0,2,0,6"/>
+                <ProgressBar x:Name="DiskBar" Height="8" Minimum="0" Maximum="100" Value="0"/>
+                <TextBlock x:Name="DiskSubText" Text="" FontSize="11" Foreground="{StaticResource Muted}" Margin="0,6,0,0"/>
+              </StackPanel>
+            </Border>
+            <Border Style="{StaticResource Card}" Width="220" Margin="0,0,12,12">
+              <StackPanel>
+                <TextBlock Text="SWAP" FontWeight="SemiBold" Foreground="{StaticResource Muted}" FontSize="12"/>
+                <TextBlock x:Name="SwapPctText" Text="—" FontSize="32" FontWeight="Bold" Margin="0,2,0,6"/>
+                <ProgressBar x:Name="SwapBar" Height="8" Minimum="0" Maximum="100" Value="0"/>
+                <TextBlock x:Name="SwapSubText" Text="" FontSize="11" Foreground="{StaticResource Muted}" Margin="0,6,0,0"/>
+              </StackPanel>
+            </Border>
+          </WrapPanel>
+
+          <WrapPanel>
+            <Border Style="{StaticResource Card}" Width="340" Margin="0,0,12,12" VerticalAlignment="Top">
+              <StackPanel>
+                <TextBlock Text="System" FontWeight="SemiBold" Margin="0,0,0,10"/>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,6"><TextBlock Text="Hostname" Width="110" Foreground="{StaticResource Muted}"/><TextBlock x:Name="InfoHostname" Text="—"/></StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,6"><TextBlock Text="OS" Width="110" Foreground="{StaticResource Muted}"/><TextBlock x:Name="InfoOs" Text="—"/></StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,6"><TextBlock Text="Kernel" Width="110" Foreground="{StaticResource Muted}"/><TextBlock x:Name="InfoKernel" Text="—"/></StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,6"><TextBlock Text="CPU" Width="110" Foreground="{StaticResource Muted}"/><TextBlock x:Name="InfoCpuModel" Text="—" TextWrapping="Wrap"/></StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,6"><TextBlock Text="Cores" Width="110" Foreground="{StaticResource Muted}"/><TextBlock x:Name="InfoCores" Text="—"/></StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,6"><TextBlock Text="Uptime" Width="110" Foreground="{StaticResource Muted}"/><TextBlock x:Name="InfoUptime" Text="—"/></StackPanel>
+                <StackPanel Orientation="Horizontal"><TextBlock Text="Load avg" Width="110" Foreground="{StaticResource Muted}"/><TextBlock x:Name="InfoLoadAvg" Text="—"/></StackPanel>
+              </StackPanel>
+            </Border>
+            <Border Style="{StaticResource Card}" Width="480" Margin="0,0,12,12" Padding="0" VerticalAlignment="Top">
+              <StackPanel>
+                <TextBlock Text="Docker disk usage" FontWeight="SemiBold" Margin="16,16,16,8"/>
+                <TextBox x:Name="DockerDfBox" Text="—" IsReadOnly="True" BorderThickness="0" Background="#1E1E1E" Foreground="#D4D4D4"
+                         FontFamily="Consolas" FontSize="12" TextWrapping="NoWrap" Padding="16"
+                         HorizontalScrollBarVisibility="Auto"/>
+              </StackPanel>
+            </Border>
+          </WrapPanel>
+        </StackPanel>
+      </ScrollViewer>
+    </TabItem>
   </TabControl>
 </Window>
 '@
@@ -409,6 +480,20 @@ $LogsHideHealthCheckBox = Get-Control "LogsHideHealthCheckBox"
 $LogsFetchButton        = Get-Control "LogsFetchButton"
 $LogsMessage            = Get-Control "LogsMessage"
 $LogsOutputBox          = Get-Control "LogsOutputBox"
+
+$MainTabControl         = Get-Control "MainTabControl"
+$ServerTabItem          = Get-Control "ServerTabItem"
+$ServerRefreshButton    = Get-Control "ServerRefreshButton"
+$ServerMessage          = Get-Control "ServerMessage"
+$CpuPctText  = Get-Control "CpuPctText";  $CpuBar  = Get-Control "CpuBar";  $CpuSubText  = Get-Control "CpuSubText"
+$MemPctText  = Get-Control "MemPctText";  $MemBar  = Get-Control "MemBar";  $MemSubText  = Get-Control "MemSubText"
+$DiskPctText = Get-Control "DiskPctText"; $DiskBar = Get-Control "DiskBar"; $DiskSubText = Get-Control "DiskSubText"
+$SwapPctText = Get-Control "SwapPctText"; $SwapBar = Get-Control "SwapBar"; $SwapSubText = Get-Control "SwapSubText"
+$InfoHostname = Get-Control "InfoHostname"; $InfoOs       = Get-Control "InfoOs"
+$InfoKernel   = Get-Control "InfoKernel";   $InfoCpuModel = Get-Control "InfoCpuModel"
+$InfoCores    = Get-Control "InfoCores";    $InfoUptime   = Get-Control "InfoUptime"
+$InfoLoadAvg  = Get-Control "InfoLoadAvg"
+$DockerDfBox  = Get-Control "DockerDfBox"
 
 $StepKeys = @("preflight", "build", "save", "package", "connect", "upload", "deploy")
 $StepIcons = @{}
@@ -1030,6 +1115,157 @@ $LogsFetchButton.Add_Click({
         $LogsMessage.Text = "Updated $(Get-Date -Format 'HH:mm:ss')"
         $LogsMessage.Foreground = $window.Resources["Muted"]
     }
+})
+
+# ============================================================================
+# Server tab — CPU/memory/disk/swap + system info + docker disk usage, polled on a timer
+# while this tab is the active one. One combined SSH round trip per poll (a handful of shell
+# one-liners), not four separate connections.
+# ============================================================================
+$ServerMetricsScript = @'
+echo "HOSTNAME=$(hostname)"
+echo "UPTIME=$(uptime -p 2>/dev/null || uptime)"
+echo "LOADAVG=$(cut -d' ' -f1-3 /proc/loadavg)"
+echo "KERNEL=$(uname -r)"
+echo "OS=$(. /etc/os-release 2>/dev/null && echo "$PRETTY_NAME")"
+echo "CPU_MODEL=$(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2 | sed 's/^ *//')"
+echo "CPU_CORES=$(nproc)"
+read _ a b c idle1 _ < /proc/stat
+sleep 0.3
+read _ a2 b2 c2 idle2 _ < /proc/stat
+total1=$((a+b+c+idle1)); total2=$((a2+b2+c2+idle2))
+totald=$((total2-total1)); idled=$((idle2-idle1))
+if [ "$totald" -gt 0 ]; then cpupct=$(( (1000*(totald-idled)/totald+5)/10 )); else cpupct=0; fi
+echo "CPU_PCT=$cpupct"
+free -k | awk '/^Mem:/ {print "MEM_TOTAL_KB="$2; print "MEM_USED_KB="$3; print "MEM_AVAIL_KB="$7} /^Swap:/ {print "SWAP_TOTAL_KB="$2; print "SWAP_USED_KB="$3}'
+df / | awk 'NR==2 {print "DISK_TOTAL_KB="$2; print "DISK_USED_KB="$3; print "DISK_AVAIL_KB="$4; gsub("%","",$5); print "DISK_PCT="$5}'
+echo "===DOCKER_DF==="
+docker system df 2>/dev/null
+echo "===END==="
+'@
+# This file is saved with Windows CRLF line endings, which land verbatim inside the here-
+# string above. Sent as-is to the VM's bash, the embedded \r corrupts the script right at
+# the `read ... < /proc/stat` line (\r attaches to the redirect target, an invalid path) and
+# silently truncates everything after it. Strip them before this is ever sent over SSH.
+$ServerMetricsScript = $ServerMetricsScript -replace "`r", ""
+
+function Format-Gb {
+    param([double]$Kb)
+    return "{0:N1} GB" -f ($Kb / 1MB)
+}
+
+function ConvertFrom-ServerMetrics {
+    param([string]$Output)
+    $data = @{}
+    $dockerLines = [System.Collections.Generic.List[string]]::new()
+    $inDockerBlock = $false
+    foreach ($line in ($Output -split "`n")) {
+        $trimmed = $line.Trim()
+        if ($trimmed -eq "===DOCKER_DF===") { $inDockerBlock = $true; continue }
+        if ($trimmed -eq "===END===") { $inDockerBlock = $false; continue }
+        if ($inDockerBlock) { $dockerLines.Add($line); continue }
+        if ($line -match '^([A-Z_]+)=(.*)$') { $data[$Matches[1]] = $Matches[2] }
+    }
+    $data['DOCKER_DF'] = ($dockerLines -join "`n").Trim()
+    return $data
+}
+
+# Traffic-light thresholds: comfortable below 70%, watch 70-90%, hot above 90%.
+function Get-MetricBrush {
+    param([double]$Percent)
+    if ($Percent -ge 90) { return $BrushFailed }
+    if ($Percent -ge 70) { return $window.Resources["Orange"] }
+    return $BrushDone
+}
+
+function Update-ServerMetricsUi {
+    param([hashtable]$Data)
+
+    $cpuPct = [double]($Data['CPU_PCT'])
+    $CpuPctText.Text = "$cpuPct%"
+    $CpuPctText.Foreground = Get-MetricBrush $cpuPct
+    $CpuBar.Value = $cpuPct
+    $CpuSubText.Text = "$($Data['CPU_CORES']) core(s)"
+
+    $memTotal = [double]($Data['MEM_TOTAL_KB'])
+    $memUsed  = [double]($Data['MEM_USED_KB'])
+    $memPct = if ($memTotal -gt 0) { [Math]::Round(($memUsed / $memTotal) * 100) } else { 0 }
+    $MemPctText.Text = "$memPct%"
+    $MemPctText.Foreground = Get-MetricBrush $memPct
+    $MemBar.Value = $memPct
+    $MemSubText.Text = "$(Format-Gb $memUsed) / $(Format-Gb $memTotal)"
+
+    $diskPct = [double]($Data['DISK_PCT'])
+    $DiskPctText.Text = "$diskPct%"
+    $DiskPctText.Foreground = Get-MetricBrush $diskPct
+    $DiskBar.Value = $diskPct
+    $DiskSubText.Text = "$(Format-Gb ([double]($Data['DISK_USED_KB']))) / $(Format-Gb ([double]($Data['DISK_TOTAL_KB'])))"
+
+    $swapTotal = [double]($Data['SWAP_TOTAL_KB'])
+    $swapUsed  = [double]($Data['SWAP_USED_KB'])
+    $swapPct = if ($swapTotal -gt 0) { [Math]::Round(($swapUsed / $swapTotal) * 100) } else { 0 }
+    $SwapPctText.Text = if ($swapTotal -gt 0) { "$swapPct%" } else { "n/a" }
+    $SwapPctText.Foreground = Get-MetricBrush $swapPct
+    $SwapBar.Value = $swapPct
+    $SwapSubText.Text = if ($swapTotal -gt 0) { "$(Format-Gb $swapUsed) / $(Format-Gb $swapTotal)" } else { "no swap configured" }
+
+    $InfoHostname.Text = $Data['HOSTNAME']
+    $InfoOs.Text = $Data['OS']
+    $InfoKernel.Text = $Data['KERNEL']
+    $InfoCpuModel.Text = $Data['CPU_MODEL']
+    $InfoCores.Text = $Data['CPU_CORES']
+    $InfoUptime.Text = $Data['UPTIME']
+    $InfoLoadAvg.Text = $Data['LOADAVG']
+    $DockerDfBox.Text = $Data['DOCKER_DF']
+}
+
+$script:ServerPollInFlight = $false
+
+function Start-ServerMetricsPoll {
+    if ($script:ServerPollInFlight) { return }
+    $script:ServerPollInFlight = $true
+    $ServerMessage.Text = "Refreshing…"
+    $ServerMessage.Foreground = $window.Resources["Muted"]
+
+    $action = {
+        Import-Module Posh-SSH -ErrorAction Stop
+        $secrets = Get-Content -LiteralPath $SecretsPath -Raw | ConvertFrom-Json
+        $securePw = ConvertTo-SecureString $secrets.password -AsPlainText -Force
+        $cred = New-Object System.Management.Automation.PSCredential($secrets.user, $securePw)
+        $port = if ($secrets.port) { [int]$secrets.port } else { 22 }
+        $session = New-SSHSession -ComputerName $secrets.host -Port $port -Credential $cred -AcceptKey
+        try {
+            $result = Invoke-SSHCommand -SSHSession $session -Command $RemoteScript
+            return $result.Output -join "`n"
+        } finally {
+            Remove-SSHSession -SSHSession $session | Out-Null
+        }
+    }
+
+    Start-Async -Variables @{ SecretsPath = $SecretsPath; RemoteScript = $ServerMetricsScript } -Action $action -OnComplete {
+        param($result, $errorMessage)
+        $script:ServerPollInFlight = $false
+        if ($errorMessage) {
+            $ServerMessage.Text = "Failed: $errorMessage"
+            $ServerMessage.Foreground = $BrushFailed
+            return
+        }
+        Update-ServerMetricsUi -Data (ConvertFrom-ServerMetrics -Output $result)
+        $ServerMessage.Text = "Updated $(Get-Date -Format 'HH:mm:ss')"
+        $ServerMessage.Foreground = $window.Resources["Muted"]
+    }
+}
+
+$ServerRefreshButton.Add_Click({ Start-ServerMetricsPoll })
+
+$serverTimer = New-Object System.Windows.Threading.DispatcherTimer
+$serverTimer.Interval = [TimeSpan]::FromSeconds(4)
+$serverTimer.Add_Tick({
+    if ($MainTabControl.SelectedItem -eq $ServerTabItem) { Start-ServerMetricsPoll }
+})
+$serverTimer.Start()
+$MainTabControl.Add_SelectionChanged({
+    if ($MainTabControl.SelectedItem -eq $ServerTabItem) { Start-ServerMetricsPoll }
 })
 
 # ============================================================================
