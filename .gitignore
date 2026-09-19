@@ -135,3 +135,4 @@ frontend/.env
 # Anchored to the repo root — an unanchored "release/" also matched scripts/release/ (source).
 /release/
 **/.env.prod
+/release1/

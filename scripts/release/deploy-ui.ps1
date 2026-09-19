@@ -33,6 +33,13 @@ $SecretsPath = Join-Path $ScriptRoot "secrets.json"
 $ComposeFilePath = Join-Path $RepoRoot "docker-compose.prod.yml"
 $EnvExamplePath = Join-Path $RepoRoot "ops/deploy/.env.prod.example"
 $DeploymentDocPath = Join-Path $RepoRoot "ops/deploy/DEPLOYMENT.md"
+# Local staging copy for the optional "also upload .env.prod" checkbox — never committed
+# (see .gitignore's **/.env.prod rule), lives next to secrets.json for the same reason.
+$LocalEnvProdPath = Join-Path $ScriptRoot ".env.prod"
+# Source of truth it's synced from — the repo-root .env (also gitignored) you already
+# maintain for local dev; re-copied fresh every time the checkbox is used, so the two files
+# can't quietly drift apart the way the VM's .env.prod and its connection string just did.
+$RootEnvPath = Join-Path $RepoRoot ".env"
 
 . (Join-Path $ScriptRoot "PackageRelease.Checks.ps1")
 
@@ -204,16 +211,31 @@ function Get-VmSecrets {
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0" Style="{StaticResource Card}" Margin="0,0,0,12">
-          <StackPanel Orientation="Horizontal">
-            <TextBlock Text="Release tag" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="{StaticResource Muted}"/>
-            <TextBox x:Name="TagTextBox" Width="160" Text="latest" VerticalContentAlignment="Center" Padding="6,4" Margin="0,0,20,0"/>
-            <CheckBox x:Name="SkipBuildCheckBox" Content="Skip build (reuse release/&lt;tag&gt;)" VerticalAlignment="Center" Margin="0,0,20,0"/>
-            <CheckBox x:Name="NoLoadCheckBox" Content="Don't reload images on VM (--no-load)" VerticalAlignment="Center" Margin="0,0,20,0"/>
-            <Button x:Name="DeployButton" Content="Deploy" Style="{StaticResource PrimaryButton}" Width="140" HorizontalAlignment="Right"/>
+          <StackPanel>
+            <WrapPanel>
+              <TextBlock Text="Release tag" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="{StaticResource Muted}"/>
+              <TextBox x:Name="TagTextBox" Width="160" Text="latest" VerticalContentAlignment="Center" Padding="6,4" Margin="0,0,20,0"/>
+              <CheckBox x:Name="SkipBuildCheckBox" Content="Skip build (reuse release/&lt;tag&gt;)" VerticalAlignment="Center" Margin="0,0,20,10"/>
+              <CheckBox x:Name="NoLoadCheckBox" Content="Don't reload images on VM (--no-load)" VerticalAlignment="Center" Margin="0,0,20,10"/>
+              <Button x:Name="DeployButton" Content="Deploy" Style="{StaticResource PrimaryButton}" Width="140" Margin="0,0,0,10"/>
+            </WrapPanel>
+            <Separator Margin="0,2,0,10" Opacity="0.4"/>
+            <WrapPanel>
+              <CheckBox x:Name="UploadEnvCheckBox" VerticalAlignment="Center"/>
+              <TextBlock VerticalAlignment="Center" Margin="6,0,16,10">
+                <Run Text="⚠ Also build &amp; upload .env.prod from" FontWeight="SemiBold" Foreground="{StaticResource Orange}"/>
+                <Run x:Name="EnvProdPathRun" Text=".env" FontFamily="Consolas" FontSize="12"/>
+                <Run Text="(overwrites the VM's secrets — off by default)" Foreground="{StaticResource Muted}"/>
+              </TextBlock>
+              <Button x:Name="UploadEnvOnlyButton" Content="Upload .env.prod only (no deploy)" Style="{StaticResource SecondaryButton}"
+                      Padding="8,4" FontSize="11" Margin="0,0,0,10"/>
+            </WrapPanel>
           </StackPanel>
         </Border>
 
-        <TextBlock Grid.Row="1" x:Name="StatusBanner" Text="" FontWeight="SemiBold" Margin="4,0,0,10" TextWrapping="Wrap"/>
+        <TextBox Grid.Row="1" x:Name="StatusBanner" Text="" FontWeight="SemiBold" Margin="4,0,0,10"
+                 TextWrapping="Wrap" IsReadOnly="True" BorderThickness="0" Background="Transparent"
+                 MaxHeight="130" VerticalScrollBarVisibility="Auto" IsReadOnlyCaretVisible="True"/>
 
         <Grid Grid.Row="2">
           <Grid.ColumnDefinitions>
@@ -248,11 +270,20 @@ function Get-VmSecrets {
               </StackPanel>
               <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
                 <TextBlock x:Name="UploadIcon" Style="{StaticResource StepIcon}" Text="○"/>
-                <StackPanel><TextBlock Style="{StaticResource StepLabel}" Text="6. Uploading to VM"/><TextBlock x:Name="UploadDetail" Style="{StaticResource StepDetail}"/></StackPanel>
+                <StackPanel Width="240">
+                  <TextBlock Style="{StaticResource StepLabel}" Text="6. Uploading to VM"/>
+                  <TextBlock x:Name="UploadDetail" Style="{StaticResource StepDetail}" TextWrapping="Wrap"/>
+                  <ProgressBar x:Name="UploadProgressBar" Height="6" Minimum="0" Maximum="100" Margin="0,4,0,0" Visibility="Collapsed"/>
+                </StackPanel>
               </StackPanel>
               <StackPanel Orientation="Horizontal">
                 <TextBlock x:Name="DeployStepIcon" Style="{StaticResource StepIcon}" Text="○"/>
-                <StackPanel><TextBlock Style="{StaticResource StepLabel}" Text="7. Deploying on VM"/><TextBlock x:Name="DeployStepDetail" Style="{StaticResource StepDetail}"/></StackPanel>
+                <StackPanel>
+                  <TextBlock Style="{StaticResource StepLabel}" Text="7. Deploying on VM"/>
+                  <TextBlock x:Name="DeployStepDetail" Style="{StaticResource StepDetail}" TextWrapping="Wrap"/>
+                  <Button x:Name="RerunDeployButton" Content="Rerun deploy.sh only" Style="{StaticResource SecondaryButton}"
+                          HorizontalAlignment="Left" Padding="8,4" Margin="0,6,0,0" FontSize="11"/>
+                </StackPanel>
               </StackPanel>
             </StackPanel>
           </Border>
@@ -359,7 +390,10 @@ function Get-Control([string]$Name) { return $window.FindName($Name) }
 $TagTextBox            = Get-Control "TagTextBox"
 $SkipBuildCheckBox      = Get-Control "SkipBuildCheckBox"
 $NoLoadCheckBox         = Get-Control "NoLoadCheckBox"
+$UploadEnvCheckBox      = Get-Control "UploadEnvCheckBox"
+$UploadEnvOnlyButton    = Get-Control "UploadEnvOnlyButton"
 $DeployButton           = Get-Control "DeployButton"
+$RerunDeployButton      = Get-Control "RerunDeployButton"
 $StatusBanner           = Get-Control "StatusBanner"
 $OverallProgressBar     = Get-Control "OverallProgressBar"
 $LogBox                 = Get-Control "LogBox"
@@ -385,6 +419,7 @@ $StepIcons["save"]      = Get-Control "SaveIcon";        $StepDetails["save"]   
 $StepIcons["package"]   = Get-Control "PackageIcon";     $StepDetails["package"]   = Get-Control "PackageDetail"
 $StepIcons["connect"]   = Get-Control "ConnectIcon";     $StepDetails["connect"]   = Get-Control "ConnectDetail"
 $StepIcons["upload"]    = Get-Control "UploadIcon";      $StepDetails["upload"]    = Get-Control "UploadDetail"
+$UploadProgressBar = Get-Control "UploadProgressBar"
 $StepIcons["deploy"]    = Get-Control "DeployStepIcon";  $StepDetails["deploy"]    = Get-Control "DeployStepDetail"
 
 $BrushPending = $window.Resources["CardBorder"]
@@ -408,13 +443,52 @@ function Set-StepVisual {
 function Reset-DeploySteps {
     foreach ($key in $StepKeys) { Set-StepVisual -Key $key -Status "Pending" -Detail "" }
     $OverallProgressBar.Value = 0
+    $UploadProgressBar.Value = 0
+    $UploadProgressBar.Visibility = "Collapsed"
     $LogBox.Clear()
     $StatusBanner.Text = ""
 }
 
+<#
+.SYNOPSIS
+  Formats an upload-progress snapshot (see the $onUploadProgress hook below) into the
+  step-detail text: current file, per-file and overall percent, throughput, and a
+  throughput-based ETA for the remaining bytes.
+#>
+function Format-UploadProgressDetail {
+    param($Progress)
+    if (-not $Progress) { return "" }
+
+    $elapsedSec = ((Get-Date) - $Progress.StartedAt).TotalSeconds
+    $throughput = if ($elapsedSec -gt 0.5) { $Progress.OverallUploaded / $elapsedSec } else { 0 }
+    $remaining = $Progress.OverallSize - $Progress.OverallUploaded
+    $etaText = if ($throughput -gt 0 -and $remaining -gt 0) {
+        $etaSec = [Math]::Round($remaining / $throughput)
+        if ($etaSec -ge 60) { "ETA {0}m {1}s" -f [Math]::Floor($etaSec / 60), ($etaSec % 60) } else { "ETA ${etaSec}s" }
+    } else { "" }
+    $throughputText = if ($throughput -gt 0) { "$(Format-ByteSize $throughput)/s" } else { "" }
+    $filePct = if ($Progress.FileSize -gt 0) { [Math]::Round(($Progress.FileUploaded / $Progress.FileSize) * 100) } else { 0 }
+
+    $fileName = Split-Path -Leaf $Progress.FileName
+    $line1 = "$fileName ($($Progress.FileIndex) of $($Progress.FileCount)) — $filePct%"
+    $line2 = "$(Format-ByteSize $Progress.OverallUploaded) / $(Format-ByteSize $Progress.OverallSize)" +
+        $(if ($throughputText) { " — $throughputText" } else { "" }) +
+        $(if ($etaText) { " — $etaText" } else { "" })
+    return "$line1`n$line2"
+}
+
+function Format-ByteSize {
+    param([double]$Bytes)
+    if ($Bytes -ge 1GB) { return "{0:N2} GB" -f ($Bytes / 1GB) }
+    if ($Bytes -ge 1MB) { return "{0:N1} MB" -f ($Bytes / 1MB) }
+    if ($Bytes -ge 1KB) { return "{0:N0} KB" -f ($Bytes / 1KB) }
+    return "$([Math]::Round($Bytes)) B"
+}
+
 # ============================================================================
 # Deploy tab — runs package-release.ps1 then deploy-remote.ps1 in a background
-# runspace, reporting through $DeploySync (steps + a log line queue).
+# runspace, reporting through $DeploySync (steps, a log line queue, and the
+# latest upload-progress snapshot).
 # ============================================================================
 $DeploySync = [hashtable]::Synchronized(@{
     Steps    = [hashtable]::Synchronized(@{})
@@ -422,20 +496,28 @@ $DeploySync = [hashtable]::Synchronized(@{
     Running  = $false
     Result   = ""
     ErrorMessage = ""
+    UploadProgress = $null
 })
 foreach ($key in $StepKeys) { $DeploySync.Steps[$key] = @{ Status = "Pending"; Detail = "" } }
 
 $script:DeployWasRunning = $false
 
-$DeployButton.Add_Click({
-    if ($DeploySync.Running) { return }
-
-    $tag = $TagTextBox.Text.Trim()
-    if (-not $tag) { $tag = "latest" }
-    $confirm = [System.Windows.MessageBox]::Show(
-        "Deploy tag '$tag' to production now?`n`nThis builds, uploads, and restarts the live site.",
-        "Confirm deployment", "YesNo", "Warning")
-    if ($confirm -ne "Yes") { return }
+<#
+.SYNOPSIS
+  Shared pipeline runner behind Deploy, "Rerun deploy.sh only", and "Upload .env.prod only" —
+  same background runspace, same step/log/progress wiring. -DeployOnly skips packaging and
+  just (re)runs deploy.sh against what's already on the VM. -EnvOnly skips packaging AND
+  deploy.sh, uploading only .env.prod — running containers are left completely untouched.
+#>
+function Start-DeployRun {
+    param(
+        [string]$Tag,
+        [bool]$SkipBuild,
+        [bool]$NoLoad,
+        [string]$EnvProdPath,
+        [bool]$DeployOnly,
+        [bool]$EnvOnly = $false
+    )
 
     Reset-DeploySteps
     foreach ($key in $StepKeys) { $DeploySync.Steps[$key] = @{ Status = "Pending"; Detail = "" } }
@@ -443,31 +525,66 @@ $DeployButton.Add_Click({
     $DeploySync.Running = $true
     $DeploySync.Result = ""
     $DeploySync.ErrorMessage = ""
+    $DeploySync.UploadProgress = $null
     $script:DeployWasRunning = $true
     $DeployButton.IsEnabled = $false
-    $StatusBanner.Text = "Deploying…"
+    $RerunDeployButton.IsEnabled = $false
+    $UploadEnvOnlyButton.IsEnabled = $false
+    $StatusBanner.Text = if ($EnvOnly) { "Uploading .env.prod…" } elseif ($DeployOnly) { "Rerunning deploy.sh…" } else { "Deploying…" }
     $StatusBanner.Foreground = $BrushRunning
 
     $rs = [runspacefactory]::CreateRunspace()
     $rs.Open()
     $rs.SessionStateProxy.SetVariable('sync', $DeploySync)
     $rs.SessionStateProxy.SetVariable('ScriptRoot', $ScriptRoot)
-    $rs.SessionStateProxy.SetVariable('Tag', $tag)
-    $rs.SessionStateProxy.SetVariable('SkipBuild', [bool]$SkipBuildCheckBox.IsChecked)
-    $rs.SessionStateProxy.SetVariable('NoLoad', [bool]$NoLoadCheckBox.IsChecked)
+    $rs.SessionStateProxy.SetVariable('Tag', $Tag)
+    $rs.SessionStateProxy.SetVariable('SkipBuild', $SkipBuild)
+    $rs.SessionStateProxy.SetVariable('NoLoad', $NoLoad)
+    $rs.SessionStateProxy.SetVariable('EnvProdPath', $EnvProdPath)
+    $rs.SessionStateProxy.SetVariable('DeployOnly', $DeployOnly)
+    $rs.SessionStateProxy.SetVariable('EnvOnly', $EnvOnly)
 
     $ps = [powershell]::Create()
     $ps.Runspace = $rs
     [void]$ps.AddScript({
         $onStep = { param($Stage, $Status, $Detail) $sync.Steps[$Stage] = @{ Status = $Status; Detail = $Detail } }
         $onLine = { param($Line) $sync.LogQueue.Enqueue($Line) }
+        # $script: here, not a plain local — each `& $onUploadProgress` call gets its own fresh
+        # scope, so a plain local write wouldn't persist back across ticks (same reason the SCP
+        # upload counters in deploy-remote.ps1 need script scope).
+        $script:UploadStartedAt = $null
+        $onUploadProgress = {
+            param($FileName, $FileUploaded, $FileSize, $OverallUploaded, $OverallSize, $FileIndex, $FileCount)
+            if (-not $script:UploadStartedAt) { $script:UploadStartedAt = Get-Date }
+            $sync.UploadProgress = @{
+                FileName = $FileName; FileUploaded = $FileUploaded; FileSize = $FileSize
+                OverallUploaded = $OverallUploaded; OverallSize = $OverallSize
+                FileIndex = $FileIndex; FileCount = $FileCount; StartedAt = $script:UploadStartedAt
+            }
+        }
         try {
-            $packageArgs = @{ Tag = $Tag; OnStep = $onStep; OnLine = $onLine }
-            if ($SkipBuild) { $packageArgs.SkipBuild = $true }
-            & (Join-Path $ScriptRoot "package-release.ps1") @packageArgs
+            if ($DeployOnly -or $EnvOnly) {
+                $skipDetail = if ($EnvOnly) { "Skipped (.env.prod only)" } else { "Skipped (deploy.sh only)" }
+                foreach ($skipped in @("preflight", "build", "save", "package")) {
+                    $sync.Steps[$skipped] = @{ Status = "Done"; Detail = $skipDetail }
+                }
+            } else {
+                $packageArgs = @{ Tag = $Tag; OnStep = $onStep; OnLine = $onLine }
+                if ($SkipBuild) { $packageArgs.SkipBuild = $true }
+                if ($EnvProdPath) { $packageArgs.EnvProdPath = $EnvProdPath }
+                & (Join-Path $ScriptRoot "package-release.ps1") @packageArgs
+            }
 
-            $deployArgs = @{ Tag = $Tag; OnStep = $onStep; OnLine = $onLine }
+            $deployArgs = @{ Tag = $Tag; OnStep = $onStep; OnLine = $onLine; OnUploadProgress = $onUploadProgress }
             if ($NoLoad) { $deployArgs.NoLoad = $true }
+            if ($EnvOnly) {
+                $deployArgs.EnvOnly = $true
+                $deployArgs.EnvProdPath = $EnvProdPath
+            } elseif ($DeployOnly) {
+                $deployArgs.DeployOnly = $true
+            } elseif ($EnvProdPath) {
+                $deployArgs.EnvProdPath = $EnvProdPath
+            }
             & (Join-Path $ScriptRoot "deploy-remote.ps1") @deployArgs
 
             $sync.Result = "success"
@@ -480,6 +597,86 @@ $DeployButton.Add_Click({
     })
     [void]$ps.BeginInvoke()
     $script:DeployPs = $ps
+}
+
+<#
+.SYNOPSIS
+  Syncs $LocalEnvProdPath from $RootEnvPath, runs the required-variable readiness check, and
+  prompts if anything looks wrong. Returns $true to proceed, $false to abort (the user already
+  saw why, via the dialogs this shows).
+#>
+function Sync-AndCheckLocalEnvProd {
+    if (-not (Test-Path $RootEnvPath)) {
+        [System.Windows.MessageBox]::Show(
+            "$RootEnvPath not found, so there's nothing to build .env.prod from.",
+            "Can't create .env.prod", "OK", "Error") | Out-Null
+        return $false
+    }
+    Copy-Item -LiteralPath $RootEnvPath -Destination $LocalEnvProdPath -Force
+
+    $problems = Test-LocalEnvProdReadiness -Path $LocalEnvProdPath -RequiredVars $RequiredEnvVars
+    if ($problems.Count -gt 0) {
+        $proceed = [System.Windows.MessageBox]::Show(
+            "$RootEnvPath has problems with required variables:`n`n" +
+            ($problems -join "`n") +
+            "`n`nUploading this now would overwrite the VM's .env.prod with these values. Fix $RootEnvPath first, or continue anyway?",
+            "Local .env looks incomplete", "YesNo", "Error")
+        if ($proceed -ne "Yes") { return $false }
+    }
+    return $true
+}
+
+$DeployButton.Add_Click({
+    if ($DeploySync.Running) { return }
+
+    $tag = $TagTextBox.Text.Trim()
+    if (-not $tag) { $tag = "latest" }
+    $uploadEnv = [bool]$UploadEnvCheckBox.IsChecked
+
+    if ($uploadEnv -and -not (Sync-AndCheckLocalEnvProd)) { return }
+
+    $confirmText = "Deploy tag '$tag' to production now?`n`nThis builds, uploads, and restarts the live site."
+    if ($uploadEnv) {
+        $confirmText += "`n`n⚠ It will ALSO overwrite .env.prod on the VM with $LocalEnvProdPath — including database, RabbitMQ, and API secrets."
+    }
+    $confirm = [System.Windows.MessageBox]::Show($confirmText, "Confirm deployment", "YesNo", "Warning")
+    if ($confirm -ne "Yes") { return }
+
+    Start-DeployRun -Tag $tag -SkipBuild ([bool]$SkipBuildCheckBox.IsChecked) -NoLoad ([bool]$NoLoadCheckBox.IsChecked) `
+        -EnvProdPath $(if ($uploadEnv) { $LocalEnvProdPath } else { $null }) -DeployOnly $false
+})
+
+$UploadEnvOnlyButton.Add_Click({
+    if ($DeploySync.Running) { return }
+
+    if (-not (Sync-AndCheckLocalEnvProd)) { return }
+
+    $confirm = [System.Windows.MessageBox]::Show(
+        "Upload $LocalEnvProdPath to the VM's .env.prod now?`n`n" +
+        "⚠ This overwrites the VM's .env.prod — including database, RabbitMQ, and API secrets. " +
+        "It does NOT touch running containers or run deploy.sh — restart the stack afterward " +
+        "('Rerun deploy.sh only') to actually pick up the changes.",
+        "Confirm .env.prod upload", "YesNo", "Warning")
+    if ($confirm -ne "Yes") { return }
+
+    $tag = $TagTextBox.Text.Trim()
+    if (-not $tag) { $tag = "latest" }
+    Start-DeployRun -Tag $tag -SkipBuild $false -NoLoad $false -EnvProdPath $LocalEnvProdPath -DeployOnly $false -EnvOnly $true
+})
+
+$RerunDeployButton.Add_Click({
+    if ($DeploySync.Running) { return }
+
+    $confirm = [System.Windows.MessageBox]::Show(
+        "Rerun deploy.sh on the VM now, using whatever release is already uploaded there?`n`n" +
+        "This skips building, packaging, and uploading entirely — it only restarts the stack from what's already on the VM. " +
+        "Use this to retry a deploy.sh failure (e.g. after fixing .env.prod on the VM directly).",
+        "Confirm deploy.sh rerun", "YesNo", "Warning")
+    if ($confirm -ne "Yes") { return }
+
+    $tag = $TagTextBox.Text.Trim()
+    if (-not $tag) { $tag = "latest" }
+    Start-DeployRun -Tag $tag -SkipBuild $false -NoLoad ([bool]$NoLoadCheckBox.IsChecked) -EnvProdPath $null -DeployOnly $true
 })
 
 # ============================================================================
@@ -698,6 +895,30 @@ function Build-RemoteEnvCheckScript {
     return ($lines -join "`n")
 }
 
+<#
+.SYNOPSIS
+  Local counterpart to the Config Checklist's remote check, used to gate the "also upload
+  .env.prod" checkbox: returns one description per required key that's missing, empty, or
+  still equal to the .env.prod.example placeholder, so a stale local file can't silently
+  overwrite real secrets on the VM.
+#>
+function Test-LocalEnvProdReadiness {
+    param([string]$Path, [object[]]$RequiredVars)
+
+    if (-not (Test-Path $Path)) { return @("(file not found: $Path)") }
+
+    $problems = [System.Collections.Generic.List[string]]::new()
+    $lines = Get-Content -LiteralPath $Path
+    foreach ($v in $RequiredVars) {
+        $line = $lines | Where-Object { $_ -match "^$([regex]::Escape($v.Key))=" } | Select-Object -First 1
+        if (-not $line) { $problems.Add("$($v.Key) — missing"); continue }
+        $value = $line.Substring($v.Key.Length + 1)
+        if ([string]::IsNullOrWhiteSpace($value)) { $problems.Add("$($v.Key) — empty"); continue }
+        if ($value -eq $v.Default) { $problems.Add("$($v.Key) — still the example placeholder"); continue }
+    }
+    return $problems.ToArray()
+}
+
 $RequiredEnvVars = Get-RequiredEnvVars -Path $EnvExamplePath
 
 $ConfigRefreshButton.Add_Click({
@@ -829,14 +1050,28 @@ $timer.Add_Tick({
     $doneCount = 0
     foreach ($key in $StepKeys) {
         $info = $DeploySync.Steps[$key]
-        Set-StepVisual -Key $key -Status $info.Status -Detail $info.Detail
+        $detail = $info.Detail
+        if ($key -eq "upload" -and $info.Status -eq "Running" -and $DeploySync.UploadProgress) {
+            $detail = Format-UploadProgressDetail -Progress $DeploySync.UploadProgress
+        }
+        Set-StepVisual -Key $key -Status $info.Status -Detail $detail
         if ($info.Status -eq "Done") { $doneCount += 1 }
     }
     $OverallProgressBar.Value = ($doneCount / $StepKeys.Count) * 100
 
+    if ($DeploySync.UploadProgress -and $DeploySync.Steps["upload"].Status -eq "Running") {
+        $p = $DeploySync.UploadProgress
+        $UploadProgressBar.Visibility = "Visible"
+        $UploadProgressBar.Value = if ($p.OverallSize -gt 0) { ($p.OverallUploaded / $p.OverallSize) * 100 } else { 0 }
+    } elseif ($DeploySync.Steps["upload"].Status -ne "Running") {
+        $UploadProgressBar.Visibility = "Collapsed"
+    }
+
     if (-not $DeploySync.Running -and $script:DeployWasRunning) {
         $script:DeployWasRunning = $false
         $DeployButton.IsEnabled = $true
+        $RerunDeployButton.IsEnabled = $true
+        $UploadEnvOnlyButton.IsEnabled = $true
         if ($DeploySync.Result -eq "success") {
             $StatusBanner.Text = "Deployment complete."
             $StatusBanner.Foreground = $BrushDone

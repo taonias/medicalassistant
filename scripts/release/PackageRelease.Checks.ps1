@@ -1,4 +1,4 @@
-# Pure, side-effect-free checks used by package-release.ps1. Kept in a
+﻿# Pure, side-effect-free checks used by package-release.ps1. Kept in a
 # separate dot-sourceable file so each check can be exercised on its own
 # (e.g. against a hand-built fixture, or against an already-assembled
 # release/ folder) without triggering a real build.

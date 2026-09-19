@@ -1,4 +1,4 @@
-#!/usr/bin/env pwsh
+﻿#!/usr/bin/env pwsh
 # Builds the production images on THIS machine, saves them to .tar files, and assembles a
 # fresh, versioned, self-contained release/<Tag>/ folder to upload to the VM with FileZilla
 # (SFTP:22).
@@ -18,6 +18,11 @@ param(
     [string]$Tag = "latest",
     [string]$Prefix = "medicalassistant",
     [switch]$SkipBuild,
+    # When set, copies this file into release/<Tag>/.env.prod as the very last step, AFTER
+    # the secret-shaped-file scan and allowlist check below have already run — a deliberate,
+    # explicit exception to "never bundle secrets," not something those checks need to allow.
+    # Off by default; plain `./package-release.ps1` behaves exactly as before.
+    [string]$EnvProdPath = $null,
     # Optional progress hooks for callers driving a UI (e.g. deploy-ui.ps1) on top of this
     # script. Both are no-ops when not supplied, so plain CLI usage is unchanged.
     #   OnStep -Stage <string> -Status <'Running'|'Done'|'Failed'> -Detail <string>
@@ -185,6 +190,20 @@ if ($disallowed) {
 }
 Write-Host "  OK — every file is on the allowlist." -ForegroundColor Green
 
+# --- Deliberate exception to "never bundle secrets": only runs if the caller explicitly
+# passed -EnvProdPath, and only AFTER the secret-shaped-file scan and allowlist check above,
+# so it can never trip either guard. release/<Tag>/.env.prod (if present) should be handled
+# like any other secret file from here on — don't upload/share the folder carelessly. ---
+$envProdIncluded = $false
+if ($EnvProdPath) {
+    if (-not (Test-Path $EnvProdPath)) {
+        throw "EnvProdPath was set but the file doesn't exist: $EnvProdPath"
+    }
+    Copy-Item -LiteralPath $EnvProdPath -Destination (Join-Path $releaseDir ".env.prod") -Force
+    $envProdIncluded = $true
+    Write-Host "==> Included .env.prod in release/$Tag (contains real secrets — handle this folder accordingly)" -ForegroundColor Yellow
+}
+
 # --- Manifest: replaces release.info (confirmed unread by deploy.sh or anything else) with a
 # record an operator can actually use to see what's deployable and why. ---
 $gitCommit = (git rev-parse HEAD 2>$null)
@@ -198,6 +217,7 @@ $manifest = [ordered]@{
     gitCommit    = $gitCommit
     gitBranch    = $gitBranch
     gitDirty     = $gitDirty
+    envProdIncluded = $envProdIncluded
     images       = $imageManifestEntries
 }
 $manifest | ConvertTo-Json -Depth 5 | Set-Content (Join-Path $releaseDir "manifest.json")

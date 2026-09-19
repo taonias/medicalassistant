@@ -1,4 +1,4 @@
-#!/usr/bin/env pwsh
+﻿#!/usr/bin/env pwsh
 # Fully automated deploy: build+package images (package-release.ps1), then upload + refresh
 # the production VM (deploy-remote.ps1). This is the single command for the whole procedure
 # documented across ops/deploy/DEPLOYMENT.md steps 1-4.
