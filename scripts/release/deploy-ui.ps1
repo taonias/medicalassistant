@@ -340,6 +340,36 @@ function Get-VmSecrets {
       </Grid>
     </TabItem>
 
+    <!-- ================= Recreate ================= -->
+    <TabItem Header="Recreate">
+      <Grid Margin="12">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Margin="0,0,0,12" TextWrapping="Wrap" Foreground="{StaticResource Muted}">
+          Recreates one container from the image and .env.prod already on the VM
+          (<Run FontFamily="Consolas" Text="docker compose up -d --force-recreate &lt;service&gt;"/>) —
+          use this when you've fixed .env.prod on the VM and the running container needs to pick up
+          the change, without touching any other service. A few seconds of downtime for that one
+          container; everything else on the VM keeps running.
+        </TextBlock>
+
+        <Border Grid.Row="1" Style="{StaticResource Card}" Margin="0,0,0,12">
+          <WrapPanel x:Name="RecreateServicesPanel"/>
+        </Border>
+
+        <Border Grid.Row="2" Style="{StaticResource Card}" Padding="0">
+          <TextBox x:Name="RecreateOutputBox" IsReadOnly="True" Background="#1E1E1E" Foreground="#D4D4D4"
+                   FontFamily="Consolas" FontSize="12" TextWrapping="NoWrap"
+                   VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                   BorderThickness="0" Padding="10"/>
+        </Border>
+      </Grid>
+    </TabItem>
+
     <!-- ================= Config Checklist ================= -->
     <TabItem Header="Config Checklist">
       <Grid Margin="12">
@@ -484,6 +514,8 @@ $VmStatusMessage        = Get-Control "VmStatusMessage"
 $VmStatusList           = Get-Control "VmStatusList"
 $ConfigRefreshButton    = Get-Control "ConfigRefreshButton"
 $ConfigList             = Get-Control "ConfigList"
+$RecreateServicesPanel  = Get-Control "RecreateServicesPanel"
+$RecreateOutputBox      = Get-Control "RecreateOutputBox"
 $LogsServiceCombo       = Get-Control "LogsServiceCombo"
 $LogsTailTextBox        = Get-Control "LogsTailTextBox"
 $LogsHideHealthCheckBox = Get-Control "LogsHideHealthCheckBox"
@@ -1077,12 +1109,13 @@ $ConfigRefreshButton.Add_Click({
 # ============================================================================
 # Live Logs tab
 # ============================================================================
-try {
-    foreach ($service in (Get-ComposeServiceNames -ComposeFilePath $ComposeFilePath)) {
-        [void]$LogsServiceCombo.Items.Add($service)
-    }
-    if ($LogsServiceCombo.Items.Count -gt 0) { $LogsServiceCombo.SelectedIndex = 0 }
-} catch { }
+# Shared with the Recreate tab below — same source of truth, read once.
+$ComposeServiceNames = try { Get-ComposeServiceNames -ComposeFilePath $ComposeFilePath } catch { @() }
+
+foreach ($service in $ComposeServiceNames) {
+    [void]$LogsServiceCombo.Items.Add($service)
+}
+if ($LogsServiceCombo.Items.Count -gt 0) { $LogsServiceCombo.SelectedIndex = 0 }
 
 $LogsFetchButton.Add_Click({
     $service = $LogsServiceCombo.SelectedItem
@@ -1126,6 +1159,120 @@ $LogsFetchButton.Add_Click({
         $LogsMessage.Foreground = $window.Resources["Muted"]
     }
 })
+
+# ============================================================================
+# Recreate tab — one card per compose service. Each button runs
+# `docker compose up -d --force-recreate <service>` scoped to that single
+# service (compose only recreates the services named on the command line),
+# over the same Posh-SSH session pattern as the other tabs.
+# ============================================================================
+<#
+.SYNOPSIS
+  Confirms, then runs `up -d --force-recreate $ServiceName` on the VM in a background
+  runspace, updating $Button/$StatusBlock (this card) and $RecreateOutputBox (shared log)
+  when it completes. $Button and $StatusBlock are this function's own locals, so the
+  -OnComplete scriptblock is bound with GetNewClosure() — by the time it actually runs (a
+  later timer tick, back at script scope), this function call's locals would otherwise
+  already be gone.
+#>
+function Start-RecreateService {
+    param(
+        [Parameter(Mandatory)][string]$ServiceName,
+        [Parameter(Mandatory)][System.Windows.Controls.Button]$Button,
+        [Parameter(Mandatory)][System.Windows.Controls.TextBlock]$StatusBlock
+    )
+
+    $confirm = [System.Windows.MessageBox]::Show(
+        "Recreate '$ServiceName' now?`n`n" +
+        "Runs 'docker compose up -d --force-recreate $ServiceName' on the VM — picks up the " +
+        "current .env.prod and the image already loaded there, for this service only. Causes a " +
+        "few seconds of downtime for '$ServiceName'; every other service keeps running untouched.",
+        "Confirm recreate", "YesNo", "Warning")
+    if ($confirm -ne "Yes") { return }
+
+    $Button.IsEnabled = $false
+    $StatusBlock.Text = "Recreating…"
+    $StatusBlock.Foreground = $BrushRunning
+    $RecreateOutputBox.AppendText("`r`n== Recreating $ServiceName @ $(Get-Date -Format 'HH:mm:ss') ==`r`n")
+    $RecreateOutputBox.ScrollToEnd()
+
+    $action = {
+        Import-Module Posh-SSH -ErrorAction Stop
+        $secrets = Get-Content -LiteralPath $SecretsPath -Raw | ConvertFrom-Json
+        $securePw = ConvertTo-SecureString $secrets.password -AsPlainText -Force
+        $cred = New-Object System.Management.Automation.PSCredential($secrets.user, $securePw)
+        $port = if ($secrets.port) { [int]$secrets.port } else { 22 }
+        $session = New-SSHSession -ComputerName $secrets.host -Port $port -Credential $cred -AcceptKey
+        try {
+            $cmd = "cd '$($secrets.remotePath)' && docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --force-recreate $ServiceName 2>&1"
+            $result = Invoke-SSHCommand -SSHSession $session -Command $cmd
+            return @{ Output = ($result.Output -join "`n"); ExitStatus = $result.ExitStatus }
+        } finally {
+            Remove-SSHSession -SSHSession $session | Out-Null
+        }
+    }
+
+    Start-Async -Variables @{ SecretsPath = $SecretsPath; ServiceName = $ServiceName } -Action $action -OnComplete ({
+        param($result, $errorMessage)
+        $Button.IsEnabled = $true
+        if ($errorMessage) {
+            $StatusBlock.Text = "Failed"
+            $StatusBlock.Foreground = $BrushFailed
+            $RecreateOutputBox.AppendText("ERROR: $errorMessage`r`n")
+            $RecreateOutputBox.ScrollToEnd()
+            return
+        }
+        $ok = ($result.ExitStatus -eq 0)
+        $StatusBlock.Text = if ($ok) { "Recreated $(Get-Date -Format 'HH:mm:ss')" } else { "Failed (exit $($result.ExitStatus))" }
+        $StatusBlock.Foreground = if ($ok) { $BrushDone } else { $BrushFailed }
+        $RecreateOutputBox.AppendText("$($result.Output)`r`n")
+        $RecreateOutputBox.ScrollToEnd()
+    }.GetNewClosure())
+}
+
+function New-RecreateCard {
+    param([string]$ServiceName)
+
+    $border = New-Object System.Windows.Controls.Border
+    $border.Style = $window.Resources["Card"]
+    $border.Width = 200
+    $border.Margin = New-Object System.Windows.Thickness(0, 0, 12, 12)
+
+    $stack = New-Object System.Windows.Controls.StackPanel
+
+    $nameBlock = New-Object System.Windows.Controls.TextBlock
+    $nameBlock.Text = $ServiceName
+    $nameBlock.FontWeight = "SemiBold"
+    $nameBlock.FontSize = 14
+    $nameBlock.TextWrapping = "Wrap"
+    $nameBlock.Margin = New-Object System.Windows.Thickness(0, 0, 0, 6)
+    [void]$stack.Children.Add($nameBlock)
+
+    $statusBlock = New-Object System.Windows.Controls.TextBlock
+    $statusBlock.Text = "Idle"
+    $statusBlock.FontSize = 11
+    $statusBlock.TextWrapping = "Wrap"
+    $statusBlock.Foreground = $window.Resources["Muted"]
+    $statusBlock.Margin = New-Object System.Windows.Thickness(0, 0, 0, 10)
+    [void]$stack.Children.Add($statusBlock)
+
+    $button = New-Object System.Windows.Controls.Button
+    $button.Content = "Recreate"
+    $button.Style = $window.Resources["SecondaryButton"]
+    $button.HorizontalAlignment = "Stretch"
+    [void]$stack.Children.Add($button)
+
+    $button.Add_Click({
+        Start-RecreateService -ServiceName $ServiceName -Button $button -StatusBlock $statusBlock
+    }.GetNewClosure())
+
+    $border.Child = $stack
+    return $border
+}
+
+foreach ($service in $ComposeServiceNames) {
+    [void]$RecreateServicesPanel.Children.Add((New-RecreateCard -ServiceName $service))
+}
 
 # ============================================================================
 # Server tab — CPU/memory/disk/swap + system info + docker disk usage, polled on a timer
