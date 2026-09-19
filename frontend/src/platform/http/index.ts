@@ -6,6 +6,8 @@ export { httpClient } from './json';
 export type { HttpRequestOptions } from './json';
 export { httpMultipart } from './multipart';
 export type { HttpMultipartOptions } from './multipart';
+export { httpMultipartWithProgress } from './multipartProgress';
+export type { HttpMultipartProgressOptions } from './multipartProgress';
 export { httpBlob } from './blob';
 export type { HttpBlobResult } from './blob';
 export { httpDownload } from './download';

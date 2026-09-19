@@ -7,6 +7,7 @@ import {
 import { usePatient } from '../../../../features/patients';
 import { formatPatientName } from '../../../../shared/utils/format';
 import { resolveRecordingDuration } from '../../audio-capture/utils/getAudioDuration';
+import { UploadProgress } from '../../audio-capture/components/UploadProgress';
 import { AudioVisualizer } from '../components/AudioVisualizer';
 import { RecordControls } from '../components/RecordControls';
 import { useRecordSessionStore } from '../store/recordSessionStore';
@@ -29,6 +30,7 @@ export function RecordPage() {
   const createConsultation = useCreateConsultation();
   const uploadAudio = useUploadConsultationAudio();
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const autoSaveStarted = useRef(false);
 
   const preselectedPatientId = Number(searchParams.get('patientId') ?? '0');
@@ -65,6 +67,7 @@ export function RecordPage() {
 
   async function handleSave(patientId?: number) {
     setSaveError(null);
+    setUploadProgress(0);
     const { savedDuration, audioFile: recordedFile } = useRecordSessionStore.getState();
 
     if (!recordedFile) {
@@ -91,6 +94,7 @@ export function RecordPage() {
         consultationId: consultation.id,
         audioFile: recordedFile,
         durationSeconds: measuredDuration,
+        onProgress: (fraction) => setUploadProgress(Math.round(fraction * 100)),
       });
 
       if (patientId != null) {
@@ -147,13 +151,17 @@ export function RecordPage() {
     return (
       <div className="record-page record-page--attach">
         <div className="record-patient-banner panel">
-          <p>
-            {isSaving || !saveError
-              ? savingLabel
-              : hasPreselectedPatient
-                ? `Unable to save recording for ${patientLabel}.`
-                : 'Unable to save recording.'}
-          </p>
+          {uploadAudio.isPending ? (
+            <UploadProgress progress={uploadProgress} />
+          ) : (
+            <p>
+              {isSaving || !saveError
+                ? savingLabel
+                : hasPreselectedPatient
+                  ? `Unable to save recording for ${patientLabel}.`
+                  : 'Unable to save recording.'}
+            </p>
+          )}
           {saveError ? (
             <div className="stack" style={{ marginTop: 12 }}>
               <p className="field__error" role="alert">

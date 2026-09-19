@@ -129,11 +129,13 @@ export function useUploadConsultationAudio() {
       consultationId,
       audioFile,
       durationSeconds,
+      onProgress,
     }: {
       consultationId: number;
       audioFile: File;
       durationSeconds?: number;
-    }) => consultationApi.uploadAudio(consultationId, audioFile, durationSeconds),
+      onProgress?: (fraction: number) => void;
+    }) => consultationApi.uploadAudio(consultationId, audioFile, durationSeconds, onProgress),
     onSuccess: (consultation) => {
       queryClient.setQueryData(consultationKeys.consultation(consultation.id), consultation);
       invalidateConsultationLists(queryClient);

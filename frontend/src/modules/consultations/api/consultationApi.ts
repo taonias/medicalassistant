@@ -1,4 +1,4 @@
-import { httpClient, httpMultipart, httpBlob, httpDownload } from '../../../platform/http';
+import { httpClient, httpMultipart, httpMultipartWithProgress, httpBlob, httpDownload } from '../../../platform/http';
 import type { ApiError } from '../../../shared/types/api';
 import type {
   Consultation,
@@ -40,14 +40,21 @@ export const consultationApi = {
       method: 'POST',
     }),
 
-  uploadAudio: (consultationId: number, audioFile: File, durationSeconds?: number) => {
+  uploadAudio: (
+    consultationId: number,
+    audioFile: File,
+    durationSeconds?: number,
+    onProgress?: (fraction: number) => void,
+  ) => {
     const formData = new FormData();
     formData.append('audioFile', audioFile);
     if (durationSeconds !== undefined) {
       formData.append('durationSeconds', String(durationSeconds));
     }
 
-    return httpMultipart<Consultation>(`/consultation/${consultationId}/audio`, formData);
+    return httpMultipartWithProgress<Consultation>(`/consultation/${consultationId}/audio`, formData, {
+      onProgress,
+    });
   },
 
   uploadDocument: (consultationId: number, documentFile: File) => {
