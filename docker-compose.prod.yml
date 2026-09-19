@@ -3,7 +3,10 @@ name: medicalassistant-prod
 # Production stack for a single Ubuntu VM behind one nginx reverse proxy.
 #
 # Differences from docker-compose.yml (local dev):
-#   - Only `proxy` publishes host ports (80/443). Everything else is internal.
+#   - `proxy` publishes host ports (80/443); `postgres` also publishes 5432 for remote
+#     pgAdmin access, `rabbitmq` publishes 15672 for the management UI, `backend-api`
+#     (8080) / `clinical-knowledge` (8081) publish their own ports for remote Swagger UI,
+#     and `azurite` publishes 10000 for remote blob access (with a non-default account key).
 #   - App images are pulled from local tags loaded from .tar (built by package-release.ps1),
 #     not built here. Base images (postgres/rabbitmq/azurite/certbot) are pulled from Docker Hub.
 #   - ASPNETCORE_ENVIRONMENT=Production; secrets come from .env.prod (fail fast if missing).
@@ -18,6 +21,10 @@ services:
       POSTGRES_DB: MedicalAssistantDb
       POSTGRES_USER: medicalassistant
       POSTGRES_PASSWORD: ${POSTGRES_APP_PASSWORD:?set POSTGRES_APP_PASSWORD in .env.prod}
+    ports:
+      # Exposed for remote pgAdmin access. Publicly reachable on the VM's IP — make sure
+      # POSTGRES_APP_PASSWORD is strong; consider restricting via ufw to known IPs later.
+      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./ops/postgres/db-init:/docker-entrypoint-initdb.d:ro
@@ -36,6 +43,9 @@ services:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_BOOTSTRAP_USER:?set in .env.prod}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_BOOTSTRAP_PASSWORD:?set in .env.prod}
       RABBITMQ_DEFAULT_VHOST: /
+    ports:
+      # Management UI exposed for remote access. Make sure RABBITMQ_BOOTSTRAP_PASSWORD is strong.
+      - "15672:15672"
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
       - ./ops/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
@@ -69,6 +79,15 @@ services:
     image: mcr.microsoft.com/azure-storage/azurite:latest
     restart: unless-stopped
     command: azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --skipApiVersionCheck --loose
+    environment:
+      # Overrides Azurite's public well-known devstoreaccount1 key. Must match the account
+      # name/key baked into AZURITE_CONNECTION_STRING below, since the blob port is exposed
+      # on the host and the default key is not safe to publish (see .env.prod.example).
+      AZURITE_ACCOUNTS: ${AZURITE_ACCOUNT_NAME:?set in .env.prod}:${AZURITE_ACCOUNT_KEY:?set in .env.prod}
+    ports:
+      # Exposed for remote blob access. Blob only - queue/table (10001/10002) aren't used
+      # by this app, so they stay internal.
+      - "10000:10000"
     volumes:
       - azurite_data:/data
     healthcheck:
@@ -112,6 +131,11 @@ services:
       RabbitMQ__ExchangeName: medicalassistant.events
       BackendCallback__BaseUrl: http://backend-api:8080
       BackendCallback__ApiKey: ${AI_CALLBACK_API_KEY:?set in .env.prod}
+    ports:
+      # Exposed for remote Swagger UI access (http://<host>:8081/swagger). This publishes
+      # the whole API, not just the docs page - write endpoints still require the API keys
+      # above, and traffic here bypasses the proxy's TLS, so it travels as plain HTTP.
+      - "8081:8080"
     depends_on:
       postgres:
         condition: service_healthy
@@ -170,6 +194,10 @@ services:
         condition: service_started
       backend-migrations:
         condition: service_completed_successfully
+    ports:
+      # Exposed for remote Swagger UI access (http://<host>:8080/swagger). Same caveats as
+      # clinical-knowledge above: whole API, no TLS on this port, endpoints still need JWT.
+      - "8080:8080"
 
   transcription-worker:
     image: ${IMAGE_PREFIX:-medicalassistant}/transcription-worker:${IMAGE_TAG:-latest}
