@@ -1,4 +1,6 @@
 import { buildRecordingFile, preferredRecordingMimeType, setMicrophoneEnabled } from './mimeAndFile';
+import { trimPausedAudio } from './trimPausedAudio';
+import type { TimeRangeMs } from './pcmTrim';
 
 export interface AudioCaptureHandlers {
   /** Fires once per second while actively recording (not while paused). */
@@ -60,6 +62,13 @@ export async function startAudioCapture(
   // Cumulative across pause/resume — only ever reset by starting a new
   // session, matching both callers' original "keep counting up" behavior.
   let elapsed = 0;
+
+  // The soft-pause below keeps MediaRecorder running (see pause()), so paused
+  // wall-clock time is otherwise baked into the container as silence. These
+  // track real paused ranges so stop() can cut them back out.
+  const recordingStartedAtMs = performance.now();
+  let pauseStartedAtMs: number | null = null;
+  const pausedRanges: TimeRangeMs[] = [];
 
   const meter = createLevelMeter(stream);
   let meterLive = true;
@@ -135,15 +144,23 @@ export async function startAudioCapture(
     meter?.dispose();
   };
 
+  const closeOpenPauseRange = () => {
+    if (pauseStartedAtMs == null) return;
+    pausedRanges.push({ startMs: pauseStartedAtMs - recordingStartedAtMs, endMs: performance.now() - recordingStartedAtMs });
+    pauseStartedAtMs = null;
+  };
+
   return {
     pause() {
       // Soft-pause: keep MediaRecorder running so the container stays valid.
       setMicrophoneEnabled(stream, false);
       clearTimer();
+      pauseStartedAtMs = performance.now();
     },
 
     resume() {
       setMicrophoneEnabled(stream, true);
+      closeOpenPauseRange();
       silentTicks = 0;
       reportSilence(false);
       startTimer();
@@ -152,6 +169,7 @@ export async function startAudioCapture(
     stop() {
       clearTimer();
       setMicrophoneEnabled(stream, true);
+      closeOpenPauseRange();
 
       if (recorder.state === 'inactive') {
         stopTracks();
@@ -160,11 +178,16 @@ export async function startAudioCapture(
       }
 
       return new Promise<File | null>((resolve) => {
-        recorder.onstop = () => {
+        recorder.onstop = async () => {
           const file = buildRecordingFile(chunks, recorder.mimeType || mimeType);
           stopTracks();
           teardownMetering();
-          resolve(file);
+          if (!file || pausedRanges.length === 0) {
+            resolve(file);
+            return;
+          }
+          const trimmed = await trimPausedAudio(file, pausedRanges);
+          resolve(trimmed ?? file);
         };
 
         try {

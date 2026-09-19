@@ -60,6 +60,13 @@ class FakeAnalyserNode {
 
 class FakeAudioContext {
   static lastAnalyser: FakeAnalyserNode | null = null;
+  /** Controls what decodeAudioData() resolves with, for the trim-on-stop tests. */
+  static decodedBuffer: {
+    sampleRate: number;
+    numberOfChannels: number;
+    length: number;
+    getChannelData: (channel: number) => Float32Array;
+  } | null = null;
   closed = false;
 
   createMediaStreamSource() {
@@ -69,6 +76,10 @@ class FakeAudioContext {
     const analyser = new FakeAnalyserNode();
     FakeAudioContext.lastAnalyser = analyser;
     return analyser;
+  }
+  decodeAudioData() {
+    if (!FakeAudioContext.decodedBuffer) return Promise.reject(new Error('no decoded buffer configured'));
+    return Promise.resolve(FakeAudioContext.decodedBuffer);
   }
   close() {
     this.closed = true;
@@ -128,6 +139,7 @@ function installFakes() {
   FakeMediaRecorder.instances = [];
   FakeMediaRecorder.callOrder = [];
   FakeAudioContext.lastAnalyser = null;
+  FakeAudioContext.decodedBuffer = null;
   lastStream = new FakeStream();
 
   Object.defineProperty(navigator, 'mediaDevices', {
@@ -205,6 +217,34 @@ describe('startAudioCapture', () => {
     expect(file).toBeInstanceOf(File);
     expect(file?.type).toBe('audio/webm;codecs=opus');
     expect(lastStream.track.stopped).toBe(true);
+  });
+
+  it('trims paused time out of the file into a WAV when the session was paused', async () => {
+    FakeAudioContext.decodedBuffer = {
+      sampleRate: 8,
+      numberOfChannels: 1,
+      length: 8,
+      getChannelData: () => new Float32Array([0, 1, 2, 3, 4, 5, 6, 7]),
+    };
+    const session = await startAudioCapture();
+
+    session.pause();
+    session.resume();
+    const file = await session.stop();
+
+    expect(file).toBeInstanceOf(File);
+    expect(file?.type).toBe('audio/wav');
+  });
+
+  it('falls back to the raw file if decoding fails after a pause', async () => {
+    // decodedBuffer left null so the fake's decodeAudioData() rejects.
+    const session = await startAudioCapture();
+
+    session.pause();
+    session.resume();
+    const file = await session.stop();
+
+    expect(file?.type).toBe('audio/webm;codecs=opus');
   });
 
   it('dispose() is idempotent and tears down without finalizing a file', async () => {
