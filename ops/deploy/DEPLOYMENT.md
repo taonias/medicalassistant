@@ -15,6 +15,34 @@ Only the proxy publishes ports (80/443). Everything else is internal to the comp
 
 ---
 
+## Automated deploy (recommended)
+
+Once VM prep (step 0) and secrets (step 3) are done once, every later deploy is one command
+from your machine:
+
+```powershell
+./scripts/release/release.ps1                  # tag "latest": build, upload, refresh the VM
+./scripts/release/release.ps1 -Tag 2026-09-19  # a versioned tag
+./scripts/release/release.ps1 -SkipBuild       # re-deploy an already-built release/<Tag>/
+```
+
+This chains `package-release.ps1` (step 1, build+tar) with `deploy-remote.ps1`, which uploads
+`release/<Tag>/` to the VM over SCP (replacing the manual FileZilla step) and runs `deploy.sh`
+there over SSH (replacing manually SSHing in) — see `scripts/release/deploy-remote.ps1`.
+
+**Setup, once:** `Install-Module -Name Posh-SSH -Scope CurrentUser`, then copy
+`scripts/release/secrets.json.example` to `scripts/release/secrets.json` and fill in the VM's
+`host`/`user`/`port`/`password`/`remotePath`. That file holds a plaintext password by design
+(password auth, not a key) — it's gitignored (matches the repo's `secrets.json` rule) and never
+leaves this machine. Switching the VM to SSH-key auth would remove the need to store a password
+at all; ask if you want that set up instead.
+
+The rest of this doc (steps 1-5) describes the same procedure manually — useful for
+understanding what the scripts do, first-time setup, and as a fallback if the automation
+breaks.
+
+---
+
 ## 0. One-time VM preparation
 
 On the VM (Ubuntu, as root or with sudo):
