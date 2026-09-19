@@ -99,6 +99,30 @@ function Find-DisallowedFiles {
     return $violations.ToArray()
 }
 
+<#
+.SYNOPSIS
+  Every service name under the compose file's top-level `services:` block, in file
+  order — used by deploy-ui.ps1 to populate the Live Logs service picker without
+  hardcoding a list that can drift from docker-compose.prod.yml.
+#>
+function Get-ComposeServiceNames {
+    param([Parameter(Mandatory)][string]$ComposeFilePath)
+
+    $inServices = $false
+    $services = [System.Collections.Generic.List[string]]::new()
+
+    foreach ($line in Get-Content -LiteralPath $ComposeFilePath) {
+        if ($line -match '^(\S.*):\s*$') {
+            $inServices = ($Matches[1] -eq 'services')
+            continue
+        }
+        if ($inServices -and $line -match '^  ([a-zA-Z0-9_-]+):\s*$') {
+            $services.Add($Matches[1])
+        }
+    }
+    return $services.ToArray()
+}
+
 # The exact allowlist a packaged release/<tag>/ must satisfy.
 $script:ReleaseBundleAllowlist = @(
     'manifest.json',

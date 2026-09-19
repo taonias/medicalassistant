@@ -23,12 +23,28 @@
 #   ./scripts/release/deploy-remote.ps1 -NoLoad           # skip re-loading tars on the VM
 param(
     [string]$Tag = "latest",
-    [switch]$NoLoad
+    [switch]$NoLoad,
+    # Optional progress hooks for callers driving a UI (e.g. deploy-ui.ps1) on top of this
+    # script. Both are no-ops when not supplied, so plain CLI usage is unchanged.
+    #   OnStep -Stage <string> -Status <'Running'|'Done'|'Failed'> -Detail <string>
+    #   OnLine <string>  -- one line of raw SCP/SSH output
+    [scriptblock]$OnStep = $null,
+    [scriptblock]$OnLine = $null
 )
 
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)   # repo root (two levels up)
 $releaseDir = Join-Path $root "release" $Tag
+
+function Send-Step {
+    param([string]$Stage, [string]$Status, [string]$Detail = "")
+    if ($OnStep) { & $OnStep $Stage $Status $Detail }
+}
+
+function Send-Line {
+    param([string]$Line)
+    if ($OnLine) { & $OnLine $Line }
+}
 
 if (-not (Test-Path $releaseDir)) {
     throw "release/$Tag not found. Run ./scripts/release/package-release.ps1 -Tag $Tag first."
@@ -59,6 +75,7 @@ if (-not (Get-Module -ListAvailable -Name Posh-SSH)) {
 }
 Import-Module Posh-SSH -ErrorAction Stop
 
+Send-Step "connect" "Running" "Connecting to ${vmUser}@${vmHost}:$vmPort"
 Write-Host "==> Ensuring $remoteParent exists on ${vmUser}@${vmHost}:$vmPort" -ForegroundColor Cyan
 $session = New-SSHSession -ComputerName $vmHost -Port $vmPort -Credential $cred -AcceptKey
 try {
@@ -66,26 +83,40 @@ try {
 } finally {
     Remove-SSHSession -SSHSession $session | Out-Null
 }
+Send-Step "connect" "Done" "Connected"
 
 # SCP nests the uploaded folder under -NewName at -Destination, so this lands the LOCAL
 # release/<Tag>/ folder (whatever it's named) at exactly <remotePath> on the VM regardless
 # of Tag — matching the fixed path deploy.sh and .env.prod (set up once on the VM) expect.
+Send-Step "upload" "Running" "Uploading release/$Tag (this can take a while for large image tars)"
 Write-Host "==> Uploading release/$Tag -> ${vmUser}@${vmHost}:$remotePath (this can take a while for large image tars)" -ForegroundColor Cyan
-Set-SCPItem -ComputerName $vmHost -Port $vmPort -Credential $cred -Path $releaseDir -Destination $remoteParent -NewName $remoteLeaf -AcceptKey -Verbose
+if ($OnLine) {
+    Set-SCPItem -ComputerName $vmHost -Port $vmPort -Credential $cred -Path $releaseDir -Destination $remoteParent -NewName $remoteLeaf -AcceptKey -Verbose 4>&1 |
+        ForEach-Object { Write-Host $_; Send-Line "$_" }
+} else {
+    Set-SCPItem -ComputerName $vmHost -Port $vmPort -Credential $cred -Path $releaseDir -Destination $remoteParent -NewName $remoteLeaf -AcceptKey -Verbose
+}
+Send-Step "upload" "Done" "Upload complete"
 
+Send-Step "deploy" "Running" "Running deploy.sh on the VM"
 Write-Host "==> Running deploy.sh on the VM ($remotePath)" -ForegroundColor Cyan
 $session = New-SSHSession -ComputerName $vmHost -Port $vmPort -Credential $cred -AcceptKey
 try {
     $deployFlag = if ($NoLoad) { " --no-load" } else { "" }
     $remoteCmd = "cd '$remotePath' && chmod +x deploy.sh init-letsencrypt.sh 2>/dev/null; ./deploy.sh$deployFlag"
     $exitStatus = $null
-    Invoke-SSHCommandStream -SSHSession $session -Command $remoteCmd -ExitStatusVariable "exitStatus" | ForEach-Object { Write-Host $_ }
+    Invoke-SSHCommandStream -SSHSession $session -Command $remoteCmd -ExitStatusVariable "exitStatus" | ForEach-Object {
+        Write-Host $_
+        Send-Line "$_"
+    }
     if ($exitStatus -ne 0) {
+        Send-Step "deploy" "Failed" "deploy.sh exited with status $exitStatus"
         throw "deploy.sh exited with status $exitStatus on the VM."
     }
 } finally {
     Remove-SSHSession -SSHSession $session | Out-Null
 }
+Send-Step "deploy" "Done" "deploy.sh finished"
 
 Write-Host ""
 Write-Host "Deploy complete." -ForegroundColor Green
