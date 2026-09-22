@@ -50,7 +50,7 @@ public sealed class RabbitMqTranscriptReadyPublisher : ITranscriptReadyPublisher
             await using var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken);
 
             await channel.QueueDeclareAsync(
-                queue: _settings.ConsultationTranscriptQueue,
+                queue: _settings.AiProcessingQueue,
                 durable: true,
                 exclusive: false,
                 autoDelete: false,
@@ -71,7 +71,7 @@ public sealed class RabbitMqTranscriptReadyPublisher : ITranscriptReadyPublisher
 
             await channel.BasicPublishAsync(
                 exchange: string.Empty,
-                routingKey: _settings.ConsultationTranscriptQueue,
+                routingKey: _settings.AiProcessingQueue,
                 mandatory: false,
                 basicProperties: properties,
                 body: payload,
@@ -80,7 +80,7 @@ public sealed class RabbitMqTranscriptReadyPublisher : ITranscriptReadyPublisher
             _logger.LogInformation(
                 "Queued {EventType} on {Queue} for transcript {TranscriptId} (consultation {ConsultationId}).",
                 message.EventType,
-                _settings.ConsultationTranscriptQueue,
+                _settings.AiProcessingQueue,
                 message.TranscriptId,
                 message.ConsultationId);
         }

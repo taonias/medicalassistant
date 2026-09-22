@@ -7,5 +7,5 @@ public sealed class RabbitMqOptions
     /// <summary>AMQP URI (same value as Functions <c>RabbitMqConnection</c>).</summary>
     public string? Connection { get; set; }
 
-    public string ConsultationTranscriptQueueName { get; set; } = "consultation.transcript";
+    public string AiProcessingQueue { get; set; } = "ai.requests";
 }

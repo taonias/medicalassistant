@@ -1,10 +1,12 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { queryKeys } from '../../../shared/constants/queryKeys';
-import type { Transcript } from '../../../shared/types/api';
-import { transcriptApi } from '../api/transcriptApi';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "../../../shared/constants/queryKeys";
+import type { Transcript } from "../../../shared/types/api";
+import { transcriptApi } from "../api/transcriptApi";
 
-function isTranscriptApiError(error: unknown): error is { statusCode?: number } {
-  return typeof error === 'object' && error !== null;
+function isTranscriptApiError(
+  error: unknown,
+): error is { statusCode?: number } {
+  return typeof error === "object" && error !== null;
 }
 
 export function useTranscript(consultationId: number, enabled = true) {
@@ -12,7 +14,8 @@ export function useTranscript(consultationId: number, enabled = true) {
     queryKey: queryKeys.transcript(consultationId),
     queryFn: async (): Promise<Transcript | null> => {
       try {
-        return await transcriptApi.getByConsultation(consultationId);
+        const result = await transcriptApi.getByConsultation(consultationId);
+        return result ?? null;
       } catch (error) {
         // Transcript may not exist yet while processing.
         if (isTranscriptApiError(error) && error.statusCode === 404) {
@@ -33,10 +36,13 @@ export function useUpdateTranscript(consultationId: number) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (transcript: string) => transcriptApi.update(consultationId, transcript),
+    mutationFn: (transcript: string) =>
+      transcriptApi.update(consultationId, transcript),
     onSuccess: (updated) => {
       queryClient.setQueryData(queryKeys.transcript(consultationId), updated);
-      void queryClient.invalidateQueries({ queryKey: queryKeys.transcript(consultationId) });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.transcript(consultationId),
+      });
     },
   });
 }

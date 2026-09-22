@@ -28,7 +28,7 @@ public static class InfrastructureServiceRegistration
         services.AddScoped<IBlobStorageService, AzureBlobStorageService>();
         services.AddScoped<IPdfTextExtractor, PdfPigTextExtractor>();
         services.AddHttpClient<IAiModuleClient, AiModuleHttpClient>();
-        services.AddSingleton<IConsultationProcessingPublisher, RabbitMqConsultationProcessingPublisher>();
+        services.AddSingleton<ITranscriberProcessingPublisher, RabbitMqTranscriberProcessingPublisher>();
         services.AddSingleton<ITranscriptReadyPublisher, RabbitMqTranscriptReadyPublisher>();
 
         return services;

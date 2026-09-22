@@ -1,0 +1,11 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+    "AZURE_FUNCTIONS_ENVIRONMENT": "Development",
+    "RabbitMqConnection": "amqp://admin:p%40ssw0rd@localhost:5672/",
+    "RabbitMqQueueName": "ai.requests",
+    "ConnectionStrings__MedicalAssistantDatabasePostgreSQL": "Host=localhost;Port=5432;Database=MedicalAssistantDb;Username=postgres;Password=postgres;SSL Mode=Disable"
+  }
+}

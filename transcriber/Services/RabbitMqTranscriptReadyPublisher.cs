@@ -37,8 +37,8 @@ public sealed class RabbitMqTranscriptReadyPublisher : ITranscriptReadyPublisher
         if (string.IsNullOrWhiteSpace(_options.Connection))
             throw new InvalidOperationException("RabbitMq:Connection (RabbitMqConnection) is not configured.");
 
-        if (string.IsNullOrWhiteSpace(_options.ConsultationTranscriptQueueName))
-            throw new InvalidOperationException("RabbitMq:ConsultationTranscriptQueueName is not configured.");
+        if (string.IsNullOrWhiteSpace(_options.AiProcessingQueue))
+            throw new InvalidOperationException("RabbitMq:AiProcessingQueue is not configured.");
 
         await _queueLock.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
@@ -48,7 +48,7 @@ public sealed class RabbitMqTranscriptReadyPublisher : ITranscriptReadyPublisher
                 .ConfigureAwait(false);
 
             await channel.QueueDeclareAsync(
-                queue: _options.ConsultationTranscriptQueueName,
+                queue: _options.AiProcessingQueue,
                 durable: true,
                 exclusive: false,
                 autoDelete: false,
@@ -69,7 +69,7 @@ public sealed class RabbitMqTranscriptReadyPublisher : ITranscriptReadyPublisher
 
             await channel.BasicPublishAsync(
                 exchange: string.Empty,
-                routingKey: _options.ConsultationTranscriptQueueName,
+                routingKey: _options.AiProcessingQueue,
                 mandatory: false,
                 basicProperties: properties,
                 body: payload,
@@ -78,7 +78,7 @@ public sealed class RabbitMqTranscriptReadyPublisher : ITranscriptReadyPublisher
             _logger.LogInformation(
                 "Queued {EventType} on {Queue} for transcript {TranscriptId} (consultation {ConsultationId}).",
                 message.EventType,
-                _options.ConsultationTranscriptQueueName,
+                _options.AiProcessingQueue,
                 message.TranscriptId,
                 message.ConsultationId);
         }

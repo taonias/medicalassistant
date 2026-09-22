@@ -1,0 +1,14 @@
+{
+  "profiles": {
+    "MedicalAssistant.AiModule": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7072",
+      "launchBrowser": false,
+      "environmentVariables": {
+        "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+        "AZURE_FUNCTIONS_ENVIRONMENT": "Development",
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

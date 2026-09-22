@@ -1,6 +1,6 @@
 # MedicalAssistant.Transcriber
 
-.NET 8 **isolated** Azure Function App that consumes `consultation.processing` from RabbitMQ, downloads the consultation file from Azure Blob Storage, writes an audit row to `AuditLogs`, then acknowledges (removes) the queue message.
+.NET 8 **isolated** Azure Function App that consumes `transcription.requests` from RabbitMQ, downloads the consultation file from Azure Blob Storage, writes an audit row to `AuditLogs`, then acknowledges (removes) the queue message.
 
 Open `MedicalAssistant.Transcriber.slnx` in Visual Studio / Cursor to build and debug this Function App (includes a reference to `MedicalAssistant.Domain`).
 
@@ -36,8 +36,8 @@ Configuration order (same pattern as MatchResultsCollector):
 1. Create a Function App (`.NET 8 Isolated`, Windows or Linux).
 2. Set application settings (same keys as `local.settings.json` `Values`):
    - `RabbitMqConnection` — e.g. `amqps://user:pass@host:5671/`
-   - `RabbitMqQueueName` — `consultation.processing`
-   - `RabbitMqConsultationTranscriptQueueName` — `consultation.transcript` (outbound for LLM workers)
+   - `RabbitMqQueueName` — `transcription.requests`
+   - `RabbitMqAiProcessingQueue` — `ai.requests` (outbound for LLM workers)
    - `BlobStorage__ConnectionString`
    - `BlobStorage__ConsultationAudioContainer` / `BlobStorage__ConsultationDocumentsContainer`
    - `AzureSpeech__Key` — Speech resource subscription key
@@ -64,7 +64,7 @@ Or from Visual Studio / zip deploy the publish output. `local.settings.json` is 
 | Retrieve | Download blob using `blobUri` from the message |
 | Audit | Step-by-step `AuditLogs` from process start → blob → speech → transcript → completion (or failure) |
 | Transcript | Audio: Azure Speech **fast transcription** → `Transcripts`; PDF: placeholder; set consultation to `Transcribed`. Skips speech if already transcribed (RabbitMQ redelivery). |
-| Outbound | After save (and on already-transcribed redelivery), publish `{ transcriptId, consultationId, correlationId, … }` to `consultation.transcript` for a future LLM Function App. |
-| Ack | Host removes the inbound `consultation.processing` message on successful completion (including outbound publish). |
+| Outbound | After save (and on already-transcribed redelivery), publish `{ transcriptId, consultationId, correlationId, … }` to `ai.requests` for a future LLM Function App. |
+| Ack | Host removes the inbound `transcription.requests` message on successful completion (including outbound publish). |
 
 Failures throw so the message is not acknowledged and can be retried.

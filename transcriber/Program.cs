@@ -30,10 +30,10 @@ var host = new HostBuilder()
         {
             options.Connection = context.Configuration["RabbitMqConnection"]
                 ?? context.Configuration["RabbitMq:Connection"];
-            options.ConsultationTranscriptQueueName =
-                context.Configuration["RabbitMqConsultationTranscriptQueueName"]
-                ?? context.Configuration["RabbitMq:ConsultationTranscriptQueueName"]
-                ?? "consultation.transcript";
+            options.AiProcessingQueue =
+                context.Configuration["RabbitMqAiProcessingQueue"]
+                ?? context.Configuration["RabbitMq:AiProcessingQueue"]
+                ?? "ai.requests";
         });
 
         var connectionString = context.Configuration.GetConnectionString("MedicalAssistantDatabasePostgreSQL")

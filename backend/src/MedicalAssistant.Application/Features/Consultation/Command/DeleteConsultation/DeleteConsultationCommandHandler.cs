@@ -16,7 +16,7 @@ public class DeleteConsultationCommandHandler : IRequestHandler<DeleteConsultati
     private readonly IConsultationRepository _consultationRepository;
     private readonly IUserService _userService;
     private readonly IBlobStorageService _blobStorageService;
-    private readonly IConsultationProcessingPublisher _processingPublisher;
+    private readonly ITranscriberProcessingPublisher _processingPublisher;
     private readonly BlobStorageSettings _blobSettings;
     private readonly IAppLogger<DeleteConsultationCommandHandler> _logger;
 
@@ -24,7 +24,7 @@ public class DeleteConsultationCommandHandler : IRequestHandler<DeleteConsultati
         IConsultationRepository consultationRepository,
         IUserService userService,
         IBlobStorageService blobStorageService,
-        IConsultationProcessingPublisher processingPublisher,
+        ITranscriberProcessingPublisher processingPublisher,
         IOptions<BlobStorageSettings> blobSettings,
         IAppLogger<DeleteConsultationCommandHandler> logger)
     {

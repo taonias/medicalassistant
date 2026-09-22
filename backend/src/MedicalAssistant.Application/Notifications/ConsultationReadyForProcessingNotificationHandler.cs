@@ -8,11 +8,11 @@ namespace MedicalAssistant.Application.Notifications;
 public sealed class ConsultationReadyForProcessingNotificationHandler
     : INotificationHandler<ConsultationReadyForProcessingNotification>
 {
-    private readonly IConsultationProcessingPublisher _publisher;
+    private readonly ITranscriberProcessingPublisher _publisher;
     private readonly IAppLogger<ConsultationReadyForProcessingNotificationHandler> _logger;
 
     public ConsultationReadyForProcessingNotificationHandler(
-        IConsultationProcessingPublisher publisher,
+        ITranscriberProcessingPublisher publisher,
         IAppLogger<ConsultationReadyForProcessingNotificationHandler> logger)
     {
         _publisher = publisher;

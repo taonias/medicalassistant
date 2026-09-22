@@ -77,7 +77,7 @@ public sealed class TranscriptService : ITranscriptService
                 },
                 cancellationToken: cancellationToken);
 
-            // At-least-once: ensure consultation.transcript is enqueued even on redelivery.
+            // At-least-once: ensure ai.requests is enqueued even on redelivery.
             if (existing is not null)
                 await PublishTranscriptReadyAsync(existing.Id, message, cancellationToken);
 
@@ -196,7 +196,7 @@ public sealed class TranscriptService : ITranscriptService
             details: new
             {
                 TranscriptId = transcriptId,
-                Queue = "consultation.transcript",
+                Queue = "ai.requests",
                 message.CorrelationId,
             },
             entityType: "Transcript",

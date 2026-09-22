@@ -9,7 +9,7 @@ public class RabbitMqSettings
     public string VirtualHost { get; set; } = "/";
     public string Username { get; set; } = "admin";
     public string Password { get; set; } = "p@ssw0rd";
-    public string ConsultationProcessingQueue { get; set; } = "consultation.processing";
-    public string ConsultationTranscriptQueue { get; set; } = "consultation.transcript";
+    public string TranscriberProcessingQueue { get; set; } = "transcription.requests";
+    public string AiProcessingQueue { get; set; } = "ai.requests";
     public bool Enabled { get; set; } = true;
 }
