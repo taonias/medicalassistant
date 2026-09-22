@@ -97,6 +97,24 @@ public sealed class GroundedAnswerService(
             new GroundedAnswerContext(question, language, result.Evidence, request.RecentTurns, request.PriorSummary),
             cancellationToken);
 
+        // Retrieval found evidence above the confidence threshold, but the model itself
+        // judged it insufficient to answer (its instructions tell it to reply with
+        // exactly this token in that case, rather than free-form refusal prose that
+        // would still mention the [E#] evidence it considered and rejected). Without
+        // this check, CitationVerification.Verify below would see those [E#] mentions
+        // and attach them as real citations on what is actually a refusal.
+        if (InsufficientEvidence.IsSentinel(answer))
+        {
+            return new ChatAnswerResponse
+            {
+                Answer = InsufficientEvidence.Message(language),
+                Refused = true,
+                RetrievalUsed = true,
+                Language = language,
+                Citations = [],
+            };
+        }
+
         await progress.ReportAsync(
             request.AskId, request.DoctorId, ChatPhases.VerifyingCitations, "Verifying citations…", cancellationToken);
 

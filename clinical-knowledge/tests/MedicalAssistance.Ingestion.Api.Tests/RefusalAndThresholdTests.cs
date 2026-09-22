@@ -108,6 +108,38 @@ public class RefusalAndThresholdTests(IngestionApiFixture fixture) : IClassFixtu
     }
 
     [Fact]
+    public async Task A_model_declined_answer_is_refused_with_no_citations_even_though_evidence_cleared_the_threshold()
+    {
+        var chat = new ScriptedChatClient();
+        var emb = new ControllableEmbeddingGenerator(IngestionApiFixture.EmbeddingDimensions);
+        using var factory = fixture.CreateFactory(chat, embeddingGenerator: emb)
+            .WithWebHostBuilder(b => b.UseSetting(PackageRetrievalStep.ConfidenceThresholdConfigurationKey, "0.5"));
+        var client = factory.CreateClient();
+
+        const string question = "Does the patient take insulin?";
+        emb.Pin(question, Query);
+        // Body clears the threshold, so real citations ARE built and the model IS
+        // called — this is the case CitationVerification alone cannot distinguish
+        // from a real answer that happens to cite [E#].
+        await IngestTranscriptAsync(client, chat, emb, "refuse-sentinel", "s-s1", Line, "Diabetes.", "Summary.", Near);
+
+        // The model followed its instructions: evidence was retrieved but didn't
+        // actually answer the question, so it replied with the exact sentinel
+        // instead of writing refusal prose that would still mention [E1].
+        chat.EnqueueResponse("INSUFFICIENT_EVIDENCE");
+        var response = await client.PostAsJsonAsync(
+            "/patients/refuse-sentinel/chat/answer", new { doctorId = "dr-a", question });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.True(body.GetProperty("refused").GetBoolean());
+        Assert.Empty(body.GetProperty("citations").EnumerateArray());
+        // The deterministic refusal sentence is returned, not the raw sentinel token.
+        Assert.Contains("evidence", body.GetProperty("answer").GetString()!);
+        Assert.DoesNotContain("INSUFFICIENT_EVIDENCE", body.GetProperty("answer").GetString()!);
+    }
+
+    [Fact]
     public async Task The_refusal_is_localized_to_the_questions_language()
     {
         var chat = new ScriptedChatClient();

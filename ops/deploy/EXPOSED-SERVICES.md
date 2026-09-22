@@ -85,3 +85,4 @@ DefaultEndpointsProtocol=http;AccountName=<AZURITE_ACCOUNT_NAME>;AccountKey=<AZU
 ## Security note
 
 Every port in this table is currently open to **any** source IP (`ufw ... ALLOW IN Anywhere`). That's convenient for remote debugging on a single-VM setup but means these are real attack surface — especially Postgres and RabbitMQ, which hold or move real patient data. If this deployment moves past short-term development access, prefer scoping each rule to known IPs (`ufw allow from <your IP> to any port <port>`) or drop these ports and tunnel over SSH instead (`ssh -L 5432:localhost:5432 <user>@<VM_HOST>`).
+
