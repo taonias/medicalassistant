@@ -10,6 +10,7 @@ public class RabbitMqSettings
     public string Username { get; set; } = "admin";
     public string Password { get; set; } = "p@ssw0rd";
     public string TranscriberProcessingQueue { get; set; } = "transcription.requests";
+    public string ConsultationProcessingQueue { get; set; } = "consultation.requests";
     public string AiProcessingQueue { get; set; } = "ai.requests";
     public bool Enabled { get; set; } = true;
 }
