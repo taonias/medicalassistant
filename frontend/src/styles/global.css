@@ -1247,6 +1247,7 @@ textarea {
 
 .collapsible-panel__body {
   padding: 1.25rem;
+  min-width: 0;
 }
 
 .consultations-results .consultation-pager--top {
@@ -2385,6 +2386,16 @@ textarea {
 .auth-card__subtitle {
   margin-top: 0;
   color: var(--text-muted);
+}
+
+.auth-card__footer {
+  margin: var(--space-4) 0 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.auth-card__footer a {
+  color: var(--accent);
 }
 
 .chat-page-layout {
@@ -3803,8 +3814,8 @@ textarea {
 }
 
 @media (max-width: 900px) {
-  .table__head,
-  .table__row {
+  .table__head:not(.settings-users__row):not(.settings-logs__row),
+  .table__row:not(.settings-users__row):not(.settings-logs__row) {
     grid-template-columns: 1fr;
   }
 
@@ -3814,7 +3825,7 @@ textarea {
 }
 
 .settings-page {
-  max-width: 720px;
+  max-width: 1100px;
 }
 
 .settings-section + .settings-section {
@@ -3853,6 +3864,199 @@ textarea {
   color: var(--primary);
   font-size: 0.875rem;
   font-weight: 600;
+}
+
+.settings-users {
+  margin-top: var(--space-4);
+  min-width: 0;
+}
+
+.settings-users__row {
+  grid-template-columns: 1.3fr 1fr 1.4fr auto;
+}
+
+.settings-users__identity {
+  display: contents;
+}
+
+.settings-users__email {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 1023px) {
+  .settings-users .table__head {
+    display: none;
+  }
+
+  .settings-users .table {
+    gap: var(--space-3);
+  }
+
+  .settings-users .table__row.settings-users__row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.75rem 1rem;
+    align-items: center;
+    padding: 0.9rem 0.85rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+  }
+
+  .settings-users__row.table__row {
+    border-top: 1px solid var(--border);
+  }
+
+  .settings-users__identity {
+    display: grid;
+    gap: 0.15rem;
+    min-width: 0;
+  }
+
+  .settings-users__name {
+    font-weight: 600;
+  }
+
+  .settings-users__username,
+  .settings-users__email {
+    color: var(--text-muted);
+    font-size: 0.8125rem;
+  }
+
+  .settings-users__action {
+    justify-self: end;
+  }
+}
+
+.settings-users__switch:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.settings-users__switch:disabled:hover {
+  border-color: var(--border);
+  background: var(--surface);
+}
+
+.settings-users__switch .theme-toggle__label {
+  min-width: 4.25rem;
+}
+
+@media (max-width: 640px) {
+  .settings-users .table__row.settings-users__row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .settings-users__identity {
+    grid-column: 1 / -1;
+  }
+
+  .settings-users__action {
+    grid-column: 1 / -1;
+    justify-self: stretch;
+  }
+
+  .settings-users__switch {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+.settings-logs {
+  margin-top: var(--space-4);
+  min-width: 0;
+}
+
+.collapsible-panel .settings-logs {
+  margin-top: 0;
+}
+
+.settings-logs__row--audit {
+  grid-template-columns: 9.5rem 0.9fr 0.9fr 0.9fr 1.4fr;
+  align-items: start;
+}
+
+.settings-logs__row--error {
+  grid-template-columns: 9.5rem 1.1fr 1.4fr 1.1fr;
+  align-items: start;
+}
+
+.settings-logs__time {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.settings-logs__details {
+  overflow-wrap: anywhere;
+}
+
+.settings-logs__stack {
+  min-width: 0;
+}
+
+.settings-logs__stack summary {
+  cursor: pointer;
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 0.8125rem;
+}
+
+.settings-logs__stack pre {
+  margin: 0.5rem 0 0;
+  padding: 0.75rem;
+  max-height: 16rem;
+  overflow: auto;
+  border-radius: var(--radius-sm);
+  background: var(--surface-muted);
+  font-size: 0.75rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 1279px) {
+  .settings-logs .table__head {
+    display: none;
+  }
+
+  .settings-logs .table {
+    gap: var(--space-3);
+  }
+
+  .settings-logs .table__row.settings-logs__row--audit,
+  .settings-logs .table__row.settings-logs__row--error {
+    grid-template-columns: 1fr;
+    gap: 0.55rem;
+    padding: 0.9rem 0.85rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    min-width: 0;
+  }
+
+  .settings-logs .table__row.settings-logs__row > [data-label] {
+    display: grid;
+    grid-template-columns: 5.75rem minmax(0, 1fr);
+    gap: 0.65rem;
+    align-items: start;
+    min-width: 0;
+  }
+
+  .settings-logs .table__row.settings-logs__row > [data-label]::before {
+    content: attr(data-label);
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  .settings-logs__time {
+    white-space: normal;
+  }
+}
+
+@media (max-width: 640px) {
+  .settings-logs .table__row.settings-logs__row > [data-label] {
+    grid-template-columns: 1fr;
+    gap: 0.15rem;
+  }
 }
 
 .patient-card-grid {

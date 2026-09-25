@@ -47,6 +47,11 @@ namespace MedicalAssistant.Identity.Migrations
                     b.Property<string>("LastName")
                         .HasColumnType("text");
 
+                    b.Property<bool>("IsApproved")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean");
 

@@ -3,6 +3,8 @@ import type {
   AuthRequest,
   AuthResponse,
   ChangePasswordRequest,
+  RegistrationRequest,
+  RegistrationResponse,
   UpdateUserProfileRequest,
   UserSession,
 } from '../../../shared/types/api';
@@ -10,6 +12,13 @@ import type {
 export const authApi = {
   login: (request: AuthRequest) =>
     httpClient<AuthResponse>('/auth/login', {
+      method: 'POST',
+      body: request,
+      skipAuth: true,
+    }),
+
+  register: (request: RegistrationRequest) =>
+    httpClient<RegistrationResponse>('/auth/register', {
       method: 'POST',
       body: request,
       skipAuth: true,

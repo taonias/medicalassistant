@@ -1,5 +1,5 @@
 export const queryKeys = {
-  session: ["auth", "session"] as const,
+  session: (userId: string) => ["auth", "session", userId] as const,
   patient: (id: number) => ["patient", id] as const,
   patients: ["patients"] as const,
   patientHistory: (
@@ -32,4 +32,8 @@ export const queryKeys = {
   doctorNotes: (consultationId: number) => ["consultation", consultationId, "doctor-notes"] as const,
   patientDoctorNotes: (patientId: number) => ["patient", patientId, "doctor-notes"] as const,
   action: (correlationId: string) => ["action", correlationId] as const,
+  users: (page: number, pageSize: number) => ['users', page, pageSize] as const,
+  usersPrefix: ['users'] as const,
+  auditLogs: (page: number, pageSize: number) => ['logs', 'audit', page, pageSize] as const,
+  errorLogs: (page: number, pageSize: number) => ['logs', 'errors', page, pageSize] as const,
 };

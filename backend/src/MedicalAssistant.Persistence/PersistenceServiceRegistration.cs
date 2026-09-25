@@ -40,6 +40,8 @@ public static class PersistenceServiceRegistration
         services.AddScoped<IMedicalStructuredDataRepository, MedicalStructuredDataRepository>();
         services.AddScoped<IDoctorNoteRepository, DoctorNoteRepository>();
         services.AddScoped<IActionRequestRepository, ActionRequestRepository>();
+        services.AddScoped<IAuditLogRepository, AuditLogRepository>();
+        services.AddScoped<IErrorLogRepository, ErrorLogRepository>();
         services.AddScoped<IAuditLogger, AuditLogger>();
         services.AddScoped<IErrorLogger, ErrorLogger>();
 

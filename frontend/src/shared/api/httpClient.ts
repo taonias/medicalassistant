@@ -1,5 +1,6 @@
 import type { ApiError } from '../types/api';
 import { useAuthStore } from '../../features/auth/store/authStore';
+import { queryClient } from './queryClient';
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ?? 'https://localhost:7037/api';
@@ -70,6 +71,7 @@ export async function httpClient<T>(
   if (!response.ok) {
     if (response.status === 401 && !skipAuth) {
       useAuthStore.getState().logout();
+      queryClient.clear();
     }
     throw await parseError(response);
   }

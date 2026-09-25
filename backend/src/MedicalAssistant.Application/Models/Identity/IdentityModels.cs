@@ -30,6 +30,23 @@ public class AuthResponse
 public class RegistrationResponse
 {
     public required string UserId { get; set; }
+    public bool IsApproved { get; set; }
+}
+
+public class UserListItemDto
+{
+    public required string Id { get; set; }
+    public required string UserName { get; set; }
+    public required string Email { get; set; }
+    public required string FirstName { get; set; }
+    public required string LastName { get; set; }
+    public bool IsApproved { get; set; }
+    public List<string> Roles { get; set; } = [];
+}
+
+public class SetUserApprovalRequest
+{
+    public bool IsApproved { get; set; }
 }
 
 public class UserSessionDto

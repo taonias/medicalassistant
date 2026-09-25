@@ -8,6 +8,13 @@ public class JwtSettings
     public int DurationInMinutes { get; set; } = 60;
 }
 
+public class AdminSeedSettings
+{
+    public string? UserName { get; set; }
+    public string? Email { get; set; }
+    public string? Password { get; set; }
+}
+
 public class BlobStorageSettings
 {
     public string? ConnectionString { get; set; }

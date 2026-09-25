@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from '../shared/components/ProtectedRoute';
 import { LoginPage } from '../features/auth/pages/LoginPage';
+import { RegisterPage } from '../features/auth/pages/RegisterPage';
 import { DashboardPage } from '../features/dashboard/pages/DashboardPage';
 import { NewConsultationPage } from '../features/audio-capture/pages/NewConsultationPage';
 import { ConsultationDetailPage } from '../features/consultations/pages/ConsultationDetailPage';
@@ -20,7 +21,10 @@ import { PatientChatRoute } from './routes/PatientChatRoute';
 export const router = createBrowserRouter([
   {
     element: <AuthLayout />,
-    children: [{ path: '/login', element: <LoginPage /> }],
+    children: [
+      { path: '/login', element: <LoginPage /> },
+      { path: '/register', element: <RegisterPage /> },
+    ],
   },
   {
     element: <ProtectedRoute />,

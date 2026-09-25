@@ -59,6 +59,10 @@ export function useBreadcrumbItems(): BreadcrumbItem[] {
       return [{ label: 'Sign in' }];
     }
 
+    if (pathname === '/register') {
+      return [{ label: 'Create account' }];
+    }
+
     if (pathname === '/') {
       return [{ label: 'Dashboard' }];
     }

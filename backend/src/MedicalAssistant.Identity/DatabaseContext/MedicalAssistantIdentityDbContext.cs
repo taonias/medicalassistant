@@ -9,4 +9,12 @@ public class MedicalAssistantIdentityDbContext : IdentityDbContext<ApplicationUs
     public MedicalAssistantIdentityDbContext(DbContextOptions<MedicalAssistantIdentityDbContext> options) : base(options)
     {
     }
+
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        base.OnModelCreating(builder);
+        builder.Entity<ApplicationUser>()
+            .Property(u => u.IsApproved)
+            .HasDefaultValue(true);
+    }
 }

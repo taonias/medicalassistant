@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
 using System.Text;
 
 namespace MedicalAssistant.Identity;
@@ -19,6 +20,7 @@ public static class IdentityServicesRegistration
     public static IServiceCollection AddIdentityServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
+        services.Configure<AdminSeedSettings>(configuration.GetSection("AdminSeed"));
 
         var provider = RelationalDatabaseProviderParser.FromConfiguration(configuration);
         var connectionString = RelationalDatabaseConnectionStringResolver.Resolve(configuration, provider);
@@ -40,11 +42,12 @@ public static class IdentityServicesRegistration
 
         services.AddIdentity<ApplicationUser, IdentityRole>(options =>
         {
-            options.Password.RequireDigit = false;
-            options.Password.RequireLowercase = false;
-            options.Password.RequireUppercase = false;
+            options.Password.RequireDigit = true;
+            options.Password.RequireLowercase = true;
+            options.Password.RequireUppercase = true;
             options.Password.RequireNonAlphanumeric = false;
-            options.Password.RequiredLength = 3;
+            options.Password.RequiredLength = 8;
+            options.User.RequireUniqueEmail = true;
         })
         .AddEntityFrameworkStores<MedicalAssistantIdentityDbContext>()
         .AddDefaultTokenProviders();
@@ -68,6 +71,23 @@ public static class IdentityServicesRegistration
                 ValidIssuer = configuration["JwtSettings:Issuer"],
                 ValidAudience = configuration["JwtSettings:Audience"],
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JwtSettings:Key"]!))
+            };
+            o.Events = new JwtBearerEvents
+            {
+                OnTokenValidated = async context =>
+                {
+                    var uid = context.Principal?.FindFirst("uid")?.Value;
+                    if (string.IsNullOrEmpty(uid))
+                    {
+                        context.Fail("Invalid token.");
+                        return;
+                    }
+
+                    var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<ApplicationUser>>();
+                    var user = await userManager.FindByIdAsync(uid);
+                    if (user == null || !user.IsApproved)
+                        context.Fail("Account is not approved.");
+                }
             };
         });
 

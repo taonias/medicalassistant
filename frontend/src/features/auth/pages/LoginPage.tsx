@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { AppBrand } from '../../../shared/components/AppBrand';
 import { useLogin } from '../hooks/useAuth';
 import { useAuthStore } from '../store/authStore';
@@ -67,6 +67,10 @@ export function LoginPage() {
             {login.isPending ? 'Signing in…' : 'Sign in'}
           </button>
         </form>
+
+        <p className="auth-card__footer">
+          Need an account? <Link to="/register">Create account</Link>
+        </p>
       </div>
     </div>
   );

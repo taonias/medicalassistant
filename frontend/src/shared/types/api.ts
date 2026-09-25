@@ -14,6 +14,61 @@ export interface AuthResponse {
   roles: string[];
 }
 
+export interface RegistrationRequest {
+  email: string;
+  userName: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+}
+
+export interface RegistrationResponse {
+  userId: string;
+  isApproved: boolean;
+}
+
+export interface ManagedUser {
+  id: string;
+  userName: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  isApproved: boolean;
+  roles: string[];
+}
+
+export interface PagedResult<T> {
+  items: T[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface AuditLogEntry {
+  id: number;
+  userId?: string | null;
+  userName?: string | null;
+  action: string;
+  entityType?: string | null;
+  entityId?: string | null;
+  details?: string | null;
+  ipAddress?: string | null;
+  timestamp: string;
+}
+
+export interface ErrorLogEntry {
+  id: number;
+  message?: string | null;
+  stackTrace?: string | null;
+  path?: string | null;
+  method?: string | null;
+  timestamp: string;
+}
+
+export interface SetUserApprovalRequest {
+  isApproved: boolean;
+}
+
 export interface UserSession {
   id: string;
   userName: string;

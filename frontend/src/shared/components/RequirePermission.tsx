@@ -18,6 +18,6 @@ export function RequirePermission({
     return children;
   }
 
-  const allowed = roles.includes('Admin') || roles.includes(permission);
+  const allowed = roles.includes('Administrator') || roles.includes('Admin') || roles.includes(permission);
   return allowed ? children : fallback;
 }

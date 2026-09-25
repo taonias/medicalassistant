@@ -5,6 +5,7 @@ interface Props {
   onPageChange: (page: number) => void;
   disabled?: boolean;
   className?: string;
+  label?: string;
 }
 
 function ChevronLeftIcon() {
@@ -42,6 +43,7 @@ export function ConsultationPager({
   onPageChange,
   disabled,
   className,
+  label = 'Consultation pages',
 }: Props) {
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   if (totalCount <= pageSize) return null;
@@ -54,7 +56,7 @@ export function ConsultationPager({
   return (
     <nav
       className={['consultation-pager', className].filter(Boolean).join(' ')}
-      aria-label="Consultation pages"
+      aria-label={label}
     >
       <p className="consultation-pager__meta muted">
         {from}–{to} of {totalCount}

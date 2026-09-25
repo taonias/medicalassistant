@@ -5,6 +5,8 @@ using MedicalAssistant.Application.Features.Chat.Queries.ChatQuery;
 using MedicalAssistant.Application.Features.Consultation.Command.CreateConsultation;
 using MedicalAssistant.Application.Features.Patient.Command.CreatePatient;
 using MedicalAssistant.Application.Features.ActionRequest.Command.TriggerAiAction;
+using MedicalAssistant.Application.Features.Auth;
+using MedicalAssistant.Application.Models.Identity;
 using MedicalAssistant.Domain;
 using MedicalAssistant.Domain.Enums;
 using Moq;
@@ -164,5 +166,62 @@ public class TriggerAiActionCommandValidatorTests
             CorrelationId = "corr-2"
         });
         result.ShouldHaveValidationErrorFor(c => c.CorrelationId);
+    }
+}
+
+public class RegistrationRequestValidatorTests
+{
+    private readonly RegistrationRequestValidator _validator = new();
+
+    private static RegistrationRequest ValidRequest() => new()
+    {
+        FirstName = "Jane",
+        LastName = "Doe",
+        Email = "jane.doe@example.com",
+        UserName = "jadoe",
+        Password = "Password1"
+    };
+
+    [Fact]
+    public async Task Should_have_error_when_first_name_empty()
+    {
+        var request = ValidRequest();
+        request.FirstName = "";
+        var result = await _validator.TestValidateAsync(request);
+        result.ShouldHaveValidationErrorFor(r => r.FirstName);
+    }
+
+    [Fact]
+    public async Task Should_have_error_when_last_name_empty()
+    {
+        var request = ValidRequest();
+        request.LastName = "";
+        var result = await _validator.TestValidateAsync(request);
+        result.ShouldHaveValidationErrorFor(r => r.LastName);
+    }
+
+    [Fact]
+    public async Task Should_have_error_when_email_invalid()
+    {
+        var request = ValidRequest();
+        request.Email = "not-an-email";
+        var result = await _validator.TestValidateAsync(request);
+        result.ShouldHaveValidationErrorFor(r => r.Email);
+    }
+
+    [Fact]
+    public async Task Should_have_error_when_password_too_weak()
+    {
+        var request = ValidRequest();
+        request.Password = "abc";
+        var result = await _validator.TestValidateAsync(request);
+        result.ShouldHaveValidationErrorFor(r => r.Password);
+    }
+
+    [Fact]
+    public async Task Should_not_have_error_when_request_is_valid()
+    {
+        var result = await _validator.TestValidateAsync(ValidRequest());
+        result.ShouldNotHaveAnyValidationErrors();
     }
 }

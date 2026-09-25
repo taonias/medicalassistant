@@ -6,6 +6,10 @@ import { ErrorMessage } from '../../../shared/components/ErrorMessage';
 import { ThemeToggle } from '../../theme/components/ThemeToggle';
 import { useAuthStore } from '../../auth/store/authStore';
 import { useChangePassword, useUpdateProfile } from '../hooks/useSettings';
+import { AuditLogsPanel } from '../components/AuditLogsPanel';
+import { ErrorLogsPanel } from '../components/ErrorLogsPanel';
+import { UserAccessPanel } from '../components/UserAccessPanel';
+import { passwordPolicySchema } from '../../../shared/validation/password';
 
 const profileSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
@@ -16,7 +20,7 @@ const profileSchema = z.object({
 const passwordSchema = z
   .object({
     currentPassword: z.string().min(1, 'Current password is required'),
-    newPassword: z.string().min(3, 'Password must be at least 3 characters'),
+    newPassword: passwordPolicySchema,
     confirmPassword: z.string().min(1, 'Please confirm your new password'),
   })
   .refine((values) => values.newPassword === values.confirmPassword, {
@@ -29,6 +33,8 @@ type PasswordForm = z.infer<typeof passwordSchema>;
 
 export function SettingsPage() {
   const user = useAuthStore((state) => state.user);
+  const roles = useAuthStore((state) => state.roles);
+  const isAdmin = roles.includes('Administrator');
   const updateProfile = useUpdateProfile();
   const changePassword = useChangePassword();
   const [profileSaved, setProfileSaved] = useState(false);
@@ -205,6 +211,14 @@ export function SettingsPage() {
           ) : null}
         </form>
       </section>
+
+      {isAdmin ? (
+        <>
+          <UserAccessPanel />
+          <AuditLogsPanel />
+          <ErrorLogsPanel />
+        </>
+      ) : null}
     </div>
   );
 }

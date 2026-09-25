@@ -40,8 +40,12 @@ Swagger: `https://localhost:7001/swagger`
 
 | Method | Route | Description |
 |--------|-------|-------------|
-| POST | `/api/auth/register` | Register doctor |
-| POST | `/api/auth/login` | JWT login |
+| POST | `/api/auth/register` | Register doctor (pending admin approval, no JWT) |
+| POST | `/api/auth/login` | JWT login (rejected until the account is enabled) |
+| GET | `/api/users` | Paged user list (Administrator; `page`, `pageSize`) |
+| PUT | `/api/users/{id}/approval` | Enable or disable a user (Administrator) |
+| GET | `/api/logs/audit` | Paged audit logs (Administrator; `page`, `pageSize`) |
+| GET | `/api/logs/errors` | Paged error logs (Administrator; `page`, `pageSize`) |
 | POST | `/api/patient` | Create patient |
 | GET | `/api/patient/{id}/history` | Patient history |
 | POST | `/api/consultation` | Create consultation |
@@ -53,3 +57,7 @@ Swagger: `https://localhost:7001/swagger`
 ## Configuration
 
 Edit `src/MedicalAssistant.Api/appsettings.json` for connection strings, JWT, Blob Storage, and AI module URLs.
+
+In Development, `appsettings.Development.json` seeds an administrator (`AdminSeed`: username `admin`, email `admin@localhost`, password `Admin1234`) with the Administrator and Doctor roles. New self-registrations stay disabled until this admin enables them in Settings. Leave `AdminSeed` unset in production unless you intend to seed an admin there.
+
+Identity migrations run on API startup (`IdentityDbInitializer`). After pulling this change, restart the API so `IsApproved` is added to `AspNetUsers`.

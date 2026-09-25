@@ -33,8 +33,8 @@ export const useAuthStore = create<AuthState>()(
           },
         });
       },
-      setSession: (session, roles = []) => {
-        set({ user: session, roles });
+      setSession: (session, roles) => {
+        set(roles === undefined ? { user: session } : { user: session, roles });
       },
       logout: () => {
         setAuthToken(null);

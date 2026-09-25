@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 
 import { type ReactNode, useEffect } from 'react';
 
@@ -10,23 +10,7 @@ import {
 
 } from '../features/theme/store/themeStore';
 
-
-
-const queryClient = new QueryClient({
-
-  defaultOptions: {
-
-    queries: {
-
-      refetchOnWindowFocus: false,
-
-      retry: 1,
-
-    },
-
-  },
-
-});
+import { queryClient } from '../shared/api/queryClient';
 
 
 
@@ -65,4 +49,3 @@ export function AppProviders({ children }: { children: ReactNode }) {
   );
 
 }
-

@@ -50,7 +50,10 @@ The dev server uses port **4200** to match backend CORS settings.
 | Feature | Endpoint |
 |---------|----------|
 | Login | `POST /api/auth/login` |
+| Register | `POST /api/auth/register` |
 | Session | `GET /api/auth/session` |
+| Users (admin) | `GET /api/users?page&pageSize`, `PUT /api/users/{id}/approval` |
+| Logs (admin) | `GET /api/logs/audit`, `GET /api/logs/errors` |
 | Patient | `GET/POST /api/patient` |
 | History | `GET /api/patient/{id}/history` |
 | Consultations | `GET/POST /api/consultation` |
@@ -62,6 +65,7 @@ The dev server uses port **4200** to match backend CORS settings.
 ## Routes
 
 - `/login`
+- `/register` — doctor signup (account stays pending until an administrator enables it)
 - `/` — Dashboard
 - `/patients` — Patient directory (recent + create)
 - `/patients/:patientId` — Patient detail (overview, history, structured data)
@@ -74,3 +78,4 @@ The dev server uses port **4200** to match backend CORS settings.
 - Patient list uses **recent patients** stored locally because the backend does not expose a paginated patient search endpoint yet.
 - Consultation processing status is polled while transcription / structured-data jobs are running.
 - Chat action proposals require explicit confirmation before triggering backend actions.
+- New doctor accounts wait for an **Administrator** to enable them on Settings → User access. In development, sign in as `admin` / `Admin1234` to approve accounts. Administrators can also page through audit and error logs on Settings.

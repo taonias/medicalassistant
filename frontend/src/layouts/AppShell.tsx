@@ -12,15 +12,16 @@ import { UserMenu } from './UserMenu';
 
 export function AppShell() {
   const setSession = useAuthStore((state) => state.setSession);
+  const userId = useAuthStore((state) => state.user?.id);
   const logout = useLogout();
   const session = useSession();
   const isRecordingLocked = useRecordSessionStore(selectIsRecordingLocked);
 
   useEffect(() => {
-    if (session.data) {
+    if (session.data && session.data.id === userId) {
       setSession(session.data);
     }
-  }, [session.data, setSession]);
+  }, [session.data, setSession, userId]);
 
   return (
     <div className={`app-shell${isRecordingLocked ? ' app-shell--recording-locked' : ''}`}>

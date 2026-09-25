@@ -1,9 +1,11 @@
+using FluentValidation;
 using MedicalAssistant.Application.Configuration;
 using MedicalAssistant.Application.Contracts.Identity;
 using MedicalAssistant.Application.Exceptions;
 using MedicalAssistant.Application.Models.Identity;
 using MedicalAssistant.Identity.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -18,17 +20,20 @@ public class AuthService : IAuthService
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
+    private readonly IValidator<RegistrationRequest> _registrationValidator;
     private readonly JwtSettings _jwtSettings;
     private readonly ILogger<AuthService> _logger;
 
     public AuthService(
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
+        IValidator<RegistrationRequest> registrationValidator,
         IOptions<JwtSettings> jwtSettings,
         ILogger<AuthService> logger)
     {
         _userManager = userManager;
         _signInManager = signInManager;
+        _registrationValidator = registrationValidator;
         _jwtSettings = jwtSettings.Value;
         _logger = logger;
     }
@@ -47,31 +52,26 @@ public class AuthService : IAuthService
         if (!result.Succeeded)
             throw new BadRequestException(InvalidCredentialsMessage);
 
-        var token = await GenerateJwtToken(user);
-        var roles = await _userManager.GetRolesAsync(user);
+        if (!user.IsApproved)
+            throw new BadRequestException("Your account is pending administrator approval.");
 
-        return new AuthResponse
-        {
-            Id = user.Id,
-            UserName = user.UserName,
-            Email = user.Email,
-            EmailConfirmed = user.EmailConfirmed,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            Token = new JwtSecurityTokenHandler().WriteToken(token),
-            Roles = roles.ToList()
-        };
+        return await CreateAuthResponseAsync(user);
     }
 
     public async Task<RegistrationResponse> Register(RegistrationRequest request)
     {
+        var validationResult = await _registrationValidator.ValidateAsync(request);
+        if (!validationResult.IsValid)
+            throw new BadRequestException("Validation failed", validationResult);
+
         var user = new ApplicationUser
         {
-            Email = request.Email,
-            UserName = request.UserName,
-            FirstName = request.FirstName,
-            LastName = request.LastName,
-            EmailConfirmed = true
+            Email = request.Email.Trim(),
+            UserName = request.UserName.Trim(),
+            FirstName = request.FirstName.Trim(),
+            LastName = request.LastName.Trim(),
+            EmailConfirmed = true,
+            IsApproved = false
         };
 
         var result = await _userManager.CreateAsync(user, request.Password);
@@ -82,7 +82,7 @@ public class AuthService : IAuthService
         }
 
         await _userManager.AddToRoleAsync(user, "Doctor");
-        return new RegistrationResponse { UserId = user.Id };
+        return new RegistrationResponse { UserId = user.Id, IsApproved = user.IsApproved };
     }
 
     public async Task<UserSessionDto> GetUserSessionAsync(string userId)
@@ -135,6 +135,78 @@ public class AuthService : IAuthService
             var message = string.Join(' ', result.Errors.Select(e => e.Description));
             throw new BadRequestException(message);
         }
+    }
+
+    public async Task<PagedResult<UserListItemDto>> GetUsersAsync(int? page, int? pageSize)
+    {
+        var (normalizedPage, normalizedSize) = Paging.Normalize(page, pageSize);
+        var query = _userManager.Users.AsNoTracking().OrderBy(u => u.UserName);
+        var totalCount = await query.CountAsync();
+        normalizedPage = Paging.ClampPage(normalizedPage, normalizedSize, totalCount);
+
+        var users = await query
+            .Skip((normalizedPage - 1) * normalizedSize)
+            .Take(normalizedSize)
+            .ToListAsync();
+
+        var items = new List<UserListItemDto>(users.Count);
+        foreach (var user in users)
+        {
+            var roles = await _userManager.GetRolesAsync(user);
+            items.Add(new UserListItemDto
+            {
+                Id = user.Id,
+                UserName = user.UserName ?? string.Empty,
+                Email = user.Email ?? string.Empty,
+                FirstName = user.FirstName ?? string.Empty,
+                LastName = user.LastName ?? string.Empty,
+                IsApproved = user.IsApproved,
+                Roles = roles.ToList()
+            });
+        }
+
+        return new PagedResult<UserListItemDto>
+        {
+            Items = items,
+            TotalCount = totalCount,
+            Page = normalizedPage,
+            PageSize = normalizedSize
+        };
+    }
+
+    public async Task SetUserApprovalAsync(string userId, bool isApproved, string actingUserId)
+    {
+        if (string.Equals(userId, actingUserId, StringComparison.Ordinal))
+            throw new BadRequestException("You cannot change approval for your own account.");
+
+        var user = await _userManager.FindByIdAsync(userId)
+            ?? throw new NotFoundException("User not found.", userId);
+
+        user.IsApproved = isApproved;
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            var message = string.Join(' ', result.Errors.Select(e => e.Description));
+            throw new BadRequestException(message);
+        }
+    }
+
+    private async Task<AuthResponse> CreateAuthResponseAsync(ApplicationUser user)
+    {
+        var token = await GenerateJwtToken(user);
+        var roles = await _userManager.GetRolesAsync(user);
+
+        return new AuthResponse
+        {
+            Id = user.Id,
+            UserName = user.UserName,
+            Email = user.Email,
+            EmailConfirmed = user.EmailConfirmed,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Token = new JwtSecurityTokenHandler().WriteToken(token),
+            Roles = roles.ToList()
+        };
     }
 
     private async Task<JwtSecurityToken> GenerateJwtToken(ApplicationUser user)
