@@ -126,3 +126,11 @@ env/
 htmlcov/
 *.egg-info/
 .eggs/
+
+**/helping_documents_to_ignore/
+
+**/graphify-out/
+**/_ai_gen_docs/
+.local-tools/
+**/_dockers/
+**/_scripts/

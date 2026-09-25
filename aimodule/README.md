@@ -1,13 +1,13 @@
 # MedicalAssistant.AiModule
 
-.NET 8 **isolated** Azure Function App that consumes `ai.requests` from RabbitMQ and deserializes the transcript-ready message.
+.NET 10 **isolated** Azure Function App that consumes `ai.requests` from RabbitMQ and deserializes the transcript-ready message. The project also contains the Microsoft Agent Framework dependencies that will be used by the migrated AI application services.
 
 Open `MedicalAssistant.AiModule.slnx` in Visual Studio / Cursor to build and debug this Function App. It is independent of the transcriber and backend solutions. Use port **7072** so it can run alongside the transcriber (7071).
 
 ## Local run
 
 Prerequisites:
-- .NET 8 SDK
+- .NET 10 SDK
 - [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local) v4
 - RabbitMQ running (`rabbitmq/docker-compose.yml`)
 - `AzureWebJobsStorage` — Azurite (`UseDevelopmentStorage=true`) or a real storage account (Functions host still needs this)
@@ -27,7 +27,7 @@ Configuration order:
 
 ## Azure deployment
 
-1. Create a Function App (`.NET 8 Isolated`, Windows or Linux).
+1. Create a Function App (`.NET 10 Isolated`, Windows or Linux). RabbitMQ triggers require a Premium or Dedicated plan; Consumption and Flex Consumption are not supported for this trigger.
 2. Set application settings (same keys as `local.settings.json` `Values`):
    - `RabbitMqConnection` — e.g. `amqps://user:pass@host:5671/`
    - `RabbitMqQueueName` — `ai.requests`
