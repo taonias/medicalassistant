@@ -11,5 +11,6 @@ public class RabbitMqSettings
     public string Password { get; set; } = "p@ssw0rd";
     public string TranscriberProcessingQueue { get; set; } = "transcription.requests";
     public string AiProcessingQueue { get; set; } = "ai.requests";
+    public string AiResultsQueue { get; set; } = "ai.results";
     public bool Enabled { get; set; } = true;
 }

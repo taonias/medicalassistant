@@ -165,14 +165,6 @@ public class ConsultationRepository : GenericRepository<Consultation>, IConsulta
             note.ConsultationId = null;
         }
 
-        var actions = await _context.ActionRequests
-            .Where(a => a.ConsultationId == consultationId)
-            .ToListAsync();
-        foreach (var action in actions)
-        {
-            action.ConsultationId = null;
-        }
-
         _context.Consultations.Remove(consultation);
         await _context.SaveChangesAsync();
     }

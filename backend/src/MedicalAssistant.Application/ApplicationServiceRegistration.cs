@@ -15,6 +15,7 @@ public static class ApplicationServiceRegistration
         services.AddMediatR(Assembly.GetExecutingAssembly());
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         services.AddScoped<Services.PatientHistoryAssembler>();
+        services.AddScoped<Contracts.Messaging.IAiResultProcessor, Messaging.AiResultProcessor>();
 
         return services;
     }

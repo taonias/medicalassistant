@@ -114,13 +114,7 @@ export function useBreadcrumbItems(): BreadcrumbItem[] {
       }
 
       if (pathname.endsWith('/chat')) {
-        const linkedConsultationId = searchParams.get('consultation');
-        if (linkedConsultationId) {
-          items.push({ label: 'Chat', href: `/patients/${patientIdFromRoute}/chat` });
-          items.push({ label: linkedConsultationId });
-        } else {
-          items.push({ label: 'Chat' });
-        }
+        items.push({ label: 'Chat' });
         return items;
       }
 

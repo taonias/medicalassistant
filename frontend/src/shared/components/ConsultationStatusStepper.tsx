@@ -55,12 +55,10 @@ interface UseConsultationPollingOptions {
   intervalMs?: number;
 }
 
-const ONE_DAY_MS = 24 * 60 * 60 * 1000;
-
 export function useConsultationPolling({
   status,
   onPoll,
-  intervalMs = ONE_DAY_MS,
+  intervalMs = 3000,
 }: UseConsultationPollingOptions) {
   const onPollRef = useRef(onPoll);
   onPollRef.current = onPoll;

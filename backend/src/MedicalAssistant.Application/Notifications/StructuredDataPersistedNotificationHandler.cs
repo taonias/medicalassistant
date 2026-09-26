@@ -1,28 +1,27 @@
-using MedicalAssistant.Application.Contracts.AiModule;
+using MedicalAssistant.Application.Contracts.Logging;
+using MedicalAssistant.Application.Contracts.Messaging;
 using MedicalAssistant.Application.Contracts.Persistence;
-using MedicalAssistant.Application.Models.AiModule;
-using MedicalAssistant.Domain;
+using MedicalAssistant.Application.Models.Messaging;
 using MediatR;
-using Microsoft.Extensions.Logging;
 
 namespace MedicalAssistant.Application.Notifications;
 
 public class StructuredDataPersistedNotificationHandler : INotificationHandler<StructuredDataPersistedNotification>
 {
-    private readonly IAiModuleClient _aiModuleClient;
+    private readonly IAiRequestPublisher _aiRequestPublisher;
     private readonly IConsultationRepository _consultationRepository;
     private readonly ITranscriptRepository _transcriptRepository;
     private readonly IMedicalStructuredDataRepository _structuredDataRepository;
-    private readonly ILogger<StructuredDataPersistedNotificationHandler> _logger;
+    private readonly IAppLogger<StructuredDataPersistedNotificationHandler> _logger;
 
     public StructuredDataPersistedNotificationHandler(
-        IAiModuleClient aiModuleClient,
+        IAiRequestPublisher aiRequestPublisher,
         IConsultationRepository consultationRepository,
         ITranscriptRepository transcriptRepository,
         IMedicalStructuredDataRepository structuredDataRepository,
-        ILogger<StructuredDataPersistedNotificationHandler> logger)
+        IAppLogger<StructuredDataPersistedNotificationHandler> logger)
     {
-        _aiModuleClient = aiModuleClient;
+        _aiRequestPublisher = aiRequestPublisher;
         _consultationRepository = consultationRepository;
         _transcriptRepository = transcriptRepository;
         _structuredDataRepository = structuredDataRepository;
@@ -47,11 +46,14 @@ public class StructuredDataPersistedNotificationHandler : INotificationHandler<S
                 return;
 
             var patientId = consultation.PatientId.Value;
-            var req = new IndexDocumentsJobRequest
+            await _aiRequestPublisher.PublishIndexAsync(new IndexDocumentsRequestedMessage
             {
+                EventType = AiRequestEventTypes.DocumentsIndexRequested,
+                CorrelationId = Guid.NewGuid().ToString("N"),
+                OccurredAtUtc = DateTime.UtcNow,
                 Documents =
                 [
-                    new IndexDocument
+                    new IndexDocumentMessage
                     {
                         Id = $"transcript:{consultation.Id}",
                         PatientId = patientId,
@@ -59,7 +61,7 @@ public class StructuredDataPersistedNotificationHandler : INotificationHandler<S
                         DocType = "transcript",
                         Content = transcript.TranscriptText
                     },
-                    new IndexDocument
+                    new IndexDocumentMessage
                     {
                         Id = $"structured:{consultation.Id}",
                         PatientId = patientId,
@@ -68,14 +70,11 @@ public class StructuredDataPersistedNotificationHandler : INotificationHandler<S
                         Content = structured.StructuredPayload
                     }
                 ]
-            };
-
-            await _aiModuleClient.IndexDocumentsAsync(req, cancellationToken);
+            }, cancellationToken);
         }
         catch (Exception ex)
         {
-            // Indexing must not break the core clinical workflow.
-            _logger.LogError(ex, "Failed to index clinical documents for consultation {ConsultationId}", notification.ConsultationId);
+            _logger.LogError("Failed to queue indexing for consultation {ConsultationId}: {Error}", notification.ConsultationId, ex.Message);
         }
     }
 }

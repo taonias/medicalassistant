@@ -22,7 +22,7 @@ namespace MedicalAssistant.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("MedicalAssistant.Domain.ActionRequest", b =>
+            modelBuilder.Entity("MedicalAssistant.Domain.ChatRequest", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -30,11 +30,14 @@ namespace MedicalAssistant.Persistence.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("ActionType")
-                        .HasColumnType("integer");
+                    b.Property<string>("Answer")
+                        .HasColumnType("text");
 
-                    b.Property<int?>("ConsultationId")
-                        .HasColumnType("integer");
+                    b.Property<string>("CitationsJson")
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("ContextJson")
+                        .HasColumnType("jsonb");
 
                     b.Property<string>("CorrelationId")
                         .IsRequired()
@@ -55,13 +58,13 @@ namespace MedicalAssistant.Persistence.Migrations
                         .HasMaxLength(450)
                         .HasColumnType("character varying(450)");
 
-                    b.Property<string>("ExternalJobId")
-                        .HasMaxLength(128)
-                        .HasColumnType("character varying(128)");
-
                     b.Property<string>("FailureReason")
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("ModifiedBy")
                         .HasColumnType("text");
@@ -69,21 +72,22 @@ namespace MedicalAssistant.Persistence.Migrations
                     b.Property<int?>("PatientId")
                         .HasColumnType("integer");
 
-                    b.Property<string>("RequestPayload")
-                        .HasColumnType("jsonb");
-
-                    b.Property<string>("ResponsePayload")
-                        .HasColumnType("jsonb");
+                    b.Property<string>("SessionId")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
+
+                    b.Property<string>("SuggestedActionsJson")
+                        .HasColumnType("jsonb");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CorrelationId")
                         .IsUnique();
 
-                    b.ToTable("ActionRequests", (string)null);
+                    b.ToTable("ChatRequests", (string)null);
                 });
 
             modelBuilder.Entity("MedicalAssistant.Domain.AuditLog", b =>

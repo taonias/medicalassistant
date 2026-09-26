@@ -23,20 +23,6 @@ public class BlobStorageSettings
     public string TranscriptsContainer { get; set; } = "transcripts";
 }
 
-public class AiModuleSettings
-{
-    public required string BaseUrl { get; set; }
-    public required string ApiKey { get; set; }
-    public string ApiBaseUrl { get; set; } = "https://localhost:7001";
-    public int ChatTimeoutSeconds { get; set; } = 60;
-    public int TranscriptionSubmitTimeoutSeconds { get; set; } = 10;
-}
-
-public class AiCallbackSettings
-{
-    public required string ApiKey { get; set; }
-}
-
 public class AppSettings
 {
     public string[] AllowedAudioContentTypes { get; set; } =

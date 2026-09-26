@@ -60,7 +60,6 @@ The dev server uses port **4200** to match backend CORS settings.
 | Audio upload | `POST /api/consultation/{id}/audio` |
 | Transcript | `GET /api/transcript/{consultationId}` |
 | Chat | `POST /api/chat/query` |
-| Actions | `POST /api/action/trigger` |
 
 ## Routes
 

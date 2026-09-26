@@ -1,4 +1,4 @@
-import type { ChatResponse } from '../../../shared/types/api';
+import type { ChatJob } from '../../../shared/types/api';
 
 export interface ChatMessage {
   id: string;
@@ -6,15 +6,14 @@ export interface ChatMessage {
   content: string;
   citations?: string[];
   suggestedActions?: string[];
-  response?: ChatResponse;
+  response?: ChatJob;
 }
 
 interface Props {
   message: ChatMessage;
-  onSelectAction?: (action: string) => void;
 }
 
-export function ChatMessageItem({ message, onSelectAction }: Props) {
+export function ChatMessageItem({ message }: Props) {
   return (
     <div className={`chat-message chat-message--${message.role}`}>
       <div className="chat-message__bubble">
@@ -31,14 +30,9 @@ export function ChatMessageItem({ message, onSelectAction }: Props) {
         {message.suggestedActions && message.suggestedActions.length > 0 ? (
           <div className="chat-message__actions">
             {message.suggestedActions.map((action) => (
-              <button
-                key={action}
-                type="button"
-                className="button button--secondary button--small"
-                onClick={() => onSelectAction?.(action)}
-              >
+              <span key={action} className="chip">
                 {action}
-              </button>
+              </span>
             ))}
           </div>
         ) : null}

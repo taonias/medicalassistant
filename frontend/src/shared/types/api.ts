@@ -231,45 +231,16 @@ export interface Transcript {
 
 export interface ChatQueryRequest {
   patientId?: number;
-  consultationId?: number;
   message: string;
   sessionId?: string;
 }
 
-export interface ChatResponse {
-  answer: string;
+export interface ChatJob {
+  correlationId: string;
+  status: string;
+  answer?: string;
   citations: string[];
   suggestedActions: string[];
-}
-
-export const ActionType = {
-  SummarizeConsultation: 0,
-  ExtractStructuredData: 1,
-  ChatInsight: 2,
-  CustomWorkflow: 3,
-} as const;
-
-export type ActionType = (typeof ActionType)[keyof typeof ActionType];
-
-export interface TriggerActionRequest {
-  actionType: ActionType;
-  patientId?: number;
-  consultationId?: number;
-  parametersJson?: string;
-  correlationId?: string;
-}
-
-export interface ActionRequest {
-  id: number;
-  correlationId: string;
-  doctorId: string;
-  patientId?: number;
-  consultationId?: number;
-  actionType: string;
-  status: string;
-  requestPayload?: string;
-  responsePayload?: string;
-  externalJobId?: string;
   failureReason?: string;
 }
 

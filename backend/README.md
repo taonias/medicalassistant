@@ -51,8 +51,6 @@ Swagger: `https://localhost:7001/swagger`
 | POST | `/api/consultation` | Create consultation |
 | POST | `/api/consultation/{id}/audio` | Upload audio |
 | POST | `/api/chat/query` | Chat with AI context |
-| POST | `/api/action/trigger` | Trigger AI action |
-| POST | `/api/ai-callback/*` | AI module webhooks |
 
 ## Configuration
 

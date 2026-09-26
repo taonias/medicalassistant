@@ -21,7 +21,7 @@ public class MedicalAssistantDatabaseContext : DbContext
     public virtual DbSet<Transcript> Transcripts { get; set; }
     public virtual DbSet<MedicalStructuredData> MedicalStructuredData { get; set; }
     public virtual DbSet<DoctorNote> DoctorNotes { get; set; }
-    public virtual DbSet<ActionRequest> ActionRequests { get; set; }
+    public virtual DbSet<ChatRequest> ChatRequests { get; set; }
     public virtual DbSet<AuditLog> AuditLogs { get; set; }
     public virtual DbSet<ErrorLog> ErrorLogs { get; set; }
 

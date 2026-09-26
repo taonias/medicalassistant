@@ -31,7 +31,7 @@ export const queryKeys = {
   structuredData: (consultationId: number) => ["consultation", consultationId, "structured-data"] as const,
   doctorNotes: (consultationId: number) => ["consultation", consultationId, "doctor-notes"] as const,
   patientDoctorNotes: (patientId: number) => ["patient", patientId, "doctor-notes"] as const,
-  action: (correlationId: string) => ["action", correlationId] as const,
+  chat: (correlationId: string) => ["chat", correlationId] as const,
   users: (page: number, pageSize: number) => ['users', page, pageSize] as const,
   usersPrefix: ['users'] as const,
   auditLogs: (page: number, pageSize: number) => ['logs', 'audit', page, pageSize] as const,

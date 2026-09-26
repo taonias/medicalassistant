@@ -1,11 +1,11 @@
-using MedicalAssistant.Application.Contracts.AiModule;
 using MedicalAssistant.Application.Contracts.Identity;
+using MedicalAssistant.Application.Contracts.Logging;
+using MedicalAssistant.Application.Contracts.Messaging;
 using MedicalAssistant.Application.Contracts.Persistence;
 using MedicalAssistant.Application.Exceptions;
-using MedicalAssistant.Application.Models.AiModule;
+using MedicalAssistant.Application.Models.Messaging;
 using MedicalAssistant.Domain;
 using MediatR;
-using Microsoft.Extensions.Logging;
 
 namespace MedicalAssistant.Application.Features.DoctorNotes.Command.CreateDoctorNote;
 
@@ -22,22 +22,22 @@ public class CreateDoctorNoteCommandHandler : IRequestHandler<CreateDoctorNoteCo
     private readonly IConsultationRepository _consultationRepository;
     private readonly IPatientRepository _patientRepository;
     private readonly IUserService _userService;
-    private readonly IAiModuleClient _aiModuleClient;
-    private readonly ILogger<CreateDoctorNoteCommandHandler> _logger;
+    private readonly IAiRequestPublisher _aiRequestPublisher;
+    private readonly IAppLogger<CreateDoctorNoteCommandHandler> _logger;
 
     public CreateDoctorNoteCommandHandler(
         IDoctorNoteRepository doctorNoteRepository,
         IConsultationRepository consultationRepository,
         IPatientRepository patientRepository,
         IUserService userService,
-        IAiModuleClient aiModuleClient,
-        ILogger<CreateDoctorNoteCommandHandler> logger)
+        IAiRequestPublisher aiRequestPublisher,
+        IAppLogger<CreateDoctorNoteCommandHandler> logger)
     {
         _doctorNoteRepository = doctorNoteRepository;
         _consultationRepository = consultationRepository;
         _patientRepository = patientRepository;
         _userService = userService;
-        _aiModuleClient = aiModuleClient;
+        _aiRequestPublisher = aiRequestPublisher;
         _logger = logger;
     }
 
@@ -84,14 +84,16 @@ public class CreateDoctorNoteCommandHandler : IRequestHandler<CreateDoctorNoteCo
 
         await _doctorNoteRepository.CreateAsync(note);
 
-        // Best-effort indexing for patient-scoped RAG.
         try
         {
-            await _aiModuleClient.IndexDocumentsAsync(new IndexDocumentsJobRequest
+            await _aiRequestPublisher.PublishIndexAsync(new IndexDocumentsRequestedMessage
             {
+                EventType = AiRequestEventTypes.DocumentsIndexRequested,
+                CorrelationId = Guid.NewGuid().ToString("N"),
+                OccurredAtUtc = DateTime.UtcNow,
                 Documents =
                 [
-                    new IndexDocument
+                    new IndexDocumentMessage
                     {
                         Id = $"note:{note.Id}",
                         PatientId = note.PatientId,
@@ -104,7 +106,7 @@ public class CreateDoctorNoteCommandHandler : IRequestHandler<CreateDoctorNoteCo
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to index doctor note {NoteId}", note.Id);
+            _logger.LogError("Failed to queue indexing for doctor note {NoteId}: {Error}", note.Id, ex.Message);
         }
 
         return note;

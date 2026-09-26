@@ -44,10 +44,21 @@ public class MedicalStructuredDataProfile : Profile
     }
 }
 
-public class ActionRequestProfile : Profile
+public class ChatRequestProfile : Profile
 {
-    public ActionRequestProfile()
+    public ChatRequestProfile()
     {
-        CreateMap<ActionRequest, Features.ActionRequest.Queries.GetActionRequestStatus.ActionRequestDto>();
+        CreateMap<ChatRequest, Features.Chat.Queries.GetChatRequestStatus.ChatJobDto>()
+            .ForMember(d => d.Status, o => o.MapFrom(s => s.Status.ToString()))
+            .ForMember(d => d.Citations, o => o.MapFrom(s => ParseStringList(s.CitationsJson)))
+            .ForMember(d => d.SuggestedActions, o => o.MapFrom(s => ParseStringList(s.SuggestedActionsJson)));
+    }
+
+    private static List<string> ParseStringList(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+            return [];
+
+        return System.Text.Json.JsonSerializer.Deserialize<List<string>>(json) ?? [];
     }
 }

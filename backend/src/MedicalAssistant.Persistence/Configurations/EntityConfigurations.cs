@@ -65,21 +65,6 @@ public class MedicalStructuredDataConfiguration : IEntityTypeConfiguration<Medic
     }
 }
 
-public class ActionRequestConfiguration : IEntityTypeConfiguration<ActionRequest>
-{
-    public void Configure(EntityTypeBuilder<ActionRequest> builder)
-    {
-        builder.ToTable("ActionRequests");
-        builder.Property(a => a.CorrelationId).HasMaxLength(64).IsRequired();
-        builder.Property(a => a.DoctorId).HasMaxLength(450).IsRequired();
-        builder.Property(a => a.RequestPayload).HasColumnType("jsonb");
-        builder.Property(a => a.ResponsePayload).HasColumnType("jsonb");
-        builder.Property(a => a.ExternalJobId).HasMaxLength(128);
-        builder.Property(a => a.FailureReason).HasMaxLength(2000);
-        builder.HasIndex(a => a.CorrelationId).IsUnique();
-    }
-}
-
 public class AuditLogConfiguration : IEntityTypeConfiguration<AuditLog>
 {
     public void Configure(EntityTypeBuilder<AuditLog> builder)
@@ -100,6 +85,24 @@ public class ErrorLogConfiguration : IEntityTypeConfiguration<ErrorLog>
         builder.Property(e => e.Message).HasMaxLength(4000);
         builder.Property(e => e.Path).HasMaxLength(500);
         builder.Property(e => e.Method).HasMaxLength(20);
+    }
+}
+
+public class ChatRequestConfiguration : IEntityTypeConfiguration<ChatRequest>
+{
+    public void Configure(EntityTypeBuilder<ChatRequest> builder)
+    {
+        builder.ToTable("ChatRequests");
+        builder.Property(c => c.CorrelationId).HasMaxLength(64).IsRequired();
+        builder.Property(c => c.DoctorId).HasMaxLength(450).IsRequired();
+        builder.Property(c => c.Message).HasColumnType("text").IsRequired();
+        builder.Property(c => c.SessionId).HasMaxLength(128);
+        builder.Property(c => c.ContextJson).HasColumnType("jsonb");
+        builder.Property(c => c.Answer).HasColumnType("text");
+        builder.Property(c => c.CitationsJson).HasColumnType("jsonb");
+        builder.Property(c => c.SuggestedActionsJson).HasColumnType("jsonb");
+        builder.Property(c => c.FailureReason).HasMaxLength(2000);
+        builder.HasIndex(c => c.CorrelationId).IsUnique();
     }
 }
 
